@@ -10,7 +10,16 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
   cupertino_icons: ^1.0.8
+
+  shared_preferences: ^2.5.5
+  flutter_bloc: ^9.1.1
+  get_it: ^9.2.1
+  logger: ^2.7.0
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:
@@ -19,3 +28,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true
+
+  assets:
+    - assets/room.png
