@@ -140,6 +140,12 @@ abstract class AppLocalizations {
   /// **'Controls'**
   String get moduleControlsTitle;
 
+  /// No description provided for @moduleWidgetsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Widgets'**
+  String get moduleWidgetsTitle;
+
   /// No description provided for @controlsPower.
   ///
   /// In en, this message translates to:
@@ -211,6 +217,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Weather unavailable'**
   String get weatherError;
+
+  /// No description provided for @weatherFetchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t get weather for \"{city}\"'**
+  String weatherFetchFailed(Object city);
 
   /// No description provided for @weatherFeelsLike.
   ///

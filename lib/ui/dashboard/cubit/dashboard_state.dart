@@ -10,7 +10,7 @@ class DashboardState {
     this.forward = true,
   });
 
-  final List<DashItemConfig> items;
+  final List<DashboardItemConfig> items;
   final int currentPage;
 
   /// Direction of the most recent page change, used to pick the LCD slide
@@ -19,11 +19,11 @@ class DashboardState {
   final bool forward;
 
   /// The enabled subset, in display order — what the LCD carousel shows.
-  List<DashItemConfig> get enabledItems =>
+  List<DashboardItemConfig> get enabledItems =>
       items.where((i) => i.enabled).toList(growable: false);
 
   DashboardState copyWith({
-    List<DashItemConfig>? items,
+    List<DashboardItemConfig>? items,
     int? currentPage,
     bool? forward,
   }) {

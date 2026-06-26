@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nano_dash/l10n/app_localizations.dart';
 
 import '../../../data/repositories/module_repository.dart';
-import '../../../domain/models/dash_item_config.dart';
+import '../../../domain/models/dashboard.dart';
 import '../cubit/dashboard_cubit.dart';
 
 /// The subtree mirrored onto the LCD: the enabled modules shown one full-screen
@@ -14,19 +14,12 @@ import '../cubit/dashboard_cubit.dart';
 /// slides the content left; a swipe to the right goes back and slides right.
 /// The direction is carried on [DashboardState.forward].
 ///
-/// The panel is driven over SPI with no TE (tearing-effect) sync, so the slide
-/// — which moves the whole frame every frame — races the panel's top-to-bottom
-/// scan and can staircase into a drifting diagonal tear: every transitional
-/// frame can tear. We therefore keep the slide deliberately short so only a
-/// handful of frames are transitional, bounding how many frames can tear while
-/// still giving the switch a soft edge instead of a hard cut.
-///
 /// Page changes flow through [DashboardCubit]: a physical-touch swipe on the
 /// panel advances it here, and the on-screen carousel chevrons step it too.
 /// Minimum net horizontal travel (logical px) that counts as a page swipe when
 /// no fling velocity was measured. Comfortably above [kTouchSlop] so a tap that
 /// drifts a little doesn't flip pages.
-const double _kSwipeDistance = 40;
+const double _kSwipeDistance = 20;
 
 /// Duration of the page-switch slide. Kept short on purpose: the SPI panel has
 /// no TE sync, so every transitional frame can tear — a brief slide bounds the
@@ -77,7 +70,7 @@ class DashboardLcdView extends StatelessWidget {
 
     return BlocBuilder<DashboardCubit, DashboardState>(
       // Rebuild on a page switch, on enable/disable, and on a live settings
-      // edit to the visible page (enabledItems carries item settings).
+      // edit to the visible page.
       buildWhen: (prev, curr) =>
           prev.currentPage != curr.currentPage ||
           prev.enabledItems != curr.enabledItems,
@@ -90,15 +83,6 @@ class DashboardLcdView extends StatelessWidget {
         final cur = state.currentPage.clamp(0, count - 1);
         final item = pages[cur];
 
-        // Keyed by module + page so a page switch swaps to the new module —
-        // the differing key is also what drives the AnimatedSwitcher slide below
-        // — while a live settings edit to the *same* page keeps the key and
-        // rebuilds the module in place (no slide, no remount).
-        //
-        // The transitionBuilder is a fresh closure capturing the current
-        // direction: when `forward` flips, its identity changes, so
-        // AnimatedSwitcher rebuilds the outgoing page's transition too, keeping
-        // both pages sliding the same way.
         Widget view = AnimatedSwitcher(
           duration: _kSwitchDuration,
           transitionBuilder: (child, animation) =>
@@ -110,8 +94,7 @@ class DashboardLcdView extends StatelessWidget {
         );
 
         // With more than one module, a horizontal swipe steps pages. Restrict
-        // it to touch/stylus (the panel's input) — no mouse drag — so on-screen
-        // mouse interaction is left to the carousel chrome.
+        // it to touch/stylus (the panel's input).
         if (count > 1) {
           view = RawGestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -128,8 +111,7 @@ class DashboardLcdView extends StatelessWidget {
                     ),
                     (recognizer) {
                       // Net horizontal travel of the in-flight drag. We need this
-                      // because a janky module (e.g. Live2D pumps a native frame
-                      // every vsync) starves pointer-move delivery, and the velocity
+                      // because a janky module starves pointer-move delivery, and the velocity
                       // tracker then can't classify the gesture as a fling —
                       // primaryVelocity comes back 0. Distance survives that, so we
                       // fall back to it. build() isn't called mid-drag (buildWhen
@@ -150,12 +132,11 @@ class DashboardLcdView extends StatelessWidget {
 
         // Shared room background, painted once below the page switcher. Modules
         // render transparently on top (the LCD subtree composites over this), so
-        // a page switch only transitions the module while the background stays
-        // static — no per-frame background churn for the dirty-rect diff to send.
+        // a page switch only transitions the module while the background stays static.
         return Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset('assets/room.png', fit: BoxFit.cover),
+            Image.asset('assets/bg.png', fit: BoxFit.cover),
             view,
           ],
         );
@@ -165,11 +146,6 @@ class DashboardLcdView extends StatelessWidget {
 
   /// A swipe steps one page (wrapping): left → next (slide left), right →
   /// previous (slide right).
-  ///
-  /// Direction is taken from the fling velocity when one was measured, and
-  /// otherwise from the net drag distance [dragDx] (negative = leftward). The
-  /// distance fallback is what keeps page-switching working over modules that
-  /// jank the UI thread enough to suppress the fling estimate (e.g. Live2D).
   void _onSwipe(BuildContext context, DragEndDetails details, double dragDx) {
     final velocity = details.primaryVelocity ?? 0;
     // Leftward is negative for both signals.
@@ -188,13 +164,13 @@ class DashboardLcdView extends StatelessWidget {
   Widget _buildModule(
     BuildContext context,
     ModuleRepository modules,
-    DashItemConfig item,
+    DashboardItemConfig item,
   ) {
     final module = modules.byId(item.moduleId);
     if (module == null) {
       return const ColoredBox(color: Colors.black);
     }
-    return module.buildLcd(context, item.settings);
+    return module.build(context, item.settings);
   }
 }
 

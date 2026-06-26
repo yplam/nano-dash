@@ -19,7 +19,10 @@ dependencies:
   flutter_bloc: ^9.1.1
   get_it: ^9.2.1
   logger: ^2.7.0
-  http: ^1.6.0
+  dio: ^5.9.2
+
+  pico_view:
+    path: packages/pico_view
 
 dev_dependencies:
   flutter_test:
@@ -31,4 +34,9 @@ flutter:
   generate: true
 
   assets:
-    - assets/room.png
+    - assets/bg.png
+
+  fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito.ttf

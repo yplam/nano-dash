@@ -3,13 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nano_dash/l10n/app_localizations.dart';
 
 import '../../../data/repositories/module_repository.dart';
-import '../../../domain/models/dash_item_config.dart';
-import '../../../domain/models/dash_module.dart';
+import '../../../domain/models/dashboard.dart';
+import '../../../domain/models/module.dart';
 import '../cubit/dashboard_cubit.dart';
 
-/// The configuration list under the LCD preview: every available widget with an
-/// enable switch, a drag handle for display order, and an optional settings
-/// button.
+/// The configuration list under the LCD preview.
 class DashboardConfigPanel extends StatelessWidget {
   const DashboardConfigPanel({super.key});
 
@@ -27,7 +25,7 @@ class DashboardConfigPanel extends StatelessWidget {
           onReorderItem: (oldIndex, newIndex) =>
               context.read<DashboardCubit>().reorder(oldIndex, newIndex),
           itemBuilder: (context, index) {
-            final DashItemConfig item = state.items[index];
+            final DashboardItemConfig item = state.items[index];
             final module = modules.byId(item.moduleId);
             if (module == null) {
               return SizedBox.shrink(key: ValueKey('missing-$index'));
@@ -54,8 +52,8 @@ class _ModuleTile extends StatelessWidget {
   });
 
   final int index;
-  final DashModule module;
-  final DashItemConfig item;
+  final Module module;
+  final DashboardItemConfig item;
 
   @override
   Widget build(BuildContext context) {
@@ -80,8 +78,7 @@ class _ModuleTile extends StatelessWidget {
             onChanged: (_) => cubit.toggle(item.moduleId),
           ),
           // Config-only modules (no LCD page) take no place in the page order,
-          // so they get no drag handle. A fixed-width spacer keeps the switches
-          // aligned with the draggable rows.
+          // so they get no drag handle.
           if (module.hasDisplay)
             ReorderableDragStartListener(
               index: index,

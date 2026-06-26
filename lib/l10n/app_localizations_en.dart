@@ -30,6 +30,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleControlsTitle => 'Controls';
 
   @override
+  String get moduleWidgetsTitle => 'Widgets';
+
+  @override
   String get controlsPower => 'Power';
 
   @override
@@ -64,6 +67,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weatherError => 'Weather unavailable';
+
+  @override
+  String weatherFetchFailed(Object city) {
+    return 'Couldn\'t get weather for \"$city\"';
+  }
 
   @override
   String weatherFeelsLike(Object temp) {

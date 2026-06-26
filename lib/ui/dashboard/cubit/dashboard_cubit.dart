@@ -2,15 +2,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/repositories/module_repository.dart';
 import '../../../data/repositories/settings_repository.dart';
-import '../../../domain/models/dash_item_config.dart';
-import '../../../domain/models/dash_module.dart';
+import '../../../domain/models/dashboard.dart';
 import '../../../extensions/loggable.dart';
 
 part 'dashboard_state.dart';
 
 /// Owns the dashboard configuration: enable/disable, ordering, per-module
-/// settings, and the active LCD page. Every mutation persists via
-/// [SettingsRepository].
+/// settings, and the active LCD page.
 class DashboardCubit extends Cubit<DashboardState> with Loggable {
   DashboardCubit(this._repository, this._modules)
     : super(const DashboardState());
@@ -28,9 +26,9 @@ class DashboardCubit extends Cubit<DashboardState> with Loggable {
   void load() {
     final stored = _repository.loadList(
       dashboardConfigKey,
-      DashItemConfig.fromJson,
+      DashboardItemConfig.fromJson,
     );
-    final items = <DashItemConfig>[];
+    final items = <DashboardItemConfig>[];
     final seen = <String>{};
 
     for (final config in stored) {
@@ -43,7 +41,7 @@ class DashboardCubit extends Cubit<DashboardState> with Loggable {
     for (final module in _modules.modules) {
       if (seen.contains(module.id)) continue;
       items.add(
-        DashItemConfig(
+        DashboardItemConfig(
           moduleId: module.id,
           enabled: false,
           settings: module.defaultSettings,
@@ -77,7 +75,7 @@ class DashboardCubit extends Cubit<DashboardState> with Loggable {
   }
 
   /// Replace a module's settings.
-  void updateSettings(String moduleId, DashSettings settings) {
+  void updateSettings(String moduleId, ModuleSettings settings) {
     final items = [
       for (final item in state.items)
         if (item.moduleId == moduleId)
@@ -105,7 +103,7 @@ class DashboardCubit extends Cubit<DashboardState> with Loggable {
   }
 
   /// Apply a new item list, clamp the page, persist.
-  void _commit(List<DashItemConfig> items) {
+  void _commit(List<DashboardItemConfig> items) {
     final pageCount = _modules.pages(items).length;
     final page = pageCount == 0 ? 0 : state.currentPage.clamp(0, pageCount - 1);
     emit(DashboardState(items: items, currentPage: page));

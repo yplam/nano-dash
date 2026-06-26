@@ -1,32 +1,36 @@
 part of 'weather_cubit.dart';
 
-/// View state for the weather widget. [data] is the last good snapshot (kept on
-/// screen across refreshes and failures); [loading] marks an in-flight fetch.
-/// Temperature in [data] is always Celsius — [fahrenheit] only affects display.
+/// View state for the weather widget.
 class WeatherState {
   const WeatherState({
     required this.city,
-    this.fahrenheit = false,
     this.data,
     this.loading = false,
+    this.error,
   });
 
   final String city;
-  final bool fahrenheit;
   final WeatherData? data;
   final bool loading;
 
+  /// The error from the most recent failed fetch, or `null` if the last fetch
+  /// succeeded (or none has been attempted). Each failure carries a fresh
+  /// instance so listeners can tell one failure from the next.
+  final Object? error;
+
   WeatherState copyWith({
     String? city,
-    bool? fahrenheit,
     WeatherData? data,
+    bool clearData = false,
     bool? loading,
+    Object? error,
+    bool clearError = false,
   }) {
     return WeatherState(
       city: city ?? this.city,
-      fahrenheit: fahrenheit ?? this.fahrenheit,
-      data: data ?? this.data,
+      data: clearData ? null : (data ?? this.data),
       loading: loading ?? this.loading,
+      error: clearError ? null : (error ?? this.error),
     );
   }
 }

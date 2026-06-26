@@ -1,0 +1,20 @@
+# Run with `dart run ffigen --config ffigen.yaml`.
+name: PicoViewBindings
+description: |
+  Bindings for `src/pico_view.h`.
+
+  Regenerate bindings with `dart run ffigen --config ffigen.yaml`.
+output: 'lib/src/pico_view_bindings_generated.dart'
+# Emit `@ffi.Native` bindings (not the DynamicLibrary-lookup style). With no
+# asset-id, each symbol resolves against this library's own URI as the default
+# asset — i.e. `package:pico_view/src/pico_view_bindings_generated.dart`, which
+# is exactly the code-asset name hook/build.dart registers for the prebuilt lib.
+ffi-native:
+comments:
+  style: any
+  length: full
+headers:
+  entry-points:
+    - 'src/pico_view.h'
+  include-directives:
+    - 'src/pico_view.h'

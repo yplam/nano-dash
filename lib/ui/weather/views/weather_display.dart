@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../l10n/app_localizations.dart';
 import '../cubit/weather_cubit.dart';
 import '../weather_visuals.dart';
 
@@ -40,44 +39,19 @@ class _WeatherDisplayState extends State<WeatherDisplay> {
     ColorScheme colors,
     WeatherState state,
   ) {
-    final l10n = AppLocalizations.of(context);
     final data = state.data;
+    // Nothing to show: no city, still loading, or the last fetch failed.
+    if (data == null) return const SizedBox.shrink();
 
-    // First load with nothing to show yet.
-    if (data == null && state.loading) {
-      return const SizedBox(
-        width: 20,
-        height: 20,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      );
-    }
-
-    // Failed with no prior data to fall back on.
-    if (data == null) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.cloud_off, color: colors.onSurfaceVariant, size: 28),
-          const SizedBox(width: 8),
-          Text(
-            l10n.weatherError,
-            style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
-          ),
-        ],
-      );
-    }
-
-    final unit = state.fahrenheit ? '°F' : '°C';
     final visual = weatherVisual(data.condition, isDay: data.isDay);
 
-    String temp(double celsius) =>
-        '${(state.fahrenheit ? celsius * 9 / 5 + 32 : celsius).round()}';
+    String temp(double celsius) => '${celsius.round()}';
 
     // The numbers carry the reading; the unit symbols sit smaller alongside.
     const unitStyle = TextStyle(fontSize: 13);
     final spans = <InlineSpan>[
       TextSpan(text: temp(data.temperatureC)),
-      TextSpan(text: unit, style: unitStyle),
+      const TextSpan(text: '°C', style: unitStyle),
     ];
     if (data.humidity != null) {
       spans.add(const TextSpan(text: ' '));

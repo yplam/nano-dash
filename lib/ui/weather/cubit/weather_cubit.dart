@@ -8,10 +8,7 @@ import '../../../../extensions/loggable.dart';
 
 part 'weather_state.dart';
 
-/// Owns the weather widget's settings state (city + display unit) and drives
-/// polling: it restores and persists settings through [WeatherRepository],
-/// fetches current conditions through it on a timer, and caches the last good
-/// result in state. The module renders purely from [WeatherState].
+/// Owns the weather widget's settings state and drives polling.
 class WeatherCubit extends Cubit<WeatherState> with Loggable {
   WeatherCubit(this._repository) : super(_restore(_repository)) {
     _fetch();
@@ -20,83 +17,71 @@ class WeatherCubit extends Cubit<WeatherState> with Loggable {
 
   final WeatherRepository _repository;
 
-  /// How often to re-poll current conditions. Open-Meteo updates roughly every
-  /// 15 minutes, so anything tighter just wastes requests.
+  /// How often to re-poll current conditions.
   static const Duration _kRefreshInterval = Duration(minutes: 15);
 
   Timer? _timer;
 
-  /// The geocoding/place-name language, supplied by the view from the current
-  /// locale. `null` until the first [setLanguage], which triggers the initial
-  /// fetch.
   String? _language;
 
-  /// Guards against a slow in-flight fetch (e.g. for an old city) overwriting a
-  /// newer one's result. Each fetch captures this; only the latest applies.
+  /// Guards against a slow in-flight fetch overwriting a newer one's result.
   int _requestId = 0;
 
   @override
   String get logIdentifier => '[WeatherCubit]';
 
   static WeatherState _restore(WeatherRepository repository) {
-    final config = repository.config;
-    return WeatherState(city: config.city, fahrenheit: config.fahrenheit);
+    return WeatherState(city: repository.config.city);
   }
 
-  /// Set the language used for geocoding and the returned place name. Called by
-  /// the view with the current locale; drives the initial load and refetches
-  /// whenever the locale changes.
+  /// Set the language used for geocoding and the returned place name.
   void setLanguage(String language) {
     if (language == _language) return;
     _language = language;
     _fetch();
   }
 
-  /// Update the configured city, persist it, and refetch. An empty value falls
-  /// back to [kDefaultCity].
+  /// Update the configured city, persist it, and refetch. An empty city clears
+  /// the readout and stops polling until a city is set again.
   void setCity(String city) {
-    final trimmed = city.trim();
-    final next = trimmed.isEmpty ? WeatherConfig.defaultCity : trimmed;
+    final next = city.trim();
     if (next == state.city) return;
-    emit(state.copyWith(city: next));
+    // The old city's data no longer applies; drop it (and any error) so the
+    // view doesn't show stale conditions while the new city loads.
+    emit(state.copyWith(city: next, clearData: true, clearError: true));
     _persist();
     _fetch();
   }
 
-  /// Toggle the display unit. Display-only: the cached data is always Celsius,
-  /// so no refetch is needed.
-  void setFahrenheit(bool fahrenheit) {
-    if (fahrenheit == state.fahrenheit) return;
-    emit(state.copyWith(fahrenheit: fahrenheit));
-    _persist();
-  }
-
   Future<void> _fetch() async {
+    final city = state.city.trim();
+    // No city configured: nothing to fetch or display.
+    if (city.isEmpty) {
+      emit(state.copyWith(clearData: true, loading: false, clearError: true));
+      return;
+    }
+
     final language = _language ?? 'en';
-    final city = state.city;
     final id = ++_requestId;
-    emit(state.copyWith(loading: true));
+    emit(state.copyWith(loading: true, clearError: true));
     try {
       final data = await _repository.fetch(city, language: language);
       if (isClosed || id != _requestId) return;
-      emit(state.copyWith(data: data, loading: false));
+      emit(state.copyWith(data: data, loading: false, clearError: true));
     } catch (e, s) {
       if (isClosed || id != _requestId) return;
       logWarning('fetch failed for "$city"', error: e, stackTrace: s);
-      emit(state.copyWith(loading: false));
+      emit(state.copyWith(loading: false, error: e));
     }
   }
 
   void _persist() {
-    _repository
-        .save(WeatherConfig(city: state.city, fahrenheit: state.fahrenheit))
-        .catchError((Object e, StackTrace s) {
-          logError(
-            'failed to persist weather settings',
-            error: e,
-            stackTrace: s,
-          );
-        });
+    _repository.save(WeatherConfig(city: state.city)).catchError((
+      Object e,
+      StackTrace s,
+    ) {
+      logError('failed to persist weather settings', error: e, stackTrace: s);
+    });
   }
 
   @override

@@ -1,0 +1,6 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    # Generated FFI bindings.
+    - lib/src/pico_view_bindings_generated.dart

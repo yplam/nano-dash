@@ -30,6 +30,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get moduleControlsTitle => '控制';
 
   @override
+  String get moduleWidgetsTitle => '组件';
+
+  @override
   String get controlsPower => '电源';
 
   @override
@@ -64,6 +67,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get weatherError => '天气不可用';
+
+  @override
+  String weatherFetchFailed(Object city) {
+    return '无法获取 \"$city\" 的天气';
+  }
 
   @override
   String weatherFeelsLike(Object temp) {

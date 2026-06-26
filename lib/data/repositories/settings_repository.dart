@@ -8,17 +8,13 @@ import '../../domain/models/json_model.dart';
 /// [SharedPreferences]. Each settings object lives under its own key (a
 /// [SettingKey]); this repository only encodes/decodes JSON and never names a
 /// concrete settings type, so adding a module's settings means declaring a key
-/// and a [JsonModel] — no new repository.
-///
-/// Replaces the former per-module repositories (agent/voice/dashboard); the one
-/// key per module preserves their independent version suffixes and migration.
+/// and a [JsonModel].
 class SettingsRepository {
   const SettingsRepository(this._prefs);
 
   final SharedPreferences _prefs;
 
-  /// Returns the stored value for [k], or [SettingKey.defaults] if nothing has
-  /// been persisted yet (or the stored JSON isn't a map).
+  /// Returns the stored value for [k], or [SettingKey.defaults].
   T load<T extends JsonModel>(SettingKey<T> k) {
     final raw = _prefs.getString(k.key);
     if (raw == null) return k.defaults;
@@ -32,8 +28,7 @@ class SettingsRepository {
       _prefs.setString(k.key, jsonEncode(value.toJson()));
 
   /// Returns the stored ordered list under [key], or an empty list if nothing
-  /// has been persisted yet (or the stored JSON isn't a list). Used for the
-  /// dashboard config, whose payload is a list rather than a single object.
+  /// has been persisted yet.
   List<T> loadList<T extends JsonModel>(
     String key,
     T Function(Map<String, Object?> json) fromJson,

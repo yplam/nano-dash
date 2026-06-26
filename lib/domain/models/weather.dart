@@ -72,50 +72,6 @@ class AirQuality {
   }
 }
 
-/// One day of forecast. Temperatures are Celsius (the canonical unit), matching
-/// [WeatherData]; the display unit is applied at format time.
-class DailyForecast {
-  const DailyForecast({
-    required this.date,
-    required this.condition,
-    required this.highC,
-    required this.lowC,
-    this.precipitationProbability,
-  });
-
-  final DateTime date;
-  final WeatherCondition condition;
-  final double highC;
-  final double lowC;
-
-  /// Max chance of precipitation for the day, in percent (0–100), or `null`.
-  final int? precipitationProbability;
-
-  /// A short, human-readable name for [condition]. Unlike
-  /// [WeatherData.conditionLabel] there's no day/night split — a forecast day
-  /// spans both.
-  String get conditionLabel {
-    switch (condition) {
-      case WeatherCondition.clear:
-        return 'clear';
-      case WeatherCondition.partlyCloudy:
-        return 'partly cloudy';
-      case WeatherCondition.cloudy:
-        return 'cloudy';
-      case WeatherCondition.fog:
-        return 'fog';
-      case WeatherCondition.drizzle:
-        return 'drizzle';
-      case WeatherCondition.rain:
-        return 'rain';
-      case WeatherCondition.snow:
-        return 'snow';
-      case WeatherCondition.thunderstorm:
-        return 'thunderstorm';
-    }
-  }
-}
-
 /// A current-conditions snapshot for a place. Temperature is always stored as
 /// Celsius (the canonical unit); callers pick the display unit when formatting,
 /// so a unit toggle never needs a refetch and a cached snapshot never goes
@@ -130,7 +86,6 @@ class WeatherData {
     this.windSpeedKmh,
     this.isDay = true,
     this.airQuality,
-    this.forecast = const [],
   });
 
   final String city;
@@ -147,13 +102,7 @@ class WeatherData {
   /// one — it must never fail the current-conditions fetch.
   final AirQuality? airQuality;
 
-  /// Multi-day daily forecast (today first), or empty if none was requested.
-  final List<DailyForecast> forecast;
-
-  WeatherData copyWith({
-    AirQuality? airQuality,
-    List<DailyForecast>? forecast,
-  }) {
+  WeatherData copyWith({AirQuality? airQuality}) {
     return WeatherData(
       city: city,
       temperatureC: temperatureC,
@@ -163,7 +112,6 @@ class WeatherData {
       windSpeedKmh: windSpeedKmh,
       isDay: isDay,
       airQuality: airQuality ?? this.airQuality,
-      forecast: forecast ?? this.forecast,
     );
   }
 
@@ -192,75 +140,48 @@ class WeatherData {
   }
 
   /// A one-line summary of these conditions, suitable for feeding to the chat
-  /// agent as context. [fahrenheit] selects the temperature unit; the stored
-  /// value is always Celsius, so the caller passes the user's current
-  /// preference at format time.
-  String summary({bool fahrenheit = false}) {
-    final unit = fahrenheit ? '°F' : '°C';
-    String fmt(double c) => '${(fahrenheit ? c * 9 / 5 + 32 : c).round()}$unit';
+  /// agent as context. Temperatures are always Celsius.
+  String summary() {
+    String fmt(double c) => '${c.round()}°C';
     final parts = <String>[
       '$city: ${fmt(temperatureC)}',
       conditionLabel,
-      if (apparentTemperatureC != null) 'feels like ${fmt(apparentTemperatureC!)}',
+      if (apparentTemperatureC != null)
+        'feels like ${fmt(apparentTemperatureC!)}',
       if (humidity != null) 'humidity $humidity%',
       if (windSpeedKmh != null) 'wind ${windSpeedKmh!.round()} km/h',
       if (airQuality != null) 'air quality ${airQuality!.levelLabel}',
     ];
-    var result = parts.join(', ');
-
-    if (forecast.isNotEmpty) {
-      const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      final days = forecast
-          .map(
-            (d) =>
-                '${weekdays[d.date.weekday - 1]} ${d.conditionLabel} '
-                '${fmt(d.highC)}/${fmt(d.lowC)}',
-          )
-          .join('; ');
-      result = '$result. Forecast: $days';
-    }
-    return result;
+    return parts.join(', ');
   }
 }
 
-/// The weather readout's user settings: the place to look up and the display
-/// unit. Persisted via [SettingsRepository] (under [weatherSettingsKey]) and
-/// cached by `WeatherRepository`; edited through the settings widget.
 class WeatherConfig implements JsonModel {
-  const WeatherConfig({this.city = defaultCity, this.fahrenheit = false});
+  const WeatherConfig({this.city = defaultCity});
 
-  /// Used when nothing has been persisted yet and as the fallback for a blank
-  /// city.
+  /// Used when nothing has been persisted yet and as the fallback for a blank city.
   static const String defaultCity = 'Guangzhou';
 
   final String city;
-  final bool fahrenheit;
 
-  WeatherConfig copyWith({String? city, bool? fahrenheit}) => WeatherConfig(
-    city: city ?? this.city,
-    fahrenheit: fahrenheit ?? this.fahrenheit,
-  );
+  WeatherConfig copyWith({String? city}) =>
+      WeatherConfig(city: city ?? this.city);
 
-  factory WeatherConfig.fromJson(Map<String, Object?> json) => WeatherConfig(
-    city: json['city'] as String? ?? defaultCity,
-    fahrenheit: json['fahrenheit'] == true,
-  );
+  factory WeatherConfig.fromJson(Map<String, Object?> json) =>
+      WeatherConfig(city: json['city'] as String? ?? defaultCity);
 
   @override
-  Map<String, Object?> toJson() => {'city': city, 'fahrenheit': fahrenheit};
+  Map<String, Object?> toJson() => {'city': city};
 
   @override
   bool operator ==(Object other) =>
-      other is WeatherConfig &&
-      other.city == city &&
-      other.fahrenheit == fahrenheit;
+      other is WeatherConfig && other.city == city;
 
   @override
-  int get hashCode => Object.hash(city, fahrenheit);
+  int get hashCode => city.hashCode;
 }
 
-/// Persistence handle for [WeatherConfig]. The `_v1` suffix matches the key the
-/// former `WeatherRepository` storage used, so existing settings still load.
+/// Persistence handle for [WeatherConfig].
 const weatherSettingsKey = SettingKey<WeatherConfig>(
   'weather_config_v1',
   WeatherConfig.fromJson,
