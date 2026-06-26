@@ -30,5 +30,10 @@
   "weatherAqiVeryPoor": "差",
   "weatherAqiExtremelyPoor": "极差",
   "picoViewOpenFailed": "无法打开 LCD 显示屏。",
-  "retry": "重试"
+  "retry": "重试",
+  "settings": "设置",
+  "trayShow": "显示 NanoDash",
+  "trayHide": "隐藏到托盘",
+  "trayQuit": "退出",
+  "trayTooltip": "NanoDash"
 }

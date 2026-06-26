@@ -283,6 +283,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry'**
   String get retry;
+
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// No description provided for @trayShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show NanoDash'**
+  String get trayShow;
+
+  /// No description provided for @trayHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide to tray'**
+  String get trayHide;
+
+  /// No description provided for @trayQuit.
+  ///
+  /// In en, this message translates to:
+  /// **'Quit'**
+  String get trayQuit;
+
+  /// No description provided for @trayTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'NanoDash'**
+  String get trayTooltip;
 }
 
 class _AppLocalizationsDelegate

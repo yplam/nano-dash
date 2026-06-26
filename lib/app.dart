@@ -4,22 +4,43 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'data/repositories/module_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'data/repositories/weather_repository.dart';
 import 'data/services/locator.dart';
+import 'data/services/tray_service.dart';
 import 'data/services/weather_service.dart';
 import 'l10n/app_localizations.dart';
 import 'ui/dashboard/dashboard.dart';
 import 'ui/modules/clock_module.dart';
 import 'ui/weather/weather.dart';
 
+const Locale kAppLocale = Locale('zh');
+
 Future<void> bootstrapApp() async {
   WidgetsFlutterBinding.ensureInitialized();
   // debugPaintSizeEnabled = true;
+  await windowManager.ensureInitialized();
+  await windowManager.waitUntilReadyToShow(
+    const WindowOptions(
+      size: kDashboardCompactSize,
+      minimumSize: Size(360, 380),
+      center: true,
+      title: 'NanoDash',
+    ),
+    () async {
+      await windowManager.show();
+      await windowManager.focus();
+    },
+  );
   await initializeDateFormatting();
   await setUpLocator();
+  // Run the app in the background via a tray icon; closing the window hides it
+  // instead of quitting. Labels use the same locale as the UI.
+  final tray = TrayService();
+  await tray.init(lookupAppLocalizations(kAppLocale));
   final prefs = await SharedPreferences.getInstance();
   final dio = Dio(
     BaseOptions(
@@ -27,19 +48,26 @@ Future<void> bootstrapApp() async {
       receiveTimeout: const Duration(seconds: 15),
     ),
   );
-  runApp(NanoDashApp(prefs: prefs, dio: dio));
+  runApp(NanoDashApp(prefs: prefs, dio: dio, tray: tray));
 }
 
 class NanoDashApp extends StatelessWidget {
-  const NanoDashApp({super.key, required this.prefs, required this.dio});
+  const NanoDashApp({
+    super.key,
+    required this.prefs,
+    required this.dio,
+    required this.tray,
+  });
 
   final SharedPreferences prefs;
   final Dio dio;
+  final TrayService tray;
 
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
+        RepositoryProvider<TrayService>.value(value: tray),
         RepositoryProvider<ModuleRepository>(
           create: (_) => const ModuleRepository([ClockModule()]),
         ),
@@ -69,13 +97,14 @@ class NanoDashApp extends StatelessWidget {
         ],
         child: MaterialApp(
           onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+          debugShowCheckedModeBanner: false,
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          locale: const Locale('zh'),
+          locale: kAppLocale,
           supportedLocales: AppLocalizations.supportedLocales,
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),

@@ -104,4 +104,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get retry => 'Retry';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get trayShow => 'Show NanoDash';
+
+  @override
+  String get trayHide => 'Hide to tray';
+
+  @override
+  String get trayQuit => 'Quit';
+
+  @override
+  String get trayTooltip => 'NanoDash';
 }

@@ -104,4 +104,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get retry => '重试';
+
+  @override
+  String get settings => '设置';
+
+  @override
+  String get trayShow => '显示 NanoDash';
+
+  @override
+  String get trayHide => '隐藏到托盘';
+
+  @override
+  String get trayQuit => '退出';
+
+  @override
+  String get trayTooltip => 'NanoDash';
 }

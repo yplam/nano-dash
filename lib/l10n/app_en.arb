@@ -30,5 +30,10 @@
   "weatherAqiVeryPoor": "Very poor",
   "weatherAqiExtremelyPoor": "Extremely poor",
   "picoViewOpenFailed": "Couldn't open the LCD display.",
-  "retry": "Retry"
+  "retry": "Retry",
+  "settings": "Settings",
+  "trayShow": "Show NanoDash",
+  "trayHide": "Hide to tray",
+  "trayQuit": "Quit",
+  "trayTooltip": "NanoDash"
 }
