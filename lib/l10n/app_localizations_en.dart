@@ -27,6 +27,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleClockTitle => 'Clock';
 
   @override
+  String get moduleTimerTitle => 'Timer';
+
+  @override
+  String get moduleStopwatchTitle => 'Stopwatch';
+
+  @override
+  String get timerMinutes => 'Minutes';
+
+  @override
+  String get timerSeconds => 'Seconds';
+
+  @override
+  String get timerDone => 'Done';
+
+  @override
   String get moduleControlsTitle => 'Controls';
 
   @override

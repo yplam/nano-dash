@@ -27,6 +27,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get moduleClockTitle => '时钟';
 
   @override
+  String get moduleTimerTitle => '计时器';
+
+  @override
+  String get moduleStopwatchTitle => '秒表';
+
+  @override
+  String get timerMinutes => '分钟';
+
+  @override
+  String get timerSeconds => '秒';
+
+  @override
+  String get timerDone => '完成';
+
+  @override
   String get moduleControlsTitle => '控制';
 
   @override

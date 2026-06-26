@@ -15,6 +15,10 @@ import 'data/services/weather_service.dart';
 import 'l10n/app_localizations.dart';
 import 'ui/dashboard/dashboard.dart';
 import 'ui/modules/clock_module.dart';
+import 'ui/modules/stopwatch_module.dart';
+import 'ui/modules/timer_module.dart';
+import 'ui/stopwatch/cubit/stopwatch_cubit.dart';
+import 'ui/timer/cubit/timer_cubit.dart';
 import 'ui/weather/weather.dart';
 
 const Locale kAppLocale = Locale('zh');
@@ -69,7 +73,11 @@ class NanoDashApp extends StatelessWidget {
       providers: [
         RepositoryProvider<TrayService>.value(value: tray),
         RepositoryProvider<ModuleRepository>(
-          create: (_) => const ModuleRepository([ClockModule()]),
+          create: (_) => const ModuleRepository([
+            ClockModule(),
+            TimerModule(),
+            StopwatchModule(),
+          ]),
         ),
         RepositoryProvider<SettingsRepository>(
           create: (_) => SettingsRepository(prefs),
@@ -92,6 +100,11 @@ class NanoDashApp extends StatelessWidget {
           BlocProvider<WeatherCubit>(
             create: (context) =>
                 WeatherCubit(context.read<WeatherRepository>()),
+            lazy: false,
+          ),
+          BlocProvider<TimerCubit>(create: (_) => TimerCubit(), lazy: false),
+          BlocProvider<StopwatchCubit>(
+            create: (_) => StopwatchCubit(),
             lazy: false,
           ),
         ],

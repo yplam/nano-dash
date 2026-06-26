@@ -134,6 +134,36 @@ abstract class AppLocalizations {
   /// **'Clock'**
   String get moduleClockTitle;
 
+  /// No description provided for @moduleTimerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Timer'**
+  String get moduleTimerTitle;
+
+  /// No description provided for @moduleStopwatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopwatch'**
+  String get moduleStopwatchTitle;
+
+  /// No description provided for @timerMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes'**
+  String get timerMinutes;
+
+  /// No description provided for @timerSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Seconds'**
+  String get timerSeconds;
+
+  /// No description provided for @timerDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get timerDone;
+
   /// No description provided for @moduleControlsTitle.
   ///
   /// In en, this message translates to:

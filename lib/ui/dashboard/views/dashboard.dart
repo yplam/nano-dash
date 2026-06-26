@@ -39,13 +39,20 @@ class _DashboardState extends State<Dashboard> with Loggable {
   }
 
   /// Show/hide the settings panel and grow/shrink the window to match.
+  ///
+  /// when opening we grow the window first, then reveal the panel; when closing
+  /// we hide the panel first, then shrink the window.
   Future<void> _toggleSettings() async {
     final open = !_settingsOpen;
-    setState(() => _settingsOpen = open);
     try {
-      await windowManager.setSize(
-        open ? kDashboardExpandedSize : kDashboardCompactSize,
-      );
+      if (open) {
+        await windowManager.setSize(kDashboardExpandedSize);
+        if (!mounted) return;
+        setState(() => _settingsOpen = true);
+      } else {
+        setState(() => _settingsOpen = false);
+        await windowManager.setSize(kDashboardCompactSize);
+      }
     } catch (e, s) {
       logWarning('failed to resize window', error: e, stackTrace: s);
     }
