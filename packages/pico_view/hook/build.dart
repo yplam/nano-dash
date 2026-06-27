@@ -51,14 +51,15 @@ void main(List<String> args) async {
 
 /// Resolves the prebuilt engine library for [os]/[arch] under `native/`.
 ///
-/// Prebuilt binaries exist only for Linux x64/arm64, macOS arm64 and
+/// Prebuilt binaries exist only for Linux x64/arm64, macOS x64/arm64 and
 /// Windows x64; anything else throws.
 ({String path}) _engineLibrary(OS os, Architecture arch) {
   if (os == OS.linux &&
       (arch == Architecture.x64 || arch == Architecture.arm64)) {
     return (path: 'native/linux/${_archDir(arch)}/libpico_view.so');
   }
-  if (os == OS.macOS && arch == Architecture.arm64) {
+  if (os == OS.macOS &&
+      (arch == Architecture.arm64 || arch == Architecture.x64)) {
     return (path: 'native/macos/${_archDir(arch)}/libpico_view.dylib');
   }
   if (os == OS.windows && arch == Architecture.x64) {

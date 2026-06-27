@@ -8,8 +8,10 @@ on:
 
 jobs:
   build-and-release:
-    # Apple Silicon runner: the only prebuilt pico_view engine for macOS is
-    # arm64 (native/macos/arm64/libpico_view.dylib), so we target arm64 only.
+    # Apple Silicon runner. pico_view now ships both macOS engine slices
+    # (native/macos/{arm64,x64}/libpico_view.dylib), so this runner cross-builds
+    # a universal (arm64 + x86_64) binary. GitHub no longer offers Intel macOS
+    # runners, hence building x86_64 here on Apple Silicon.
     runs-on: macos-14
     permissions:
       contents: write
@@ -33,7 +35,7 @@ jobs:
           version=${tag#v}
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "dmg_name=nano_dash-macos-v${version}-arm64.dmg" >> "$GITHUB_OUTPUT"
+          echo "dmg_name=nano_dash-macos-v${version}-universal.dmg" >> "$GITHUB_OUTPUT"
           echo "Building $tag (version $version)"
 
       - name: Setup Flutter
@@ -95,7 +97,7 @@ jobs:
           dmg="${{ steps.version.outputs.dmg_name }}"
           notes='Release '"$tag"'
 
-          ## macOS (Apple Silicon)
+          ## macOS (Universal — Intel & Apple Silicon)
           This build is unsigned (no Apple notarization). After downloading,
           clear the quarantine flag once, then open normally:
 

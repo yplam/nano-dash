@@ -1,6 +1,2 @@
 #include "../../Flutter/Flutter-Release.xcconfig"
 #include "Warnings.xcconfig"
-
-// pico_view ships a prebuilt arm64-only engine dylib.
-ARCHS = arm64
-EXCLUDED_ARCHS = x86_64
