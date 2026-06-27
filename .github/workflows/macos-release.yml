@@ -1,0 +1,114 @@
+name: macOS Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    # Apple Silicon runner: the only prebuilt pico_view engine for macOS is
+    # arm64 (native/macos/arm64/libpico_view.dylib), so we target arm64 only.
+    runs-on: macos-14
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # need tags for version detection
+
+      - name: Determine version
+        id: version
+        shell: bash
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            tag="${GITHUB_REF_NAME}"
+          else
+            # Manual run: use the most recent tag.
+            tag=$(git describe --tags --abbrev=0)
+          fi
+          version=${tag#v}
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "dmg_name=nano_dash-macos-v${version}-arm64.dmg" >> "$GITHUB_OUTPUT"
+          echo "Building $tag (version $version)"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.3'
+          channel: 'stable'
+          cache: true
+
+      - run: flutter --version
+
+      # The pico_view package ships the prebuilt Rust engine and registers it
+      # through Flutter's native-assets build hook; no Rust toolchain required.
+      # On macOS the CH347 driver is linked into the dylib (it talks to the chip
+      # as a USB HID device), so there is no separate runtime library to bundle.
+      - name: Enable native assets
+        run: flutter config --enable-native-assets
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      # Release config already sets CODE_SIGN_IDENTITY="-" (ad-hoc), which lets
+      # the bundle launch on Apple Silicon without an Apple Developer account.
+      - name: Build Flutter macOS app
+        run: flutter build macos --release
+
+      # Re-sign the whole bundle deeply (ad-hoc) so the embedded native-asset
+      # dylib is covered too. We cannot notarize without a paid account, so
+      # downloaders must clear the quarantine flag on first launch (see the
+      # release notes / README).
+      - name: Ad-hoc deep sign
+        run: |
+          codesign --force --deep --sign - \
+            build/macos/Build/Products/Release/nano_dash.app
+          codesign --verify --deep --strict --verbose=2 \
+            build/macos/Build/Products/Release/nano_dash.app
+
+      # Build a DMG with a drag-to-Applications layout using only built-in tools.
+      - name: Package DMG
+        run: |
+          app="build/macos/Build/Products/Release/nano_dash.app"
+          staging="dmg-staging"
+          rm -rf "$staging"
+          mkdir -p "$staging"
+          cp -R "$app" "$staging/"
+          ln -s /Applications "$staging/Applications"
+          hdiutil create \
+            -volname "Nano Dash" \
+            -srcfolder "$staging" \
+            -ov -format UDZO \
+            "${{ steps.version.outputs.dmg_name }}"
+
+      - name: Create / update GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          tag="${{ steps.version.outputs.tag }}"
+          dmg="${{ steps.version.outputs.dmg_name }}"
+          notes='Release '"$tag"'
+
+          ## macOS (Apple Silicon)
+          This build is unsigned (no Apple notarization). After downloading,
+          clear the quarantine flag once, then open normally:
+
+          ```
+          xattr -cr /Applications/nano_dash.app
+          ```
+
+          Or: System Settings → Privacy & Security → "Open Anyway".'
+          if gh release view "$tag" &>/dev/null; then
+            gh release upload "$tag" "$dmg" --clobber
+          else
+            gh release create "$tag" \
+              --title "Nano Dash $tag" \
+              --notes "$notes" \
+              "$dmg"
+          fi

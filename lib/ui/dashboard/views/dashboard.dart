@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -43,7 +44,30 @@ class _DashboardState extends State<Dashboard> with Loggable {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _openDevice());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _applyWindowSize(kDashboardCompactSize);
+      _openDevice();
+    });
+  }
+
+  /// Resize the window so the Flutter *content area* gets [contentSize].
+  ///
+  /// On Windows and macOS, `window_manager`'s set/get size operate on the outer
+  /// window rect (Win32 window rect / `NSWindow.frame`), so the native title bar
+  /// and borders shrink the content area, leaving it shorter than requested.
+  /// Measure the current chrome (outer − content) and add it back. Linux sizes
+  /// the content directly (`gtk_window_resize`), so it's skipped there.
+  Future<void> _applyWindowSize(Size contentSize) async {
+    var target = contentSize;
+    if ((Platform.isWindows || Platform.isMacOS) && mounted) {
+      final content = MediaQuery.sizeOf(context);
+      final outer = await windowManager.getSize();
+      target = Size(
+        contentSize.width + (outer.width - content.width),
+        contentSize.height + (outer.height - content.height),
+      );
+    }
+    await windowManager.setSize(target);
   }
 
   /// Show/hide the settings panel and grow/shrink the window to match.
@@ -54,12 +78,12 @@ class _DashboardState extends State<Dashboard> with Loggable {
     final open = !_settingsOpen;
     try {
       if (open) {
-        await windowManager.setSize(kDashboardExpandedSize);
+        await _applyWindowSize(kDashboardExpandedSize);
         if (!mounted) return;
         setState(() => _settingsOpen = true);
       } else {
         setState(() => _settingsOpen = false);
-        await windowManager.setSize(kDashboardCompactSize);
+        await _applyWindowSize(kDashboardCompactSize);
       }
     } catch (e, s) {
       logWarning('failed to resize window', error: e, stackTrace: s);

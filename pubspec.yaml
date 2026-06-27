@@ -69,4 +69,4 @@ msix_config:
   execution_alias: nanodash
   store: true
   languages: en-us, zh-cn
-  capabilities: internetClient, privateNetworkClientServer, serialcommunication
+  capabilities: internetClient, usb
