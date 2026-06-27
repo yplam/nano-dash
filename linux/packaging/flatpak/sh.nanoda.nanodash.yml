@@ -1,0 +1,31 @@
+app-id: sh.nanoda.nanodash
+runtime: org.gnome.Platform
+runtime-version: '48'
+sdk: org.gnome.Sdk
+command: nano_dash
+finish-args:
+  # Weather/data fetches over the network (dio).
+  - --share=network
+  - --share=ipc
+  # GUI sockets.
+  - --socket=wayland
+  - --socket=fallback-x11
+  # Raw USB access for the CH347 SPI/USB bridge.
+  - --device=all
+  # Persist shared_preferences / on-disk model + config files.
+  - --filesystem=home
+modules:
+  - name: nano_dash
+    buildsystem: simple
+    build-commands:
+      # Flutter bundle: `nano_dash` binary, `lib/` (incl. prebuilt
+      # libpico_view.so) and `data/` (flutter_assets, icudtl.dat).
+      - install -Dm755 nano_dash /app/bin/nano_dash
+      - mkdir -p /app/bin/lib
+      - cp -r lib/* /app/bin/lib/
+      - cp -r data /app/bin/
+      - install -Dm644 sh.nanoda.nanodash.desktop /app/share/applications/sh.nanoda.nanodash.desktop
+      - install -Dm644 sh.nanoda.nanodash.svg /app/share/icons/hicolor/scalable/apps/sh.nanoda.nanodash.svg
+    sources:
+      - type: dir
+        path: .

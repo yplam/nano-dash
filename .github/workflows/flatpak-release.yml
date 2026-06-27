@@ -1,0 +1,96 @@
+name: Flatpak Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # need tags for version detection
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            tag="${GITHUB_REF_NAME}"
+          else
+            # Manual run: use the most recent tag.
+            tag=$(git describe --tags --abbrev=0)
+          fi
+          version=${tag#v}
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "flatpak_name=nano_dash-linux-v${version}-x86_64.flatpak" >> "$GITHUB_OUTPUT"
+          echo "Building $tag (version $version)"
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev libblkid-dev liblzma-dev libudev-dev \
+            ninja-build clang cmake pkg-config \
+            flatpak flatpak-builder
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.3'
+          channel: 'stable'
+          cache: true
+
+      - run: flutter --version
+
+      # The pico_view package ships prebuilt native libraries and registers them
+      # through Flutter's native-assets build hook; no Rust toolchain required.
+      - name: Enable native assets
+        run: flutter config --enable-native-assets
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Build Flutter Linux app
+        run: flutter build linux --release
+
+      - name: Setup Flatpak runtime
+        run: |
+          sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak install -y flathub org.gnome.Platform//48 org.gnome.Sdk//48
+
+      - name: Build Flatpak
+        run: |
+          mkdir -p flatpak-staging
+          cp -r build/linux/x64/release/bundle/* flatpak-staging/
+          cp linux/packaging/flatpak/sh.nanoda.nanodash.desktop flatpak-staging/
+          cp linux/packaging/flatpak/sh.nanoda.nanodash.svg flatpak-staging/
+          cp linux/packaging/flatpak/sh.nanoda.nanodash.yml flatpak-staging/
+
+          flatpak-builder --force-clean --repo=flatpak-repo flatpak-build \
+            flatpak-staging/sh.nanoda.nanodash.yml
+
+          flatpak build-bundle flatpak-repo \
+            "${{ steps.version.outputs.flatpak_name }}" sh.nanoda.nanodash
+
+      - name: Create / update GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${{ steps.version.outputs.tag }}"
+          asset="${{ steps.version.outputs.flatpak_name }}"
+          if gh release view "$tag" &>/dev/null; then
+            gh release upload "$tag" "$asset" --clobber
+          else
+            gh release create "$tag" \
+              --title "Nano Dash $tag" \
+              --notes "Release $tag" \
+              "$asset"
+          fi

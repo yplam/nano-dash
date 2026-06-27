@@ -46,4 +46,3 @@ app.*.map.json
 
 # Local scratch (held the original pico_view incl. private Rust source — never commit)
 tmp/
-packages/pico_view/native/
