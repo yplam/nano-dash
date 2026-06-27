@@ -50,20 +50,31 @@ class PomodoroStatsView extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  InkResponse(
-                    onTap: onBack,
-                    radius: side * 0.08,
-                    child: Icon(
-                      Icons.chevron_left,
-                      size: side * 0.09,
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
+                  // Tapping the chevron or the title returns to the list.
                   Expanded(
-                    child: Text(
-                      l10n.timerStats,
-                      textAlign: TextAlign.center,
-                      style: panelFont(side * 0.065, 600, colors.onSurface),
+                    child: InkResponse(
+                      onTap: onBack,
+                      radius: side * 0.08,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.chevron_left,
+                            size: side * 0.09,
+                            color: colors.onSurfaceVariant,
+                          ),
+                          Expanded(
+                            child: Text(
+                              l10n.timerStats,
+                              textAlign: TextAlign.center,
+                              style: panelFont(
+                                side * 0.065,
+                                600,
+                                colors.onSurface,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   InkResponse(

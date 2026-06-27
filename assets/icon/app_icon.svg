@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- App icon derived from assets/tray/tray.svg (Material "dashboard").
+       White rounded background with the dashboard logo centered + padding. -->
+  <rect x="0" y="0" width="1024" height="1024" rx="180" ry="180" fill="#FFFFFF"/>
+  <g transform="translate(32,32) scale(40)">
+    <path d="M3 13h8V3H3v10z" fill="#4285F4"/>
+    <path d="M13 3v6h8V3h-8z" fill="#4285F4"/>
+    <path d="M3 21h8v-6H3v6z" fill="#4285F4"/>
+    <path d="M13 21h8V11h-8v10z" fill="#FBBC05"/>
+  </g>
+</svg>

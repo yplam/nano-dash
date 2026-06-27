@@ -30,6 +30,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  msix: ^3.16.12
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -38,8 +40,33 @@ flutter:
   assets:
     - assets/bg.png
     - assets/tray/
+    - assets/icon/
 
   fonts:
     - family: Nunito
       fonts:
         - asset: assets/fonts/Nunito.ttf
+
+# Generate desktop launcher icons from the master 1024x1024 icon.
+# Run: dart run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: assets/icon/app_icon.png
+  windows:
+    generate: true
+    image_path: assets/icon/app_icon.png
+    icon_size: 256
+  macos:
+    generate: true
+    image_path: assets/icon/app_icon.png
+
+msix_config:
+  display_name: NanoDash
+  publisher_display_name: lokxy
+  publisher: CN=DD135C2F-E60A-490E-98A8-B4C7B3FBBA32
+  identity_name: lokxy.NanoDash
+  msix_version: 1.0.0.0
+  logo_path: assets\icon\app_icon.png
+  execution_alias: nanodash
+  store: true
+  languages: en-us, zh-cn
+  capabilities: internetClient, privateNetworkClientServer, serialcommunication

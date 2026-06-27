@@ -1,0 +1,93 @@
+name: Windows Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # need tags for version detection
+
+      - name: Determine version
+        id: version
+        shell: bash
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            tag="${GITHUB_REF_NAME}"
+          else
+            # Manual run: use the most recent tag.
+            tag=$(git describe --tags --abbrev=0)
+          fi
+          version=${tag#v}
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "zip_name=nano_dash-windows-v${version}-x64.zip" >> "$GITHUB_OUTPUT"
+          echo "msix_name=nano_dash-windows-v${version}-x64.msix" >> "$GITHUB_OUTPUT"
+          echo "Building $tag (version $version)"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.3'
+          channel: 'stable'
+          cache: true
+
+      - run: flutter --version
+
+      # The pico_view package ships prebuilt native libraries (the Rust engine)
+      # and registers them + the CH347 DLL through Flutter's native-assets build
+      # hook; no Rust toolchain required. The DLL is bundled automatically.
+      - name: Enable native assets
+        run: flutter config --enable-native-assets
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Build Flutter Windows app
+        run: flutter build windows --release
+
+      # Portable ZIP straight from the release bundle (includes CH347DLLA64.DLL).
+      - name: Package portable ZIP
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -Path build/windows/x64/runner/Release/* `
+            -DestinationPath "${{ steps.version.outputs.zip_name }}"
+
+      - name: Build Store MSIX
+        run: dart run msix:create --store --version "${{ steps.version.outputs.version }}.0"
+
+      - name: Locate and rename MSIX
+        shell: pwsh
+        run: |
+          $msix = Get-ChildItem -Path build/windows/x64/runner/Release -Filter *.msix -Recurse |
+                  Select-Object -First 1
+          if (-not $msix) { throw "No .msix produced" }
+          Copy-Item $msix.FullName "${{ steps.version.outputs.msix_name }}"
+
+      - name: Create / update GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          tag="${{ steps.version.outputs.tag }}"
+          zip="${{ steps.version.outputs.zip_name }}"
+          msix="${{ steps.version.outputs.msix_name }}"
+          if gh release view "$tag" &>/dev/null; then
+            gh release upload "$tag" "$zip" "$msix" --clobber
+          else
+            gh release create "$tag" \
+              --title "Nano Dash $tag" \
+              --notes "Release $tag" \
+              "$zip" "$msix"
+          fi
