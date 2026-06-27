@@ -7,8 +7,8 @@ import '../timer/models/timer_config.dart';
 import '../timer/views/timer_settings_view.dart';
 import '../timer/views/timer_view.dart';
 
-/// A set of named countdown timers (defaulting to a Pomodoro trio), each with
-/// its own duration and sound/vibrate preferences.
+/// A set of named countdown timers, each with its own duration and
+/// sound/vibrate preferences. Defaults to a plain countdown plus a Pomodoro.
 class TimerModule extends Module {
   const TimerModule();
 
@@ -16,27 +16,23 @@ class TimerModule extends Module {
 
   static const String _kTimers = 'timers';
 
-  /// The default Pomodoro presets seeded when the module is first added.
-  /// Names are left empty and carried as semantic [TimerConfig.labelKey]s so
-  /// they render in the active locale.
+  /// The presets seeded when the module is first added: one plain countdown and
+  /// one Pomodoro timer (which manages its own short/long breaks). Names are
+  /// left empty and carried as semantic [TimerConfig.labelKey]s so they render
+  /// in the active locale.
   static const List<TimerConfig> _defaultTimers = [
     TimerConfig(
-      id: 'pomodoro-focus',
+      id: 'timer-countdown',
       name: '',
-      labelKey: 'focus',
-      duration: Duration(minutes: 25),
-    ),
-    TimerConfig(
-      id: 'pomodoro-short-break',
-      name: '',
-      labelKey: 'shortBreak',
+      labelKey: 'countdown',
       duration: Duration(minutes: 5),
     ),
     TimerConfig(
-      id: 'pomodoro-long-break',
+      id: 'timer-pomodoro',
       name: '',
-      labelKey: 'longBreak',
-      duration: Duration(minutes: 15),
+      labelKey: 'pomodoro',
+      duration: Duration(minutes: 25),
+      pomodoro: true,
     ),
   ];
 

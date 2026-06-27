@@ -44,8 +44,8 @@ class DurationField extends StatefulWidget {
 class _DurationFieldState extends State<DurationField> {
   static const int _maxHours = 99;
   static const int _maxMinSec = 59;
-  static const double _boxHeight = 56;
-  static const double _boxWidth = 64;
+  static const double _boxHeight = 48;
+  static const double _boxWidth = 62;
 
   late final _Unit _hours;
   late final _Unit _minutes;
@@ -143,7 +143,7 @@ class _DurationFieldState extends State<DurationField> {
         textAlign: TextAlign.center,
         textAlignVertical: TextAlignVertical.center,
         keyboardType: TextInputType.number,
-        style: panelFont(24, 600, theme.colorScheme.onSurface),
+        style: panelFont(20, 600, theme.colorScheme.onSurface),
         decoration: InputDecoration(
           labelText: unit.label,
           floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -163,10 +163,15 @@ class _DurationFieldState extends State<DurationField> {
 
   Widget _colon(ThemeData theme) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: SizedBox(
         height: _boxHeight,
-        child: Center(child: Text(':', style: theme.textTheme.headlineSmall)),
+        child: Center(
+          child: Text(
+            ':',
+            style: panelFont(20, 600, theme.colorScheme.onSurface),
+          ),
+        ),
       ),
     );
   }

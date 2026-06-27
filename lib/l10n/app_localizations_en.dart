@@ -66,6 +66,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timerEmpty => 'No timers';
 
   @override
+  String get timerDefaultCountdown => 'Countdown';
+
+  @override
+  String get timerDefaultPomodoro => 'Pomodoro';
+
+  @override
   String get timerDefaultFocus => 'Focus';
 
   @override
@@ -73,6 +79,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timerDefaultLongBreak => 'Long Break';
+
+  @override
+  String get timerPomodoro => 'Pomodoro';
+
+  @override
+  String get timerShortBreak => 'Short break';
+
+  @override
+  String get timerLongBreak => 'Long break';
+
+  @override
+  String get timerLongBreakEvery => 'Long break every';
+
+  @override
+  String get timerStats => 'Statistics';
+
+  @override
+  String get timerStatsEmpty => 'No focus sessions yet';
+
+  @override
+  String timerStatsSessions(int count) {
+    return '$count sessions';
+  }
 
   @override
   String get moduleControlsTitle => 'Controls';

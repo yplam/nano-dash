@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pico_view/pico_view.dart';
@@ -15,6 +17,12 @@ const Size kDashboardCompactSize = Size(400, 400);
 
 /// Window size when the module settings panel is expanded below the LCD.
 const Size kDashboardExpandedSize = Size(400, 720);
+
+/// Gaussian blur applied to the LCD-area backdrop.
+const double _kBackdropBlurSigma = 16;
+
+/// Translucent dark scrim over the blurred backdrop.
+const Color _kBackdropScrim = Color(0x40000000);
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -136,10 +144,17 @@ class _DashboardState extends State<Dashboard> with Loggable {
     DashboardCubit cubit,
     ModuleRepository modules,
   ) {
+    // A soft drop shadow seats the round mirror on the blurred backdrop.
     final center = DecoratedBox(
       decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(context).dividerColor),
-        borderRadius: BorderRadius.circular(180),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.45),
+            blurRadius: 28,
+            spreadRadius: 1,
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(180),
@@ -150,49 +165,66 @@ class _DashboardState extends State<Dashboard> with Loggable {
         ),
       ),
     );
-    return Padding(
-      padding: const EdgeInsets.only(top: 24, bottom: 16),
-      child: BlocBuilder<DashboardCubit, DashboardState>(
-        buildWhen: (prev, curr) =>
-            prev.currentPage != curr.currentPage ||
-            prev.enabledItems != curr.enabledItems,
-        builder: (context, state) {
-          final count = modules.pages(state.items).length;
-
-          // Without at least two enabled pages there are no neighbours to show.
-          if (count < 2) {
-            return Center(child: center);
-          }
-
-          // The LCD is round, so the bottom-left and bottom-right corners
-          // of its bounding box are empty.
-          return Center(
-            child: Stack(
-              children: [
-                center,
-                Positioned(
-                  left: 0,
-                  bottom: 0,
-                  child: IconButton(
-                    icon: const Icon(Icons.chevron_left),
-                    iconSize: 24,
-                    onPressed: cubit.prevPage,
-                  ),
-                ),
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: IconButton(
-                    icon: const Icon(Icons.chevron_right),
-                    iconSize: 24,
-                    onPressed: cubit.nextPage,
-                  ),
-                ),
-              ],
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: ClipRect(
+            child: ImageFiltered(
+              imageFilter: ui.ImageFilter.blur(
+                sigmaX: _kBackdropBlurSigma,
+                sigmaY: _kBackdropBlurSigma,
+                tileMode: TileMode.clamp,
+              ),
+              child: Image.asset('assets/bg.png', fit: BoxFit.cover),
             ),
-          );
-        },
-      ),
+          ),
+        ),
+        const Positioned.fill(child: ColoredBox(color: _kBackdropScrim)),
+        Padding(
+          padding: const EdgeInsets.only(top: 24, bottom: 16),
+          child: BlocBuilder<DashboardCubit, DashboardState>(
+            buildWhen: (prev, curr) =>
+                prev.currentPage != curr.currentPage ||
+                prev.enabledItems != curr.enabledItems,
+            builder: (context, state) {
+              final count = modules.pages(state.items).length;
+
+              // Without at least two enabled pages there are no neighbours to show.
+              if (count < 2) {
+                return Center(child: center);
+              }
+
+              // The LCD is round, so the bottom-left and bottom-right corners
+              // of its bounding box are empty.
+              return Center(
+                child: Stack(
+                  children: [
+                    center,
+                    Positioned(
+                      left: 0,
+                      bottom: 0,
+                      child: IconButton(
+                        icon: const Icon(Icons.chevron_left),
+                        iconSize: 24,
+                        onPressed: cubit.prevPage,
+                      ),
+                    ),
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: IconButton(
+                        icon: const Icon(Icons.chevron_right),
+                        iconSize: 24,
+                        onPressed: cubit.nextPage,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

@@ -2,13 +2,24 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../data/repositories/settings_repository.dart';
+import '../models/pomodoro_log.dart';
 import '../models/timer_config.dart';
 
 part 'timer_state.dart';
 
-/// Owns the countdown timer module's state.
+/// Owns the countdown timer module's state, including the Pomodoro cycle and the
+/// focus-session log that backs the statistics report.
 class TimerCubit extends Cubit<TimerState> {
-  TimerCubit() : super(const TimerState());
+  TimerCubit(this._settings) : super(const TimerState()) {
+    final logs = _settings.loadList(PomodoroLog.kKey, PomodoroLog.fromJson);
+    if (logs.isNotEmpty) emit(state.copyWith(logs: logs));
+  }
+
+  final SettingsRepository _settings;
+
+  /// Focus-session logs older than this are dropped on write, bounding growth.
+  static const Duration _kRetention = Duration(days: 14);
 
   /// Readout update cadence while running.
   static const Duration _kTick = Duration(milliseconds: 100);
@@ -26,7 +37,7 @@ class TimerCubit extends Cubit<TimerState> {
     if (selected == null) {
       if (state.selectedId != null) {
         _stopTicker();
-        emit(TimerState(timers: timers));
+        emit(TimerState(timers: timers, logs: state.logs));
       } else {
         emit(state.copyWith(timers: timers));
       }
@@ -34,13 +45,18 @@ class TimerCubit extends Cubit<TimerState> {
     }
 
     final fresh =
-        !state.running && !state.finished && state.remaining == state.duration;
+        !state.running &&
+        !state.finished &&
+        state.phase == PomodoroPhase.focus &&
+        state.remaining == state.duration;
     if (fresh) {
       emit(
         TimerState(
           timers: timers,
           selectedId: selected.id,
+          selectedName: state.selectedName,
           remaining: selected.duration,
+          logs: state.logs,
         ),
       );
     } else {
@@ -56,10 +72,11 @@ class TimerCubit extends Cubit<TimerState> {
     return null;
   }
 
-  /// Arm a timer for counting down. Re-selecting the current timer is a no-op so
-  /// opening its detail view never discards an in-progress (paused) countdown;
-  /// switching to a different timer resets the previous one.
-  void select(String id) {
+  /// Arm a timer for counting down, capturing its resolved [name] for logging.
+  /// Re-selecting the current timer is a no-op so opening its detail view never
+  /// discards an in-progress (paused) countdown or running Pomodoro cycle;
+  /// switching to a different timer resets the previous one back to focus.
+  void select(String id, String name) {
     if (id == state.selectedId) return;
     final cfg = _find(state.timers, id);
     if (cfg == null) return;
@@ -68,7 +85,9 @@ class TimerCubit extends Cubit<TimerState> {
       TimerState(
         timers: state.timers,
         selectedId: cfg.id,
+        selectedName: name,
         remaining: cfg.duration,
+        logs: state.logs,
       ),
     );
   }
@@ -76,11 +95,7 @@ class TimerCubit extends Cubit<TimerState> {
   /// Start (or resume) the selected countdown.
   void start() {
     if (state.running || state.remaining <= Duration.zero) return;
-    _sw
-      ..reset()
-      ..start();
-    final base = state.remaining;
-    _ticker = Timer.periodic(_kTick, (_) => _onTick(base));
+    _run(state.remaining);
     emit(state.copyWith(running: true, finished: false));
   }
 
@@ -92,7 +107,7 @@ class TimerCubit extends Cubit<TimerState> {
     emit(state.copyWith(running: false));
   }
 
-  /// Stop and restore the selected timer's full configured duration.
+  /// Stop and restore the current phase's full configured duration.
   void reset() {
     _sw
       ..stop()
@@ -107,15 +122,36 @@ class TimerCubit extends Cubit<TimerState> {
     );
   }
 
-  /// Recompute remaining time from real elapsed against [base] (the remaining
-  /// time when the current run started). Fires the finish when it hits zero.
+  /// Begin (or resume) ticking against [base] — the remaining time when the run
+  /// started. Used by both manual [start] and the auto-started break.
+  void _run(Duration base) {
+    _sw
+      ..reset()
+      ..start();
+    _ticker = Timer.periodic(_kTick, (_) => _onTick(base));
+  }
+
+  /// Recompute remaining time from real elapsed against [base]. Hands off to the
+  /// phase-completion logic when it hits zero.
   void _onTick(Duration base) {
     final left = base - _sw.elapsed;
     if (left <= Duration.zero) {
       _sw.stop();
       _stopTicker();
-      // TODO: honour selected.sound / selected.vibrate here once alert
-      // playback (sound + haptics) is implemented.
+      _onPhaseComplete();
+      return;
+    }
+    emit(state.copyWith(remaining: left));
+  }
+
+  /// Drive the Pomodoro cycle when a phase reaches zero. Plain timers just
+  /// finish; a finished focus session is logged and auto-rolls into a break;
+  /// a finished break returns to focus and waits for a manual restart.
+  void _onPhaseComplete() {
+    final sel = state.selected;
+    // TODO: honour sel.sound / sel.vibrate here once alert playback (sound +
+    // haptics) is implemented.
+    if (sel == null || !sel.pomodoro) {
       emit(
         state.copyWith(
           remaining: Duration.zero,
@@ -125,7 +161,62 @@ class TimerCubit extends Cubit<TimerState> {
       );
       return;
     }
-    emit(state.copyWith(remaining: left));
+
+    if (state.phase == PomodoroPhase.focus) {
+      final completed = state.completedFocus + 1;
+      final logs = _appendLog(
+        PomodoroLog(
+          name: state.selectedName,
+          focusSeconds: sel.duration.inSeconds,
+          completedAt: DateTime.now(),
+        ),
+      );
+      const every = TimerConfig.longBreakEvery;
+      final isLong = completed % every == 0;
+      final breakDuration = isLong ? sel.longBreak : sel.shortBreak;
+      emit(
+        state.copyWith(
+          remaining: breakDuration,
+          running: breakDuration > Duration.zero,
+          finished: breakDuration <= Duration.zero,
+          phase: isLong ? PomodoroPhase.longBreak : PomodoroPhase.shortBreak,
+          completedFocus: completed,
+          logs: logs,
+        ),
+      );
+      // Auto-start the break (unless it has no length to count down).
+      if (breakDuration > Duration.zero) _run(breakDuration);
+    } else {
+      // Break over: back to a fresh focus, awaiting a manual start.
+      final wasLong = state.phase == PomodoroPhase.longBreak;
+      emit(
+        state.copyWith(
+          remaining: sel.duration,
+          running: false,
+          finished: true,
+          phase: PomodoroPhase.focus,
+          completedFocus: wasLong ? 0 : state.completedFocus,
+        ),
+      );
+    }
+  }
+
+  /// Append [log] to the history, trim entries past the retention window, and persist.
+  List<PomodoroLog> _appendLog(PomodoroLog log) {
+    final cutoff = DateTime.now().subtract(_kRetention);
+    final updated = [
+      for (final l in state.logs)
+        if (l.completedAt.isAfter(cutoff)) l,
+      log,
+    ];
+    unawaited(_settings.saveList(PomodoroLog.kKey, updated));
+    return updated;
+  }
+
+  /// Clear the recorded focus-session history.
+  void clearStats() {
+    unawaited(_settings.saveList(PomodoroLog.kKey, const <PomodoroLog>[]));
+    emit(state.copyWith(logs: const []));
   }
 
   void _stopTicker() {

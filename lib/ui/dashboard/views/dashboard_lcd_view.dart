@@ -19,7 +19,7 @@ import '../cubit/dashboard_cubit.dart';
 /// Minimum net horizontal travel (logical px) that counts as a page swipe when
 /// no fling velocity was measured. Comfortably above [kTouchSlop] so a tap that
 /// drifts a little doesn't flip pages.
-const double _kSwipeDistance = 20;
+const double _kSwipeDistance = 5;
 
 /// Duration of the page-switch slide. Kept short on purpose: the SPI panel has
 /// no TE sync, so every transitional frame can tear — a brief slide bounds the

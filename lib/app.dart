@@ -112,7 +112,10 @@ class NanoDashApp extends StatelessWidget {
                 WeatherCubit(context.read<WeatherRepository>()),
             lazy: false,
           ),
-          BlocProvider<TimerCubit>(create: (_) => TimerCubit(), lazy: false),
+          BlocProvider<TimerCubit>(
+            create: (context) => TimerCubit(context.read<SettingsRepository>()),
+            lazy: false,
+          ),
           BlocProvider<StopwatchCubit>(
             create: (_) => StopwatchCubit(),
             lazy: false,

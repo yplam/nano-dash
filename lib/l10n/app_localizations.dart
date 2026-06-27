@@ -212,6 +212,18 @@ abstract class AppLocalizations {
   /// **'No timers'**
   String get timerEmpty;
 
+  /// No description provided for @timerDefaultCountdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Countdown'**
+  String get timerDefaultCountdown;
+
+  /// No description provided for @timerDefaultPomodoro.
+  ///
+  /// In en, this message translates to:
+  /// **'Pomodoro'**
+  String get timerDefaultPomodoro;
+
   /// No description provided for @timerDefaultFocus.
   ///
   /// In en, this message translates to:
@@ -229,6 +241,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Long Break'**
   String get timerDefaultLongBreak;
+
+  /// No description provided for @timerPomodoro.
+  ///
+  /// In en, this message translates to:
+  /// **'Pomodoro'**
+  String get timerPomodoro;
+
+  /// No description provided for @timerShortBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Short break'**
+  String get timerShortBreak;
+
+  /// No description provided for @timerLongBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Long break'**
+  String get timerLongBreak;
+
+  /// No description provided for @timerLongBreakEvery.
+  ///
+  /// In en, this message translates to:
+  /// **'Long break every'**
+  String get timerLongBreakEvery;
+
+  /// No description provided for @timerStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics'**
+  String get timerStats;
+
+  /// No description provided for @timerStatsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No focus sessions yet'**
+  String get timerStatsEmpty;
+
+  /// No description provided for @timerStatsSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sessions'**
+  String timerStatsSessions(int count);
 
   /// No description provided for @moduleControlsTitle.
   ///

@@ -66,6 +66,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get timerEmpty => '暂无计时器';
 
   @override
+  String get timerDefaultCountdown => '倒计时';
+
+  @override
+  String get timerDefaultPomodoro => '番茄钟';
+
+  @override
   String get timerDefaultFocus => '专注';
 
   @override
@@ -73,6 +79,29 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get timerDefaultLongBreak => '长休息';
+
+  @override
+  String get timerPomodoro => '番茄钟';
+
+  @override
+  String get timerShortBreak => '短休息时长';
+
+  @override
+  String get timerLongBreak => '长休息时长';
+
+  @override
+  String get timerLongBreakEvery => '长休息间隔';
+
+  @override
+  String get timerStats => '统计';
+
+  @override
+  String get timerStatsEmpty => '暂无专注记录';
+
+  @override
+  String timerStatsSessions(int count) {
+    return '$count 次';
+  }
 
   @override
   String get moduleControlsTitle => '控制';
