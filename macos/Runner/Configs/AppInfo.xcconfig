@@ -8,7 +8,7 @@
 PRODUCT_NAME = nano_dash
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.nanoDash
+PRODUCT_BUNDLE_IDENTIFIER = sh.nanoda.nanodash
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 nanoda.sh. All rights reserved.

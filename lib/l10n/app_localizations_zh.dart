@@ -33,6 +33,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get moduleStopwatchTitle => '秒表';
 
   @override
+  String get timerHours => '小时';
+
+  @override
   String get timerMinutes => '分钟';
 
   @override
@@ -40,6 +43,36 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get timerDone => '完成';
+
+  @override
+  String get timerName => '名称';
+
+  @override
+  String get timerSound => '声音';
+
+  @override
+  String get timerVibrate => '振动';
+
+  @override
+  String get timerAdd => '添加计时器';
+
+  @override
+  String get timerDelete => '删除';
+
+  @override
+  String get timerNewName => '计时器';
+
+  @override
+  String get timerEmpty => '暂无计时器';
+
+  @override
+  String get timerDefaultFocus => '专注';
+
+  @override
+  String get timerDefaultShortBreak => '短休息';
+
+  @override
+  String get timerDefaultLongBreak => '长休息';
 
   @override
   String get moduleControlsTitle => '控制';

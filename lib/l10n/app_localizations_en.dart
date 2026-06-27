@@ -33,6 +33,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleStopwatchTitle => 'Stopwatch';
 
   @override
+  String get timerHours => 'Hours';
+
+  @override
   String get timerMinutes => 'Minutes';
 
   @override
@@ -40,6 +43,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timerDone => 'Done';
+
+  @override
+  String get timerName => 'Name';
+
+  @override
+  String get timerSound => 'Sound';
+
+  @override
+  String get timerVibrate => 'Vibrate';
+
+  @override
+  String get timerAdd => 'Add timer';
+
+  @override
+  String get timerDelete => 'Delete';
+
+  @override
+  String get timerNewName => 'Timer';
+
+  @override
+  String get timerEmpty => 'No timers';
+
+  @override
+  String get timerDefaultFocus => 'Focus';
+
+  @override
+  String get timerDefaultShortBreak => 'Short Break';
+
+  @override
+  String get timerDefaultLongBreak => 'Long Break';
 
   @override
   String get moduleControlsTitle => 'Controls';

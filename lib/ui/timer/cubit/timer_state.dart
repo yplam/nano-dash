@@ -1,25 +1,41 @@
 part of 'timer_cubit.dart';
 
-/// View state for the countdown timer module.
+/// View state for the multi-timer module. The countdown applies to the single
+/// [selectedId] timer — only one timer runs at a time.
 class TimerState {
   const TimerState({
-    this.duration = Duration.zero,
+    this.timers = const [],
+    this.selectedId,
     this.remaining = Duration.zero,
     this.running = false,
     this.finished = false,
   });
 
-  /// The total configured countdown length.
-  final Duration duration;
+  /// All configured timers, in display order (mirrors the persisted settings).
+  final List<TimerConfig> timers;
 
-  /// Time left in the current countdown.
+  /// The timer the countdown currently applies to, or null when none is armed.
+  final String? selectedId;
+
+  /// Time left in the selected timer's countdown.
   final Duration remaining;
 
-  /// Whether the countdown is currently advancing.
+  /// Whether the selected timer's countdown is advancing.
   final bool running;
 
-  /// Whether the countdown reached zero and is awaiting a reset.
+  /// Whether the selected timer reached zero and is awaiting a reset.
   final bool finished;
+
+  /// The selected timer's config, or null if nothing is selected.
+  TimerConfig? get selected {
+    for (final t in timers) {
+      if (t.id == selectedId) return t;
+    }
+    return null;
+  }
+
+  /// The selected timer's full configured length.
+  Duration get duration => selected?.duration ?? Duration.zero;
 
   /// Fraction of the countdown already elapsed, 0..1. Drives the ring sweep.
   double get progress {
@@ -30,13 +46,14 @@ class TimerState {
   }
 
   TimerState copyWith({
-    Duration? duration,
+    List<TimerConfig>? timers,
     Duration? remaining,
     bool? running,
     bool? finished,
   }) {
     return TimerState(
-      duration: duration ?? this.duration,
+      timers: timers ?? this.timers,
+      selectedId: selectedId,
       remaining: remaining ?? this.remaining,
       running: running ?? this.running,
       finished: finished ?? this.finished,

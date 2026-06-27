@@ -2,15 +2,15 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../models/timer_config.dart';
+
 part 'timer_state.dart';
 
-/// Owns the countdown timer module's state. The countdown keeps running — and can
-/// finish — while the user is on another page.
+/// Owns the countdown timer module's state.
 class TimerCubit extends Cubit<TimerState> {
   TimerCubit() : super(const TimerState());
 
-  /// Readout update cadence while running. The display is second-granular, but
-  /// a sub-second tick keeps the ring sweep smooth and the final flip prompt.
+  /// Readout update cadence while running.
   static const Duration _kTick = Duration(milliseconds: 100);
 
   /// Used to measure real elapsed time so the countdown stays accurate even if
@@ -18,16 +18,62 @@ class TimerCubit extends Cubit<TimerState> {
   final Stopwatch _sw = Stopwatch();
   Timer? _ticker;
 
-  /// Set the total countdown duration. Ignored while running. Resets the
-  /// remaining time and clears any finished state.
-  void setDuration(Duration duration) {
-    if (state.running) return;
-    final d = duration.isNegative ? Duration.zero : duration;
-    _sw.reset();
-    emit(TimerState(duration: d, remaining: d));
+  /// Mirror the persisted timer list into the cubit. Called by the view when
+  /// the configured timers change.
+  void syncTimers(List<TimerConfig> timers) {
+    final selected = _find(timers, state.selectedId);
+
+    if (selected == null) {
+      if (state.selectedId != null) {
+        _stopTicker();
+        emit(TimerState(timers: timers));
+      } else {
+        emit(state.copyWith(timers: timers));
+      }
+      return;
+    }
+
+    final fresh =
+        !state.running && !state.finished && state.remaining == state.duration;
+    if (fresh) {
+      emit(
+        TimerState(
+          timers: timers,
+          selectedId: selected.id,
+          remaining: selected.duration,
+        ),
+      );
+    } else {
+      emit(state.copyWith(timers: timers));
+    }
   }
 
-  /// Start (or resume) the countdown. Does nothing with no time remaining.
+  static TimerConfig? _find(List<TimerConfig> timers, String? id) {
+    if (id == null) return null;
+    for (final t in timers) {
+      if (t.id == id) return t;
+    }
+    return null;
+  }
+
+  /// Arm a timer for counting down. Re-selecting the current timer is a no-op so
+  /// opening its detail view never discards an in-progress (paused) countdown;
+  /// switching to a different timer resets the previous one.
+  void select(String id) {
+    if (id == state.selectedId) return;
+    final cfg = _find(state.timers, id);
+    if (cfg == null) return;
+    _stopTicker();
+    emit(
+      TimerState(
+        timers: state.timers,
+        selectedId: cfg.id,
+        remaining: cfg.duration,
+      ),
+    );
+  }
+
+  /// Start (or resume) the selected countdown.
   void start() {
     if (state.running || state.remaining <= Duration.zero) return;
     _sw
@@ -42,19 +88,23 @@ class TimerCubit extends Cubit<TimerState> {
   void pause() {
     if (!state.running) return;
     _sw.stop();
-    _ticker?.cancel();
-    _ticker = null;
+    _stopTicker();
     emit(state.copyWith(running: false));
   }
 
-  /// Stop and restore the full configured duration.
+  /// Stop and restore the selected timer's full configured duration.
   void reset() {
     _sw
       ..stop()
       ..reset();
-    _ticker?.cancel();
-    _ticker = null;
-    emit(TimerState(duration: state.duration, remaining: state.duration));
+    _stopTicker();
+    emit(
+      state.copyWith(
+        remaining: state.duration,
+        running: false,
+        finished: false,
+      ),
+    );
   }
 
   /// Recompute remaining time from real elapsed against [base] (the remaining
@@ -63,8 +113,9 @@ class TimerCubit extends Cubit<TimerState> {
     final left = base - _sw.elapsed;
     if (left <= Duration.zero) {
       _sw.stop();
-      _ticker?.cancel();
-      _ticker = null;
+      _stopTicker();
+      // TODO: honour selected.sound / selected.vibrate here once alert
+      // playback (sound + haptics) is implemented.
       emit(
         state.copyWith(
           remaining: Duration.zero,
@@ -75,6 +126,11 @@ class TimerCubit extends Cubit<TimerState> {
       return;
     }
     emit(state.copyWith(remaining: left));
+  }
+
+  void _stopTicker() {
+    _ticker?.cancel();
+    _ticker = null;
   }
 
   @override

@@ -4,6 +4,7 @@ import '../../../data/repositories/module_repository.dart';
 import '../../../data/repositories/settings_repository.dart';
 import '../../../domain/models/dashboard.dart';
 import '../../../extensions/loggable.dart';
+import '../../modules/clock_module.dart';
 
 part 'dashboard_state.dart';
 
@@ -43,12 +44,11 @@ class DashboardCubit extends Cubit<DashboardState> with Loggable {
       items.add(
         DashboardItemConfig(
           moduleId: module.id,
-          enabled: false,
+          enabled: module.id == ClockModule.kId,
           settings: module.defaultSettings,
         ),
       );
     }
-
     logInfo('loaded ${items.length} module(s)');
     emit(DashboardState(items: items, currentPage: 0));
   }

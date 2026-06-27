@@ -146,6 +146,12 @@ abstract class AppLocalizations {
   /// **'Stopwatch'**
   String get moduleStopwatchTitle;
 
+  /// No description provided for @timerHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get timerHours;
+
   /// No description provided for @timerMinutes.
   ///
   /// In en, this message translates to:
@@ -163,6 +169,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get timerDone;
+
+  /// No description provided for @timerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get timerName;
+
+  /// No description provided for @timerSound.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound'**
+  String get timerSound;
+
+  /// No description provided for @timerVibrate.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibrate'**
+  String get timerVibrate;
+
+  /// No description provided for @timerAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add timer'**
+  String get timerAdd;
+
+  /// No description provided for @timerDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get timerDelete;
+
+  /// No description provided for @timerNewName.
+  ///
+  /// In en, this message translates to:
+  /// **'Timer'**
+  String get timerNewName;
+
+  /// No description provided for @timerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No timers'**
+  String get timerEmpty;
+
+  /// No description provided for @timerDefaultFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus'**
+  String get timerDefaultFocus;
+
+  /// No description provided for @timerDefaultShortBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Short Break'**
+  String get timerDefaultShortBreak;
+
+  /// No description provided for @timerDefaultLongBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Long Break'**
+  String get timerDefaultLongBreak;
 
   /// No description provided for @moduleControlsTitle.
   ///

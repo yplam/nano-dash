@@ -23,6 +23,16 @@ import 'ui/weather/weather.dart';
 
 const Locale kAppLocale = Locale('zh');
 
+/// CJK font fallbacks so Chinese glyphs render without embedding a font file.
+const List<String> kCjkFontFallback = <String>[
+  'PingFang SC', // macOS / iOS
+  'Microsoft YaHei', // Windows
+  'Noto Sans CJK SC', // Linux (Noto package)
+  'Noto Sans SC', // Linux alt naming
+  'Source Han Sans SC', // Linux alt
+  'WenQuanYi Micro Hei', // Linux fallback
+];
+
 Future<void> bootstrapApp() async {
   WidgetsFlutterBinding.ensureInitialized();
   // debugPaintSizeEnabled = true;
@@ -121,12 +131,14 @@ class NanoDashApp extends StatelessWidget {
           supportedLocales: AppLocalizations.supportedLocales,
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+            fontFamilyFallback: kCjkFontFallback,
           ),
           darkTheme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
               seedColor: Colors.indigo,
               brightness: Brightness.dark,
             ),
+            fontFamilyFallback: kCjkFontFallback,
           ),
           themeMode: ThemeMode.system,
           home: const Dashboard(),
