@@ -1,0 +1,15 @@
+# No-op stand-in for the `tray_manager` plugin.
+#
+# The real plugin links the native libayatana-appindicator / libdbusmenu stack
+# on Linux, which includes a GPL-3.0 library (libayatana-indicator). That cannot
+# be bundled into the closed-source flatpak, so the Linux/flatpak release swaps
+# `tray_manager` for this stub via `pubspec_overrides.yaml`. It is a plain Dart
+# package, so no native code is built or linked, and the app simply runs without
+# a tray icon on the flatpak.
+name: tray_manager
+description: "Build-time no-op stub for tray_manager."
+version: 0.5.3
+publish_to: 'none'
+
+environment:
+  sdk: ^3.12.2

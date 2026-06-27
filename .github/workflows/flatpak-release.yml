@@ -55,11 +55,27 @@ jobs:
       - name: Enable native assets
         run: flutter config --enable-native-assets
 
+      # Swap tray_manager for a no-op stub so the build does not link the native
+      # libayatana-appindicator stack, which includes the GPL-3.0
+      # libayatana-indicator and cannot ship in the closed-source flatpak. The
+      # app runs without a tray icon on the flatpak only; other platforms keep
+      # the real tray. This file is generated here and not committed.
+      - name: Drop tray_manager (avoid GPL appindicator libs)
+        run: |
+          cat > pubspec_overrides.yaml <<'EOF'
+          dependency_overrides:
+            tray_manager:
+              path: linux/packaging/flatpak/stubs/tray_manager
+          EOF
+
       - name: Get Flutter dependencies
         run: flutter pub get
 
+      # Use the flatpak entry point: it skips the system tray (whose native
+      # appindicator stack is GPL-3.0) and makes closing the window quit, since
+      # there's no tray to restore a hidden window from.
       - name: Build Flutter Linux app
-        run: flutter build linux --release
+        run: flutter build linux --release --target lib/main_flatpak.dart
 
       - name: Setup Flatpak runtime
         run: |

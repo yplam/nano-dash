@@ -6,6 +6,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'constants.dart';
 import 'data/repositories/module_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'data/repositories/weather_repository.dart';
@@ -33,7 +34,7 @@ const List<String> kCjkFontFallback = <String>[
   'WenQuanYi Micro Hei', // Linux fallback
 ];
 
-Future<void> bootstrapApp() async {
+Future<void> bootstrapApp({AppFlavor flavor = AppFlavor.desktop}) async {
   WidgetsFlutterBinding.ensureInitialized();
   // debugPaintSizeEnabled = true;
   await windowManager.ensureInitialized();
@@ -51,10 +52,15 @@ Future<void> bootstrapApp() async {
   );
   await initializeDateFormatting();
   await setUpLocator();
-  // Run the app in the background via a tray icon; closing the window hides it
-  // instead of quitting. Labels use the same locale as the UI.
-  final tray = TrayService();
-  await tray.init(lookupAppLocalizations(kAppLocale));
+  // On desktop, run in the background via a tray icon: closing the window hides
+  // it instead of quitting (TrayService.init sets preventClose). The flatpak
+  // build has no tray, so it's skipped and the close button quits normally —
+  // there'd be no way to restore a hidden window. Labels match the UI locale.
+  TrayService? tray;
+  if (flavor.hasTray) {
+    tray = TrayService();
+    await tray.init(lookupAppLocalizations(kAppLocale));
+  }
   final prefs = await SharedPreferences.getInstance();
   final dio = Dio(
     BaseOptions(
@@ -70,18 +76,21 @@ class NanoDashApp extends StatelessWidget {
     super.key,
     required this.prefs,
     required this.dio,
-    required this.tray,
+    this.tray,
   });
 
   final SharedPreferences prefs;
   final Dio dio;
-  final TrayService tray;
+
+  /// Null on the flatpak build, which ships without a system tray.
+  final TrayService? tray;
 
   @override
   Widget build(BuildContext context) {
+    final tray = this.tray;
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider<TrayService>.value(value: tray),
+        if (tray != null) RepositoryProvider<TrayService>.value(value: tray),
         RepositoryProvider<ModuleRepository>(
           create: (_) => const ModuleRepository([
             ClockModule(),
