@@ -8,7 +8,10 @@ enum AppFlavor {
   desktop,
 
   /// Flatpak build: no system tray, close quits.
-  flatpak;
+  flatpak,
+
+  /// Web build: no OS window and no tray; runs in a browser tab.
+  web;
 
   bool get hasTray => this == AppFlavor.desktop;
 }

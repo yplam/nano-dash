@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:window_manager/window_manager.dart';
 
 import 'constants.dart';
 import 'data/repositories/module_repository.dart';
@@ -13,6 +12,7 @@ import 'data/repositories/weather_repository.dart';
 import 'data/services/locator.dart';
 import 'data/services/tray_service.dart';
 import 'data/services/weather_service.dart';
+import 'data/services/window_service.dart';
 import 'l10n/app_localizations.dart';
 import 'ui/dashboard/dashboard.dart';
 import 'ui/modules/clock_module.dart';
@@ -37,18 +37,11 @@ const List<String> kCjkFontFallback = <String>[
 Future<void> bootstrapApp({AppFlavor flavor = AppFlavor.desktop}) async {
   WidgetsFlutterBinding.ensureInitialized();
   // debugPaintSizeEnabled = true;
-  await windowManager.ensureInitialized();
-  await windowManager.waitUntilReadyToShow(
-    const WindowOptions(
-      size: kDashboardCompactSize,
-      minimumSize: Size(360, 380),
-      center: true,
-      title: 'NanoDash',
-    ),
-    () async {
-      await windowManager.show();
-      await windowManager.focus();
-    },
+  await WindowService.ensureInitialized();
+  await WindowService.setupAndShow(
+    size: kDashboardCompactSize,
+    minimumSize: const Size(360, 380),
+    title: 'NanoDash',
   );
   await initializeDateFormatting();
   await setUpLocator();

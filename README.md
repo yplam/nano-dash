@@ -1,7 +1,11 @@
 # NanoDash
 
-NanoDash is a Flutter desktop app (Linux/macOS/Windows) that mirrors a Flutter
-widget subtree to an external **SPI LCD** driven over a **CH347 USB bridge**, and
-feeds physical capacitive-touch events from the panel back into that same subtree.
+A tiny smart display for your desk. NanoDash is an open-source Flutter app
+(Linux/macOS/Windows) on your computer paired with an external ESP32 panel
+over USB.
 
-The display/touch engine is Rust; Flutter talks to it through FFI.
+It mirrors a Flutter widget subtree to the panel's small round touchscreen and
+feeds physical capacitive-touch events from the panel back into that same
+subtree. The on-screen widget and the panel show the same UI — a weather clock,
+timers, Pomodoro, PC resource monitor, Claude Code status, media controls and
+more.

@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -100,6 +101,7 @@ class _PicoViewState extends State<PicoView> {
   }
 
   void _startCapture() {
+    if (kIsWeb) return;
     _minIntervalMs = (1000 / widget.maxFps.clamp(16, 120)).round();
     // Start the per-frame loop once; subsequent maxFps changes only retune the
     // budget above. A second concurrent loop would double every capture.

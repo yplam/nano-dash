@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="$FLUTTER_BASE_HREF">
+
+    <meta charset="UTF-8">
+    <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NanoDash — A tiny smart display for your desk</title>
+    <meta name="description"
+          content="An open-source desk companion: a small round touchscreen showing a weather clock, timers, system monitor, media controls and more. Flutter app + ESP32 over USB.">
+    <meta name="keywords"
+          content="NanoDash, smart display, desk gadget, round touchscreen, ESP32, Pomodoro timer, weather clock, countdown, system monitor, Claude Code status, media controls, Flutter, open source, Linux, macOS, Windows">
+    <meta name="author" content="YPLam">
+    <meta name="theme-color" content="#101014">
+    <link rel="canonical" href="https://nanoda.sh/">
+
+    <!-- Open Graph (link previews) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="NanoDash — A tiny smart display for your desk">
+    <meta property="og:description"
+          content="An open-source Flutter app on your computer paired with an external ESP32 panel over USB. Shows a weather clock, timers, Pomodoro, PC resource monitor, Claude Code status, media controls and more.">
+    <meta property="og:url" content="https://nanoda.sh/">
+    <meta property="og:image" content="icons/Icon-512.png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta property="og:image:alt" content="NanoDash logo">
+    <meta property="og:site_name" content="NanoDash">
+
+    <!-- Twitter / X card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="NanoDash — A tiny smart display for your desk">
+    <meta name="twitter:description"
+          content="An open-source Flutter app on your computer paired with an external ESP32 panel over USB. Shows a weather clock, timers, Pomodoro, PC resource monitor, Claude Code status, media controls and more.">
+    <meta name="twitter:image" content="icons/Icon-512.png">
+    <meta name="twitter:image:alt" content="NanoDash logo">
+
+    <link rel="icon" type="image/png" href="favicon.png"/>
+
+    <!-- Structured data: helps search engines understand this is an app -->
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "NanoDash",
+            "applicationCategory": "Productivity",
+            "operatingSystem": "Linux, macOS, Windows",
+            "description": "NanoDash is an open-source desk companion that turns a small round touchscreen into a glanceable second display — a weather clock, countdown and Pomodoro timers, PC resource monitor, Claude Code status, media controls and more. Powered by a cross-platform Flutter app and an ESP32 panel over USB.",
+            "featureList": [
+                "Weather clock",
+                "Countdown timer",
+                "Pomodoro timer",
+                "PC resource monitor",
+                "Claude Code status monitor",
+                "Media playback controls"
+            ],
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+          --bg: #101014;
+          --card: #1c1c24;
+          --line: #2a2a35;
+          --fg: #f4f4f7;
+          --fg-dim: #a8a8b6;
+          --accent: #7c84ff;
+          --accent-2: #4c50d6;
+        }
+        * { box-sizing: border-box; }
+        body {
+          margin: 0;
+          min-height: 100vh;
+          background:
+            radial-gradient(1200px 480px at 50% -10%, rgba(124,132,255,0.22), transparent 70%),
+            var(--bg);
+          color: var(--fg);
+          font-family: system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC",
+            "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+          line-height: 1.6;
+          -webkit-font-smoothing: antialiased;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 32px 24px;
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* Centered two-column layout */
+        .page {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 64px;
+          flex-wrap: wrap;
+        }
+
+        /* Left column */
+        .intro { max-width: 420px; }
+        .brand { display: flex; align-items: center; gap: 14px; }
+        .brand img { width: 48px; height: 48px; border-radius: 12px; }
+        .brand h1 {
+          margin: 0;
+          font-size: clamp(32px, 5vw, 44px);
+          letter-spacing: -0.02em;
+          background: linear-gradient(90deg, var(--accent), #b7bcff);
+          -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .intro p.desc {
+          font-size: clamp(16px, 2.2vw, 19px);
+          color: var(--fg-dim);
+          margin: 22px 0 28px;
+        }
+        .btn {
+          display: inline-flex; align-items: center; gap: 9px;
+          padding: 13px 24px; border-radius: 12px;
+          font-weight: 600; font-size: 15px;
+          border: 1px solid var(--line);
+          background: var(--card); color: var(--fg);
+          transition: transform .12s ease, background .2s ease;
+        }
+        .btn:hover { text-decoration: none; transform: translateY(-1px); background: #23232e; }
+        .btn svg { width: 18px; height: 18px; fill: currentColor; }
+        .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+        /* Right column: live Flutter app */
+        #flutter-app {
+          position: relative;
+          width: 440px; height: 760px;
+          flex-shrink: 0;
+        }
+        /* Flutter mounts into #flutter-app; these overlays sit on top until it boots. */
+        .app-overlay {
+          position: absolute; inset: 0;
+          display: flex; align-items: center; justify-content: center;
+          border-radius: 24px;
+          overflow: hidden;
+          background:
+            radial-gradient(420px 420px at 50% 38%, rgba(124,132,255,0.18), transparent 70%),
+            var(--card);
+          border: 1px solid var(--line);
+          z-index: 2;
+          transition: opacity .35s ease;
+        }
+        .app-overlay.is-hidden { opacity: 0; pointer-events: none; }
+        #app-poster { cursor: pointer; }
+        #app-poster img {
+          width: 62%; max-width: 280px; height: auto;
+          filter: drop-shadow(0 18px 48px rgba(0,0,0,.45));
+          transition: transform .25s ease;
+        }
+        #app-poster:hover img { transform: scale(1.03); }
+        .poster-play {
+          position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%);
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 11px 20px; border-radius: 999px;
+          font: inherit; font-weight: 600; font-size: 14px;
+          color: #fff; cursor: pointer;
+          border: 1px solid rgba(255,255,255,.18);
+          background: rgba(20,20,28,.62);
+          backdrop-filter: blur(8px);
+        }
+        .poster-play:hover { background: rgba(36,36,52,.78); }
+        .poster-play svg { width: 14px; height: 14px; fill: currentColor; }
+
+        /* Loading effect shown while the WebAssembly engine boots. */
+        #app-loader { flex-direction: column; gap: 18px; color: var(--fg-dim); }
+        .spinner {
+          width: 48px; height: 48px; border-radius: 50%;
+          border: 3px solid var(--line);
+          border-top-color: var(--accent);
+          animation: spin .9s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Shrink the fixed-size app on small screens without distorting it. */
+        @media (max-width: 520px) {
+          #flutter-app { transform: scale(0.72); transform-origin: top center; }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <!-- Left: intro -->
+    <div class="intro">
+        <div class="brand">
+            <img src="icons/Icon-192.png" alt="NanoDash logo">
+            <h1>NanoDash</h1>
+        </div>
+        <p class="desc">
+            A tiny smart display for your desk. NanoDash is an open-source Flutter app on your
+            computer paired with an external ESP32 panel over USB. It shows a weather clock,
+            timers, Pomodoro, PC resource monitor, Claude Code status, media controls and more.
+        </p>
+        <div class="actions">
+            <a class="btn" href="https://github.com/yplam/nano-dash" rel="noopener">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+                </svg>
+                View on GitHub
+            </a>
+        </div>
+    </div>
+
+    <!-- Right: real NanoDash app, compiled to WebAssembly. Flutter mounts into
+         #flutter-app on demand; until then a poster + loading overlay sit on top. -->
+    <div id="flutter-app">
+        <!-- Poster shown on load; click anywhere on it (or "Run the app") to boot. -->
+        <div id="app-poster" class="app-overlay" role="button" tabindex="0"
+             aria-label="Run the NanoDash app">
+            <img src="icons/Icon-512.png" alt="NanoDash preview">
+            <span class="poster-play">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>
+                Run
+            </span>
+        </div>
+        <!-- Loading effect while the WebAssembly engine downloads and boots. -->
+        <div id="app-loader" class="app-overlay is-hidden" aria-hidden="true">
+            <div class="spinner"></div>
+            <p>Loading…</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+      var host = document.getElementById('flutter-app');
+      var poster = document.getElementById('app-poster');
+      var loader = document.getElementById('app-loader');
+      var started = false;
+
+      function showLoaded() {
+        loader.classList.add('is-hidden');
+        loader.setAttribute('aria-hidden', 'true');
+      }
+
+      function start() {
+        if (started) return;
+        started = true;
+
+        poster.classList.add('is-hidden');
+        poster.setAttribute('aria-hidden', 'true');
+        loader.classList.remove('is-hidden');
+        loader.setAttribute('aria-hidden', 'false');
+
+        // Fade the loader out once Flutter inserts its view into the host.
+        var observer = new MutationObserver(function () {
+          if (host.querySelector('flutter-view, flt-glass-pane, canvas')) {
+            observer.disconnect();
+            showLoaded();
+          }
+        });
+        observer.observe(host, { childList: true, subtree: true });
+        // Safety net in case the markers above ever change.
+        document.addEventListener('flutter-first-frame', showLoaded, { once: true });
+        window.addEventListener('flutter-first-frame', showLoaded, { once: true });
+
+        var s = document.createElement('script');
+        s.src = 'flutter_bootstrap.js';
+        s.async = true;
+        document.body.appendChild(s);
+      }
+
+      poster.addEventListener('click', start);
+      poster.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); start(); }
+      });
+    })();
+</script>
+</body>
+</html>

@@ -1,12 +1,12 @@
-import 'dart:io' show Platform;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pico_view/pico_view.dart';
-import 'package:window_manager/window_manager.dart';
 
 import '../../../../data/repositories/module_repository.dart';
+import '../../../../data/services/window_service.dart';
 import '../../../../extensions/loggable.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../cubit/dashboard_cubit.dart';
@@ -58,16 +58,20 @@ class _DashboardState extends State<Dashboard> with Loggable {
   /// Measure the current chrome (outer − content) and add it back. Linux sizes
   /// the content directly (`gtk_window_resize`), so it's skipped there.
   Future<void> _applyWindowSize(Size contentSize) async {
+    if (kIsWeb) return;
     var target = contentSize;
-    if ((Platform.isWindows || Platform.isMacOS) && mounted) {
+    final platform = defaultTargetPlatform;
+    final needsChrome =
+        platform == TargetPlatform.windows || platform == TargetPlatform.macOS;
+    if (needsChrome && mounted) {
       final content = MediaQuery.sizeOf(context);
-      final outer = await windowManager.getSize();
+      final outer = await WindowService.getSize();
       target = Size(
         contentSize.width + (outer.width - content.width),
         contentSize.height + (outer.height - content.height),
       );
     }
-    await windowManager.setSize(target);
+    await WindowService.setSize(target);
   }
 
   /// Show/hide the settings panel and grow/shrink the window to match.
@@ -136,17 +140,26 @@ class _DashboardState extends State<Dashboard> with Loggable {
     final cubit = context.read<DashboardCubit>();
     final modules = context.read<ModuleRepository>();
 
-    return Scaffold(
+    final scaffold = Scaffold(
       body: Stack(
         children: [
-          Column(
-            children: [
-              _buildLcdArea(context, cubit, modules),
-              if (_settingsOpen) ...[
-                const Divider(height: 1),
-                const Expanded(child: DashboardConfigPanel()),
-              ],
-            ],
+          // Reveal the settings panel only once the window has actually grown
+          // taller than the compact size.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final showPanel =
+                  _settingsOpen &&
+                  constraints.maxHeight > kDashboardCompactSize.height;
+              return Column(
+                children: [
+                  _buildLcdArea(context, cubit, modules),
+                  if (showPanel) ...[
+                    const Divider(height: 1),
+                    const Expanded(child: DashboardConfigPanel()),
+                  ],
+                ],
+              );
+            },
           ),
           Positioned(
             top: 4,
@@ -160,6 +173,14 @@ class _DashboardState extends State<Dashboard> with Loggable {
         ],
       ),
     );
+
+    if (kIsWeb) {
+      return _WebFrame(
+        size: _settingsOpen ? kDashboardExpandedSize : kDashboardCompactSize,
+        child: scaffold,
+      );
+    }
+    return scaffold;
   }
 
   /// The LCD preview block: padding, the round mirror, and the page chevrons.
@@ -175,7 +196,7 @@ class _DashboardState extends State<Dashboard> with Loggable {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.45),
-            blurRadius: 28,
+            blurRadius: 12,
             spreadRadius: 1,
           ),
         ],
@@ -193,13 +214,16 @@ class _DashboardState extends State<Dashboard> with Loggable {
       children: [
         Positioned.fill(
           child: ClipRect(
-            child: ImageFiltered(
-              imageFilter: ui.ImageFilter.blur(
-                sigmaX: _kBackdropBlurSigma,
-                sigmaY: _kBackdropBlurSigma,
-                tileMode: TileMode.clamp,
+            child: Transform.scale(
+              scale: 1.3,
+              child: ImageFiltered(
+                imageFilter: ui.ImageFilter.blur(
+                  sigmaX: _kBackdropBlurSigma,
+                  sigmaY: _kBackdropBlurSigma,
+                  tileMode: TileMode.clamp,
+                ),
+                child: Image.asset('assets/bg.png', fit: BoxFit.cover),
               ),
-              child: Image.asset('assets/bg.png', fit: BoxFit.cover),
             ),
           ),
         ),
@@ -249,6 +273,38 @@ class _DashboardState extends State<Dashboard> with Loggable {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Centers the dashboard at its fixed desktop size on a transparent backdrop.
+class _WebFrame extends StatelessWidget {
+  const _WebFrame({required this.size, required this.child});
+
+  final Size size;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeInOut,
+        width: size.width,
+        height: size.height,
+        clipBehavior: Clip.antiAliasWithSaveLayer,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 8,
+              spreadRadius: 8,
+            ),
+          ],
+        ),
+        child: child,
+      ),
     );
   }
 }
