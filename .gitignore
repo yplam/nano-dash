@@ -46,5 +46,4 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Local scratch (held the original pico_view incl. private Rust source — never commit)
-tmp/
+data/

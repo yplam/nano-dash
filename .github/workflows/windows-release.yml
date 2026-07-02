@@ -44,9 +44,10 @@ jobs:
 
       - run: flutter --version
 
-      # The pico_view package ships prebuilt native libraries (the Rust engine)
-      # and registers them + the CH347 DLL through Flutter's native-assets build
-      # hook; no Rust toolchain required. The DLL is bundled automatically.
+      # Both native packages (pico_view's Rust engine, nano_live2d's Live2D engine)
+      # ship PREBUILT libraries and register them through Flutter's native-assets
+      # build hook; no Rust/C++ toolchain or Cubism SDK required. pico_view's CH347
+      # DLL is bundled automatically too.
       - name: Enable native assets
         run: flutter config --enable-native-assets
 

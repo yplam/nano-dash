@@ -23,6 +23,9 @@ dependencies:
 
   pico_view:
     path: packages/pico_view
+  nano_live2d:
+    path: packages/nano_live2d
+  file_selector: ^1.0.3
   window_manager: ^0.5.1
   tray_manager: ^0.5.3
 

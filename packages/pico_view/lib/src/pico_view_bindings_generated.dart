@@ -10,7 +10,7 @@ import 'dart:ffi' as ffi;
 @ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>, ffi.Int64)>()
 external void pv_init(ffi.Pointer<ffi.Void> api_data, int send_port);
 
-/// Open the CH347 device and start the worker from a JSON config blob.
+/// Open the panel device and start the worker from a JSON config blob.
 /// Returns 0 on success; -1 bad config, -2 already open, -3 device/setup failure.
 @ffi.Native<ffi.Int32 Function(ffi.Pointer<ffi.Uint8>, ffi.UintPtr)>()
 external int pv_open(ffi.Pointer<ffi.Uint8> cfg_ptr, int cfg_len);

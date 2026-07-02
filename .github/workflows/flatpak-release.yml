@@ -50,8 +50,6 @@ jobs:
 
       - run: flutter --version
 
-      # The pico_view package ships prebuilt native libraries and registers them
-      # through Flutter's native-assets build hook; no Rust toolchain required.
       - name: Enable native assets
         run: flutter config --enable-native-assets
 

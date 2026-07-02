@@ -33,6 +33,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get moduleStopwatchTitle => '秒表';
 
   @override
+  String get moduleLive2dTitle => 'Live2D';
+
+  @override
+  String get live2dChooseModel => '模型文件夹';
+
+  @override
+  String get live2dNoModel => '未选择模型';
+
+  @override
+  String get live2dClear => '清除';
+
+  @override
+  String get live2dPickHint => '请在设置中选择 Live2D 模型文件夹。';
+
+  @override
+  String get live2dNoModelJson => '该文件夹中未找到 .model3.json。';
+
+  @override
+  String get live2dLoadFailed => '无法加载模型。';
+
+  @override
+  String get live2dUnavailable => '此设备不支持 Live2D。';
+
+  @override
   String get timerHours => '小时';
 
   @override

@@ -1,5 +1,4 @@
 import 'package:code_assets/code_assets.dart';
-import 'package:data_assets/data_assets.dart';
 import 'package:hooks/hooks.dart';
 
 // This package ships the `pico-view` engine as PREBUILT libraries under
@@ -33,19 +32,6 @@ void main(List<String> args) async {
     );
     // Rebuild dependents when the committed binary changes.
     output.dependencies.add(file);
-
-    // On Windows the CH347 driver is linked through an import library, so the
-    // matching DLL has to ship as a separate runtime file. Emit it as a data
-    // asset so the SDK bundles it with the application.
-    if (input.config.buildDataAssets && code.targetOS == OS.windows) {
-      output.assets.data.add(
-        DataAsset(
-          package: input.packageName,
-          name: 'ch347/CH347DLLA64.DLL',
-          file: input.packageRoot.resolve('native/windows/x64/CH347DLLA64.DLL'),
-        ),
-      );
-    }
   });
 }
 

@@ -33,6 +33,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleStopwatchTitle => 'Stopwatch';
 
   @override
+  String get moduleLive2dTitle => 'Live2D';
+
+  @override
+  String get live2dChooseModel => 'Model folder';
+
+  @override
+  String get live2dNoModel => 'No model selected';
+
+  @override
+  String get live2dClear => 'Clear';
+
+  @override
+  String get live2dPickHint => 'Choose a Live2D model folder in settings.';
+
+  @override
+  String get live2dNoModelJson => 'No .model3.json found in that folder.';
+
+  @override
+  String get live2dLoadFailed => 'Couldn\'t load the model.';
+
+  @override
+  String get live2dUnavailable => 'Live2D isn\'t available on this device.';
+
+  @override
   String get timerHours => 'Hours';
 
   @override

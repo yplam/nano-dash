@@ -146,6 +146,54 @@ abstract class AppLocalizations {
   /// **'Stopwatch'**
   String get moduleStopwatchTitle;
 
+  /// No description provided for @moduleLive2dTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Live2D'**
+  String get moduleLive2dTitle;
+
+  /// No description provided for @live2dChooseModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model folder'**
+  String get live2dChooseModel;
+
+  /// No description provided for @live2dNoModel.
+  ///
+  /// In en, this message translates to:
+  /// **'No model selected'**
+  String get live2dNoModel;
+
+  /// No description provided for @live2dClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get live2dClear;
+
+  /// No description provided for @live2dPickHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a Live2D model folder in settings.'**
+  String get live2dPickHint;
+
+  /// No description provided for @live2dNoModelJson.
+  ///
+  /// In en, this message translates to:
+  /// **'No .model3.json found in that folder.'**
+  String get live2dNoModelJson;
+
+  /// No description provided for @live2dLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the model.'**
+  String get live2dLoadFailed;
+
+  /// No description provided for @live2dUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Live2D isn\'t available on this device.'**
+  String get live2dUnavailable;
+
   /// No description provided for @timerHours.
   ///
   /// In en, this message translates to:

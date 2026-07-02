@@ -26,23 +26,14 @@ class PicoTouchEvent {
 /// Keep in sync with the Rust `panels` preset registry.
 const Map<String, ({int width, int height})> kPicoViewModels = {
   'st77916-round-360': (width: 360, height: 360),
-  'st7789-1.69': (width: 240, height: 280),
 };
 
-/// The default panel model (the 360x360 ST77916 round display).
 const String kPicoViewDefaultModel = 'st77916-round-360';
 
 /// Open-time device configuration.
 @immutable
 class PicoViewConfig {
-  const PicoViewConfig({
-    this.device = '/dev/ch34x_pis0',
-    this.index = 0,
-    this.model = kPicoViewDefaultModel,
-  });
-
-  final String device;
-  final int index;
+  const PicoViewConfig({this.model = kPicoViewDefaultModel});
 
   /// Panel model name; resolved to a preset on the native side.
   final String model;
@@ -53,11 +44,7 @@ class PicoViewConfig {
   /// Visible height of the selected [model] in pixels, or `0` if unknown.
   int get height => kPicoViewModels[model]?.height ?? 0;
 
-  Map<String, dynamic> toJson() => {
-    'device': device,
-    'index': index,
-    'model': model,
-  };
+  Map<String, dynamic> toJson() => {'model': model};
 }
 
 /// Thrown when a native call fails.

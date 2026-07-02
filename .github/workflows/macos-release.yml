@@ -47,10 +47,6 @@ jobs:
 
       - run: flutter --version
 
-      # The pico_view package ships the prebuilt Rust engine and registers it
-      # through Flutter's native-assets build hook; no Rust toolchain required.
-      # On macOS the CH347 driver is linked into the dylib (it talks to the chip
-      # as a USB HID device), so there is no separate runtime library to bundle.
       - name: Enable native assets
         run: flutter config --enable-native-assets
 

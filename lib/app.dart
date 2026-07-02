@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -15,7 +16,9 @@ import 'data/services/weather_service.dart';
 import 'data/services/window_service.dart';
 import 'l10n/app_localizations.dart';
 import 'ui/dashboard/dashboard.dart';
+import 'ui/live2d/cubit/live2d_cubit.dart';
 import 'ui/modules/clock_module.dart';
+import 'ui/modules/live2d_module.dart';
 import 'ui/modules/stopwatch_module.dart';
 import 'ui/modules/timer_module.dart';
 import 'ui/stopwatch/cubit/stopwatch_cubit.dart';
@@ -85,10 +88,11 @@ class NanoDashApp extends StatelessWidget {
       providers: [
         if (tray != null) RepositoryProvider<TrayService>.value(value: tray),
         RepositoryProvider<ModuleRepository>(
-          create: (_) => const ModuleRepository([
-            ClockModule(),
-            TimerModule(),
-            StopwatchModule(),
+          create: (_) => ModuleRepository([
+            const ClockModule(),
+            const TimerModule(),
+            const StopwatchModule(),
+            if (!kIsWeb) const Live2DModule(),
           ]),
         ),
         RepositoryProvider<SettingsRepository>(
@@ -122,6 +126,7 @@ class NanoDashApp extends StatelessWidget {
             create: (_) => StopwatchCubit(),
             lazy: false,
           ),
+          if (!kIsWeb) BlocProvider<Live2dCubit>(create: (_) => Live2dCubit()),
         ],
         child: MaterialApp(
           onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,

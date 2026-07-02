@@ -7,7 +7,7 @@
 // `NativeApi.initializeApiDLData`.
 void pv_init(void *api_data, int64_t send_port);
 
-// Open the CH347 device and start the worker from a JSON config blob.
+// Open the panel device and start the worker from a JSON config blob.
 // Returns 0 on success; -1 bad config, -2 already open, -3 device/setup failure.
 int32_t pv_open(const uint8_t *cfg_ptr, uintptr_t cfg_len);
 

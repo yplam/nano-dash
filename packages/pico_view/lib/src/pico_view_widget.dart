@@ -9,6 +9,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart' show SchedulerPhase;
 import 'package:flutter/widgets.dart';
 
 import 'pico_view_controller.dart';
@@ -47,7 +48,7 @@ class PicoView extends StatefulWidget {
   State<PicoView> createState() => _PicoViewState();
 }
 
-class _PicoViewState extends State<PicoView> {
+class _PicoViewState extends State<PicoView> with WidgetsBindingObserver {
   final GlobalKey _boundaryKey = GlobalKey();
 
   // Capture is driven off Flutter's frame pipeline (a single post-frame callback
@@ -70,6 +71,9 @@ class _PicoViewState extends State<PicoView> {
   /// further frames — and so no further post-frame callbacks — would fire).
   Timer? _trailingTimer;
 
+  /// Drives the frame pipeline manually while the window is off-screen.
+  Timer? _pumpTimer;
+
   StreamSubscription<PicoTouchEvent>? _touchSub;
 
   // Synthetic pointer identity, kept distinct from real input devices.
@@ -80,6 +84,7 @@ class _PicoViewState extends State<PicoView> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _startCapture();
     if (widget.enableTouch) {
       _touchSub = widget.controller.touches.listen(_onTouch);
@@ -109,6 +114,61 @@ class _PicoViewState extends State<PicoView> {
       _looping = true;
       WidgetsBinding.instance.addPostFrameCallback(_onFrame);
     }
+    // If we're currently driving frames manually, restart the timer so the new
+    // budget takes effect immediately.
+    if (_pumpTimer != null) {
+      _stopPumping();
+      _startPumping();
+    }
+  }
+
+  /// Track window visibility. On desktop, hiding to the tray or minimizing takes
+  /// the app out of [AppLifecycleState.resumed]; the engine then stops requesting
+  /// frames, so the post-frame capture loop goes idle and the mirrored content
+  /// freezes. While off-screen we drive the pipeline ourselves; when visible
+  /// again the engine's vsync takes back over.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final offscreen =
+        state == AppLifecycleState.hidden || state == AppLifecycleState.paused;
+    if (offscreen) {
+      _startPumping();
+    } else {
+      _stopPumping();
+    }
+  }
+
+  void _startPumping() {
+    if (kIsWeb || _pumpTimer != null) return;
+    // Rebase the scheduler's frame epoch onto the last real frame so the
+    // synthetic timestamps we feed below continue smoothly from it.
+    WidgetsBinding.instance.resetEpoch();
+    // Match the capture budget; each pumped frame runs build/layout/paint and
+    // fires the re-armed post-frame callback.
+    _pumpTimer = Timer.periodic(
+      Duration(milliseconds: _minIntervalMs),
+      (_) => _pump(),
+    );
+  }
+
+  void _stopPumping() {
+    if (_pumpTimer == null) return;
+    _pumpTimer!.cancel();
+    _pumpTimer = null;
+    // Rebase again so the engine's first real frame.
+    WidgetsBinding.instance.resetEpoch();
+    WidgetsBinding.instance.scheduleFrame();
+  }
+
+  /// Manually advance the frame pipeline one step while off-screen.
+  /// Feeding [_clock].elapsed as the frame time keeps `AnimationController`s
+  /// running in real time.
+  void _pump() {
+    if (!mounted) return;
+    final binding = WidgetsBinding.instance;
+    if (binding.schedulerPhase != SchedulerPhase.idle) return;
+    binding.handleBeginFrame(_clock.elapsed);
+    binding.handleDrawFrame();
   }
 
   void _onFrame(Duration _) {
@@ -175,10 +235,11 @@ class _PicoViewState extends State<PicoView> {
 
       final hash = _fastHash(rgba);
       if (hash == _lastHash) return; // unchanged → skip the USB write
-      _lastHash = hash;
 
       final cfg = widget.controller.config;
-      widget.controller.flushRgba(rgba, cfg.width, cfg.height);
+      if (widget.controller.flushRgba(rgba, cfg.width, cfg.height)) {
+        _lastHash = hash;
+      }
     } catch (_) {
       // toImage can transiently fail mid-frame; just try again next tick.
     } finally {
@@ -277,6 +338,8 @@ class _PicoViewState extends State<PicoView> {
   void dispose() {
     _looping = false;
     _trailingTimer?.cancel();
+    _pumpTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     _touchSub?.cancel();
     super.dispose();
   }
