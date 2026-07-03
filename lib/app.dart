@@ -7,17 +7,21 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants.dart';
+import 'data/repositories/calendar_repository.dart';
 import 'data/repositories/module_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'data/repositories/weather_repository.dart';
+import 'data/services/calendar/calendar_service.dart';
 import 'data/services/locator.dart';
 import 'data/services/tray_service.dart';
 import 'data/services/weather_service.dart';
 import 'data/services/window_service.dart';
 import 'domain/models/app_config.dart';
 import 'l10n/app_localizations.dart';
+import 'ui/calendar/calendar.dart';
 import 'ui/dashboard/dashboard.dart';
 import 'ui/live2d/cubit/live2d_cubit.dart';
+import 'ui/modules/calendar_module.dart';
 import 'ui/modules/clock_module.dart';
 import 'ui/modules/live2d_module.dart';
 import 'ui/modules/settings_module.dart';
@@ -99,6 +103,7 @@ class NanoDashApp extends StatelessWidget {
             const SettingsModule(),
             const ClockModule(),
             const WeatherModule(),
+            const CalendarModule(),
             const TimerModule(),
             const StopwatchModule(),
             if (!kIsWeb) const Live2DModule(),
@@ -112,6 +117,12 @@ class NanoDashApp extends StatelessWidget {
           create: (context) => WeatherRepository(
             context.read<SettingsRepository>(),
             WeatherService(dio),
+          ),
+        ),
+        RepositoryProvider<CalendarRepository>(
+          create: (context) => CalendarRepository(
+            context.read<SettingsRepository>(),
+            CalendarService(dio),
           ),
         ),
       ],
@@ -130,6 +141,11 @@ class NanoDashApp extends StatelessWidget {
           BlocProvider<WeatherCubit>(
             create: (context) =>
                 WeatherCubit(context.read<WeatherRepository>()),
+            lazy: false,
+          ),
+          BlocProvider<CalendarCubit>(
+            create: (context) =>
+                CalendarCubit(context.read<CalendarRepository>()),
             lazy: false,
           ),
           BlocProvider<TimerCubit>(

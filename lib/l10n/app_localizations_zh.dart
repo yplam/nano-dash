@@ -42,6 +42,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get moduleWeatherTitle => '天气';
 
   @override
+  String get moduleCalendarTitle => '日历';
+
+  @override
   String get moduleSettingsTitle => '设置';
 
   @override
@@ -280,6 +283,66 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get weatherDaily => '7 天预报';
+
+  @override
+  String get calendarEmpty => '暂无日程';
+
+  @override
+  String get calendarError => '日历不可用';
+
+  @override
+  String get calendarToday => '今天';
+
+  @override
+  String get calendarTomorrow => '明天';
+
+  @override
+  String get calendarAllDay => '全天';
+
+  @override
+  String get calendarNoFeeds => '尚未添加日历。';
+
+  @override
+  String get calendarAddFeed => '添加日历';
+
+  @override
+  String get calendarRemoveFeed => '移除';
+
+  @override
+  String get calendarFeedUrl => '日历地址';
+
+  @override
+  String get calendarFeedUrlHint => 'https://…/calendar.ics';
+
+  @override
+  String get calendarFeedOptions => '选项';
+
+  @override
+  String get calendarFeedLabel => '名称（可选）';
+
+  @override
+  String get calendarFeedUsername => '用户名';
+
+  @override
+  String get calendarFeedPassword => '密码';
+
+  @override
+  String get calendarFeedProxy => '代理（可选）';
+
+  @override
+  String get calendarFeedProxyHint => 'host:port 或 socks5://host:port';
+
+  @override
+  String get calendarRangeTitle => '显示';
+
+  @override
+  String get calendarRangeToday => '今天';
+
+  @override
+  String get calendarRangeTodayTomorrow => '今明两天';
+
+  @override
+  String get calendarRangeAll => '全部';
 
   @override
   String get picoViewOpenFailed => '无法打开 LCD 显示屏。';

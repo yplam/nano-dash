@@ -42,6 +42,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleWeatherTitle => 'Weather';
 
   @override
+  String get moduleCalendarTitle => 'Calendar';
+
+  @override
   String get moduleSettingsTitle => 'Settings';
 
   @override
@@ -280,6 +283,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weatherDaily => '7-day forecast';
+
+  @override
+  String get calendarEmpty => 'No upcoming events';
+
+  @override
+  String get calendarError => 'Calendar unavailable';
+
+  @override
+  String get calendarToday => 'Today';
+
+  @override
+  String get calendarTomorrow => 'Tomorrow';
+
+  @override
+  String get calendarAllDay => 'All day';
+
+  @override
+  String get calendarNoFeeds => 'No calendars added yet.';
+
+  @override
+  String get calendarAddFeed => 'Add calendar';
+
+  @override
+  String get calendarRemoveFeed => 'Remove';
+
+  @override
+  String get calendarFeedUrl => 'Calendar URL';
+
+  @override
+  String get calendarFeedUrlHint => 'https://…/calendar.ics';
+
+  @override
+  String get calendarFeedOptions => 'Options';
+
+  @override
+  String get calendarFeedLabel => 'Name (optional)';
+
+  @override
+  String get calendarFeedUsername => 'Username';
+
+  @override
+  String get calendarFeedPassword => 'Password';
+
+  @override
+  String get calendarFeedProxy => 'Proxy (optional)';
+
+  @override
+  String get calendarFeedProxyHint => 'host:port or socks5://host:port';
+
+  @override
+  String get calendarRangeTitle => 'Show';
+
+  @override
+  String get calendarRangeToday => 'Today';
+
+  @override
+  String get calendarRangeTodayTomorrow => 'Today & tomorrow';
+
+  @override
+  String get calendarRangeAll => 'All';
 
   @override
   String get picoViewOpenFailed => 'Couldn\'t open the LCD display.';

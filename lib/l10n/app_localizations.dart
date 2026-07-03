@@ -164,6 +164,12 @@ abstract class AppLocalizations {
   /// **'Weather'**
   String get moduleWeatherTitle;
 
+  /// No description provided for @moduleCalendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get moduleCalendarTitle;
+
   /// No description provided for @moduleSettingsTitle.
   ///
   /// In en, this message translates to:
@@ -631,6 +637,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'7-day forecast'**
   String get weatherDaily;
+
+  /// No description provided for @calendarEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming events'**
+  String get calendarEmpty;
+
+  /// No description provided for @calendarError.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar unavailable'**
+  String get calendarError;
+
+  /// No description provided for @calendarToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get calendarToday;
+
+  /// No description provided for @calendarTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get calendarTomorrow;
+
+  /// No description provided for @calendarAllDay.
+  ///
+  /// In en, this message translates to:
+  /// **'All day'**
+  String get calendarAllDay;
+
+  /// No description provided for @calendarNoFeeds.
+  ///
+  /// In en, this message translates to:
+  /// **'No calendars added yet.'**
+  String get calendarNoFeeds;
+
+  /// No description provided for @calendarAddFeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Add calendar'**
+  String get calendarAddFeed;
+
+  /// No description provided for @calendarRemoveFeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get calendarRemoveFeed;
+
+  /// No description provided for @calendarFeedUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar URL'**
+  String get calendarFeedUrl;
+
+  /// No description provided for @calendarFeedUrlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'https://…/calendar.ics'**
+  String get calendarFeedUrlHint;
+
+  /// No description provided for @calendarFeedOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get calendarFeedOptions;
+
+  /// No description provided for @calendarFeedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (optional)'**
+  String get calendarFeedLabel;
+
+  /// No description provided for @calendarFeedUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get calendarFeedUsername;
+
+  /// No description provided for @calendarFeedPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get calendarFeedPassword;
+
+  /// No description provided for @calendarFeedProxy.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy (optional)'**
+  String get calendarFeedProxy;
+
+  /// No description provided for @calendarFeedProxyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'host:port or socks5://host:port'**
+  String get calendarFeedProxyHint;
+
+  /// No description provided for @calendarRangeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get calendarRangeTitle;
+
+  /// No description provided for @calendarRangeToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get calendarRangeToday;
+
+  /// No description provided for @calendarRangeTodayTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Today & tomorrow'**
+  String get calendarRangeTodayTomorrow;
+
+  /// No description provided for @calendarRangeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get calendarRangeAll;
 
   /// No description provided for @picoViewOpenFailed.
   ///
