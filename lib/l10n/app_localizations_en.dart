@@ -39,6 +39,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleSystemTitle => 'System Monitor';
 
   @override
+  String get moduleWeatherTitle => 'Weather';
+
+  @override
   String get moduleSettingsTitle => 'Settings';
 
   @override
@@ -241,6 +244,42 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weatherAqiExtremelyPoor => 'Extremely poor';
+
+  @override
+  String get weatherConditionClearDay => 'Clear sky';
+
+  @override
+  String get weatherConditionClearNight => 'Clear night';
+
+  @override
+  String get weatherConditionPartlyCloudy => 'Partly cloudy';
+
+  @override
+  String get weatherConditionCloudy => 'Cloudy';
+
+  @override
+  String get weatherConditionFog => 'Fog';
+
+  @override
+  String get weatherConditionDrizzle => 'Drizzle';
+
+  @override
+  String get weatherConditionRain => 'Rain';
+
+  @override
+  String get weatherConditionSnow => 'Snow';
+
+  @override
+  String get weatherConditionThunderstorm => 'Thunderstorm';
+
+  @override
+  String get weatherNow => 'Now';
+
+  @override
+  String get weatherToday => 'Today';
+
+  @override
+  String get weatherDaily => '7-day forecast';
 
   @override
   String get picoViewOpenFailed => 'Couldn\'t open the LCD display.';

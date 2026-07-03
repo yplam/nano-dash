@@ -72,6 +72,52 @@ class AirQuality {
   }
 }
 
+/// One hour of the forecast. Temperature is Celsius (the canonical unit), like
+/// [WeatherData]; [time] is the panel-local wall-clock time of the hour.
+class HourlyForecast {
+  const HourlyForecast({
+    required this.time,
+    required this.temperatureC,
+    required this.condition,
+    this.isDay = true,
+    this.precipitationProbability,
+  });
+
+  /// Local wall-clock time of this hour (naive local, as returned by the
+  /// provider with `timezone=auto`).
+  final DateTime time;
+  final double temperatureC;
+  final WeatherCondition condition;
+  final bool isDay;
+
+  /// Chance of precipitation, 0–100, or `null` if not reported.
+  final int? precipitationProbability;
+}
+
+/// One day of the forecast. Temperatures are Celsius; [date] is the local
+/// calendar day.
+class DailyForecast {
+  const DailyForecast({
+    required this.date,
+    required this.condition,
+    required this.tempMaxC,
+    required this.tempMinC,
+    this.precipitationProbability,
+    this.sunrise,
+    this.sunset,
+  });
+
+  final DateTime date;
+  final WeatherCondition condition;
+  final double tempMaxC;
+  final double tempMinC;
+
+  /// Peak chance of precipitation across the day, 0–100, or `null`.
+  final int? precipitationProbability;
+  final DateTime? sunrise;
+  final DateTime? sunset;
+}
+
 /// A current-conditions snapshot for a place. Temperature is always stored as
 /// Celsius (the canonical unit); callers pick the display unit when formatting,
 /// so a unit toggle never needs a refetch and a cached snapshot never goes
@@ -86,6 +132,8 @@ class WeatherData {
     this.windSpeedKmh,
     this.isDay = true,
     this.airQuality,
+    this.hourly = const [],
+    this.daily = const [],
   });
 
   final String city;
@@ -102,6 +150,14 @@ class WeatherData {
   /// one — it must never fail the current-conditions fetch.
   final AirQuality? airQuality;
 
+  /// Upcoming hours, starting at the current hour, in ascending time order.
+  /// Empty if the provider didn't return an hourly series.
+  final List<HourlyForecast> hourly;
+
+  /// Upcoming days, starting today, in ascending date order. Empty if the
+  /// provider didn't return a daily series.
+  final List<DailyForecast> daily;
+
   WeatherData copyWith({AirQuality? airQuality}) {
     return WeatherData(
       city: city,
@@ -112,6 +168,8 @@ class WeatherData {
       windSpeedKmh: windSpeedKmh,
       isDay: isDay,
       airQuality: airQuality ?? this.airQuality,
+      hourly: hourly,
+      daily: daily,
     );
   }
 

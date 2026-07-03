@@ -5,6 +5,7 @@ import '../../../data/repositories/settings_repository.dart';
 import '../../../domain/models/dashboard.dart';
 import '../../../extensions/loggable.dart';
 import '../../modules/clock_module.dart';
+import '../../modules/weather_module.dart';
 
 part 'dashboard_state.dart';
 
@@ -42,10 +43,11 @@ class DashboardCubit extends Cubit<DashboardState> with Loggable {
     for (final module in _modules.modules) {
       if (seen.contains(module.id)) continue;
       final settingsOnly = module.hasSettings && !module.hasDisplay;
+      const defaultOn = {ClockModule.kId, WeatherModule.kId};
       items.add(
         DashboardItemConfig(
           moduleId: module.id,
-          enabled: module.id == ClockModule.kId || settingsOnly,
+          enabled: defaultOn.contains(module.id) || settingsOnly,
           settings: module.defaultSettings,
         ),
       );
@@ -96,6 +98,16 @@ class DashboardCubit extends Cubit<DashboardState> with Loggable {
           item,
     ];
     _commit(items);
+  }
+
+  /// Jump the carousel straight to [moduleId]'s page, if it's an enabled, displayable page.
+  void goToModule(String moduleId) {
+    final pages = _modules.pages(state.items);
+    final index = pages.indexWhere((p) => p.moduleId == moduleId);
+    if (index < 0 || index == state.currentPage) return;
+    emit(
+      state.copyWith(currentPage: index, forward: index > state.currentPage),
+    );
   }
 
   /// Advance to the next enabled page (wrapping). The LCD slides content left.

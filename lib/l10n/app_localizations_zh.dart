@@ -39,6 +39,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get moduleSystemTitle => '系统监控';
 
   @override
+  String get moduleWeatherTitle => '天气';
+
+  @override
   String get moduleSettingsTitle => '设置';
 
   @override
@@ -241,6 +244,42 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get weatherAqiExtremelyPoor => '极差';
+
+  @override
+  String get weatherConditionClearDay => '晴';
+
+  @override
+  String get weatherConditionClearNight => '晴夜';
+
+  @override
+  String get weatherConditionPartlyCloudy => '局部多云';
+
+  @override
+  String get weatherConditionCloudy => '多云';
+
+  @override
+  String get weatherConditionFog => '雾';
+
+  @override
+  String get weatherConditionDrizzle => '毛毛雨';
+
+  @override
+  String get weatherConditionRain => '雨';
+
+  @override
+  String get weatherConditionSnow => '雪';
+
+  @override
+  String get weatherConditionThunderstorm => '雷暴';
+
+  @override
+  String get weatherNow => '现在';
+
+  @override
+  String get weatherToday => '今天';
+
+  @override
+  String get weatherDaily => '7 天预报';
 
   @override
   String get picoViewOpenFailed => '无法打开 LCD 显示屏。';

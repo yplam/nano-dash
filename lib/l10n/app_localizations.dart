@@ -158,6 +158,12 @@ abstract class AppLocalizations {
   /// **'System Monitor'**
   String get moduleSystemTitle;
 
+  /// No description provided for @moduleWeatherTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather'**
+  String get moduleWeatherTitle;
+
   /// No description provided for @moduleSettingsTitle.
   ///
   /// In en, this message translates to:
@@ -553,6 +559,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Extremely poor'**
   String get weatherAqiExtremelyPoor;
+
+  /// No description provided for @weatherConditionClearDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear sky'**
+  String get weatherConditionClearDay;
+
+  /// No description provided for @weatherConditionClearNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear night'**
+  String get weatherConditionClearNight;
+
+  /// No description provided for @weatherConditionPartlyCloudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Partly cloudy'**
+  String get weatherConditionPartlyCloudy;
+
+  /// No description provided for @weatherConditionCloudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloudy'**
+  String get weatherConditionCloudy;
+
+  /// No description provided for @weatherConditionFog.
+  ///
+  /// In en, this message translates to:
+  /// **'Fog'**
+  String get weatherConditionFog;
+
+  /// No description provided for @weatherConditionDrizzle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drizzle'**
+  String get weatherConditionDrizzle;
+
+  /// No description provided for @weatherConditionRain.
+  ///
+  /// In en, this message translates to:
+  /// **'Rain'**
+  String get weatherConditionRain;
+
+  /// No description provided for @weatherConditionSnow.
+  ///
+  /// In en, this message translates to:
+  /// **'Snow'**
+  String get weatherConditionSnow;
+
+  /// No description provided for @weatherConditionThunderstorm.
+  ///
+  /// In en, this message translates to:
+  /// **'Thunderstorm'**
+  String get weatherConditionThunderstorm;
+
+  /// No description provided for @weatherNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get weatherNow;
+
+  /// No description provided for @weatherToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get weatherToday;
+
+  /// No description provided for @weatherDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day forecast'**
+  String get weatherDaily;
 
   /// No description provided for @picoViewOpenFailed.
   ///

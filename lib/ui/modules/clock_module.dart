@@ -7,10 +7,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:nano_dash/domain/models/dashboard.dart';
 
-import '../../../../domain/models/weather.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/module.dart';
+import '../dashboard/cubit/dashboard_cubit.dart';
 import '../weather/weather.dart';
+import 'weather_module.dart';
 
 /// A real-time digital clock. Shows the current time and date and ticks every second.
 class ClockModule extends Module {
@@ -60,8 +61,6 @@ class ClockModule extends Module {
     bool flag(String key, bool fallback) => settings[key] as bool? ?? fallback;
     void set(String key, bool value) => onChanged({...settings, key: value});
 
-    final showWeather = flag(_kShowWeather, false);
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -77,29 +76,9 @@ class ClockModule extends Module {
         ),
         SwitchListTile(
           title: Text(l10n.clockShowWeather),
-          value: showWeather,
+          value: flag(_kShowWeather, false),
           onChanged: (v) => set(_kShowWeather, v),
         ),
-        if (showWeather) ...[
-          const Divider(),
-          BlocConsumer<WeatherCubit, WeatherState>(
-            // A fresh error instance per failure; only surface a new one.
-            listenWhen: (prev, curr) =>
-                curr.error != null && !identical(curr.error, prev.error),
-            listener: (context, state) {
-              ScaffoldMessenger.of(context)
-                ..clearSnackBars()
-                ..showSnackBar(
-                  SnackBar(content: Text(l10n.weatherFetchFailed(state.city))),
-                );
-            },
-            builder: (context, state) => WeatherSettings(
-              initialConfig: WeatherConfig(city: state.city),
-              onConfigChanged: (config) =>
-                  context.read<WeatherCubit>().setCity(config.city),
-            ),
-          ),
-        ],
       ],
     );
   }
@@ -263,7 +242,14 @@ class _ClockViewState extends State<_ClockView> {
 
         if (widget.showWeather) {
           card.add(SizedBox(height: side * 0.02));
-          card.add(const WeatherDisplay());
+          card.add(
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () =>
+                  context.read<DashboardCubit>().goToModule(WeatherModule.kId),
+              child: const WeatherDisplay(),
+            ),
+          );
         }
 
         return Center(

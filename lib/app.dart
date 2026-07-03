@@ -24,6 +24,7 @@ import 'ui/modules/settings_module.dart';
 import 'ui/modules/stopwatch_module.dart';
 import 'ui/modules/system_monitor_module.dart';
 import 'ui/modules/timer_module.dart';
+import 'ui/modules/weather_module.dart';
 import 'ui/settings/cubit/app_config_cubit.dart';
 import 'ui/stopwatch/cubit/stopwatch_cubit.dart';
 import 'ui/system_monitor/cubit/system_monitor_cubit.dart';
@@ -97,6 +98,7 @@ class NanoDashApp extends StatelessWidget {
           create: (_) => ModuleRepository([
             const SettingsModule(),
             const ClockModule(),
+            const WeatherModule(),
             const TimerModule(),
             const StopwatchModule(),
             if (!kIsWeb) const Live2DModule(),
