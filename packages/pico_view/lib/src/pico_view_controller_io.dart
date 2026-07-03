@@ -59,8 +59,11 @@ class PicoViewController {
     try {
       ptr.asTypedList(jsonBytes.length).setAll(0, jsonBytes);
       final rc = bindings.pv_open(ptr, jsonBytes.length);
+      if (rc == -4) {
+        throw PicoViewUnauthorizedException();
+      }
       if (rc != 0) {
-        throw PicoViewException('pv_open failed (code $rc)');
+        throw PicoViewException('pv_open failed (code $rc)', code: rc);
       }
       _config = config;
       _opened = true;
@@ -81,6 +84,37 @@ class PicoViewController {
     _frameBuffer!.asTypedList(rgba.length).setAll(0, rgba);
     return bindings.pv_lcd_flush(_frameBuffer!, rgba.length, width, height) ==
         0;
+  }
+
+  bool _sysOpen = false;
+
+  /// Start the host system sampler (CPU / RAM / network / temperatures).
+  void openSystem() {
+    bindings.pv_sys_open();
+    _sysOpen = true;
+  }
+
+  /// Sample host telemetry once. Opens the sampler on first use.
+  SystemSnapshot? sampleSystem() {
+    if (_disposed) return null;
+    final ptr = bindings.pv_sys_sample();
+    if (ptr == ffi.nullptr) return null;
+    try {
+      final json = jsonDecode(ptr.cast<Utf8>().toDartString());
+      return SystemSnapshot.fromJson(json as Map<String, dynamic>);
+    } catch (_) {
+      return null;
+    } finally {
+      bindings.pv_sys_free(ptr);
+    }
+  }
+
+  /// Stop the host sampler and free its native state. Idempotent.
+  void closeSystem() {
+    if (_sysOpen) {
+      bindings.pv_sys_close();
+      _sysOpen = false;
+    }
   }
 
   /// Decode a touch event JSON string pushed from the native side, e.g.
@@ -112,6 +146,7 @@ class PicoViewController {
   void dispose() {
     if (_disposed) return;
     _disposed = true;
+    closeSystem();
     if (_opened) {
       bindings.pv_close();
       _opened = false;

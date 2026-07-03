@@ -36,6 +36,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleLive2dTitle => 'Live2D';
 
   @override
+  String get moduleSystemTitle => 'System Monitor';
+
+  @override
+  String get moduleSettingsTitle => 'Settings';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get settingsBackground => 'Background';
+
+  @override
+  String get settingsBackgroundDefault => 'Default';
+
+  @override
+  String get settingsBackgroundHint => 'Image, GIF or animated WebP';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsLanguageSystem => 'System';
+
+  @override
+  String get settingsThemeColor => 'Theme color';
+
+  @override
+  String get systemCpu => 'CPU';
+
+  @override
+  String get systemMemory => 'Memory';
+
+  @override
+  String get systemNetwork => 'Network';
+
+  @override
+  String get systemTemperature => 'Temp';
+
+  @override
+  String get systemUnavailable => 'System info unavailable';
+
+  @override
   String get live2dChooseModel => 'Model folder';
 
   @override
@@ -202,6 +244,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get picoViewOpenFailed => 'Couldn\'t open the LCD display.';
+
+  @override
+  String get picoViewUnauthorized =>
+      'This display is not a genuine device (or its firmware is too old), so it can\'t be used.';
 
   @override
   String get retry => 'Retry';

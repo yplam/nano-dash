@@ -152,6 +152,90 @@ abstract class AppLocalizations {
   /// **'Live2D'**
   String get moduleLive2dTitle;
 
+  /// No description provided for @moduleSystemTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'System Monitor'**
+  String get moduleSystemTitle;
+
+  /// No description provided for @moduleSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get moduleSettingsTitle;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// No description provided for @settingsBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Background'**
+  String get settingsBackground;
+
+  /// No description provided for @settingsBackgroundDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get settingsBackgroundDefault;
+
+  /// No description provided for @settingsBackgroundHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Image, GIF or animated WebP'**
+  String get settingsBackgroundHint;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguage;
+
+  /// No description provided for @settingsLanguageSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get settingsLanguageSystem;
+
+  /// No description provided for @settingsThemeColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme color'**
+  String get settingsThemeColor;
+
+  /// No description provided for @systemCpu.
+  ///
+  /// In en, this message translates to:
+  /// **'CPU'**
+  String get systemCpu;
+
+  /// No description provided for @systemMemory.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory'**
+  String get systemMemory;
+
+  /// No description provided for @systemNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network'**
+  String get systemNetwork;
+
+  /// No description provided for @systemTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Temp'**
+  String get systemTemperature;
+
+  /// No description provided for @systemUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'System info unavailable'**
+  String get systemUnavailable;
+
   /// No description provided for @live2dChooseModel.
   ///
   /// In en, this message translates to:
@@ -475,6 +559,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t open the LCD display.'**
   String get picoViewOpenFailed;
+
+  /// No description provided for @picoViewUnauthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'This display is not a genuine device (or its firmware is too old), so it can\'t be used.'**
+  String get picoViewUnauthorized;
 
   /// No description provided for @retry.
   ///

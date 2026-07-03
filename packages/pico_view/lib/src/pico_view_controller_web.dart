@@ -26,6 +26,12 @@ class PicoViewController {
 
   bool flushRgba(Uint8List rgba, int width, int height) => false;
 
+  void openSystem() {}
+
+  SystemSnapshot? sampleSystem() => null;
+
+  void closeSystem() {}
+
   void dispose() {
     _touch.close();
   }

@@ -55,6 +55,17 @@ class _TimerViewState extends State<TimerView> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TimerCubit, TimerState>(
+      // The cubit ticks at 100ms while a timer runs.
+      buildWhen: (prev, curr) {
+        if (_stats) return prev.logs != curr.logs;
+        if (_viewing != null) return true;
+        return prev.timers != curr.timers ||
+            prev.selectedId != curr.selectedId ||
+            prev.running != curr.running ||
+            prev.finished != curr.finished ||
+            prev.logs != curr.logs ||
+            prev.remaining.inSeconds != curr.remaining.inSeconds;
+      },
       builder: (context, state) {
         if (_stats) {
           return PomodoroStatsView(

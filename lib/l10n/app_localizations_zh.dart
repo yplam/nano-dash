@@ -36,6 +36,48 @@ class AppLocalizationsZh extends AppLocalizations {
   String get moduleLive2dTitle => 'Live2D';
 
   @override
+  String get moduleSystemTitle => '系统监控';
+
+  @override
+  String get moduleSettingsTitle => '设置';
+
+  @override
+  String get clear => '清除';
+
+  @override
+  String get settingsBackground => '背景';
+
+  @override
+  String get settingsBackgroundDefault => '默认';
+
+  @override
+  String get settingsBackgroundHint => '图片、GIF 或动态 WebP';
+
+  @override
+  String get settingsLanguage => '语言';
+
+  @override
+  String get settingsLanguageSystem => '跟随系统';
+
+  @override
+  String get settingsThemeColor => '主题色';
+
+  @override
+  String get systemCpu => '处理器';
+
+  @override
+  String get systemMemory => '内存';
+
+  @override
+  String get systemNetwork => '网络';
+
+  @override
+  String get systemTemperature => '温度';
+
+  @override
+  String get systemUnavailable => '无法获取系统信息';
+
+  @override
   String get live2dChooseModel => '模型文件夹';
 
   @override
@@ -202,6 +244,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get picoViewOpenFailed => '无法打开 LCD 显示屏。';
+
+  @override
+  String get picoViewUnauthorized => '该显示屏不是正品设备（或固件版本过旧），无法使用。';
 
   @override
   String get retry => '重试';

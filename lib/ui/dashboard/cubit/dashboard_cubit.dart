@@ -41,16 +41,28 @@ class DashboardCubit extends Cubit<DashboardState> with Loggable {
 
     for (final module in _modules.modules) {
       if (seen.contains(module.id)) continue;
+      final settingsOnly = module.hasSettings && !module.hasDisplay;
       items.add(
         DashboardItemConfig(
           moduleId: module.id,
-          enabled: module.id == ClockModule.kId,
+          enabled: module.id == ClockModule.kId || settingsOnly,
           settings: module.defaultSettings,
         ),
       );
     }
-    logInfo('loaded ${items.length} module(s)');
-    emit(DashboardState(items: items, currentPage: 0));
+
+    final pinned = [
+      for (final i in items)
+        if (_modules.isSettingsOnly(i)) i,
+    ];
+    final rest = [
+      for (final i in items)
+        if (!_modules.isSettingsOnly(i)) i,
+    ];
+    final ordered = [...pinned, ...rest];
+
+    logInfo('loaded ${ordered.length} module(s)');
+    emit(DashboardState(items: ordered, currentPage: 0));
   }
 
   /// Toggle a module on/off.

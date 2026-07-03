@@ -15,6 +15,12 @@ class ModuleRepository {
     return null;
   }
 
+  /// A settings-only module: it exposes settings but renders no LCD page.
+  bool isSettingsOnly(DashboardItemConfig item) {
+    final module = byId(item.moduleId);
+    return module != null && module.hasSettings && !module.hasDisplay;
+  }
+
   /// The ordered page list for a configuration: the items that are both
   /// enabled and backed by a displayable module, in display order.
   List<DashboardItemConfig> pages(List<DashboardItemConfig> items) => [

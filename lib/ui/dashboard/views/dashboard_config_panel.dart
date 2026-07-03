@@ -18,29 +18,134 @@ class DashboardConfigPanel extends StatelessWidget {
     return BlocBuilder<DashboardCubit, DashboardState>(
       buildWhen: (prev, curr) => prev.items != curr.items,
       builder: (context, state) {
-        return ReorderableListView.builder(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          buildDefaultDragHandles: false,
-          itemCount: state.items.length,
-          onReorderItem: (oldIndex, newIndex) =>
-              context.read<DashboardCubit>().reorder(oldIndex, newIndex),
-          itemBuilder: (context, index) {
-            final DashboardItemConfig item = state.items[index];
-            final module = modules.byId(item.moduleId);
-            if (module == null) {
-              return SizedBox.shrink(key: ValueKey('missing-$index'));
-            }
-            return _ModuleTile(
-              key: ValueKey(item.moduleId),
-              index: index,
-              module: module,
-              item: item,
-            );
-          },
+        // Settings-only modules are pinned at the front of state.items.
+        final pinned = [
+          for (final item in state.items)
+            if (modules.isSettingsOnly(item)) item,
+        ];
+        final rest = [
+          for (final item in state.items)
+            if (!modules.isSettingsOnly(item)) item,
+        ];
+
+        return Column(
+          children: [
+            for (final item in pinned)
+              if (modules.byId(item.moduleId) case final module?)
+                _PinnedTile(
+                  key: ValueKey(item.moduleId),
+                  module: module,
+                  item: item,
+                ),
+            if (pinned.isNotEmpty) const Divider(height: 1),
+            Expanded(
+              child: ReorderableListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                buildDefaultDragHandles: false,
+                itemCount: rest.length,
+                onReorderItem: (oldIndex, newIndex) =>
+                    context.read<DashboardCubit>().reorder(
+                      oldIndex + pinned.length,
+                      newIndex + pinned.length,
+                    ),
+                itemBuilder: (context, index) {
+                  final DashboardItemConfig item = rest[index];
+                  final module = modules.byId(item.moduleId);
+                  if (module == null) {
+                    return SizedBox.shrink(key: ValueKey('missing-$index'));
+                  }
+                  return _ModuleTile(
+                    key: ValueKey(item.moduleId),
+                    index: index,
+                    module: module,
+                    item: item,
+                  );
+                },
+              ),
+            ),
+          ],
         );
       },
     );
   }
+}
+
+/// A pinned, always-available tile for a settings-only module.
+class _PinnedTile extends StatelessWidget {
+  const _PinnedTile({super.key, required this.module, required this.item});
+
+  final Module module;
+  final DashboardItemConfig item;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<DashboardCubit>();
+    final l10n = AppLocalizations.of(context);
+    return ListTile(
+      leading: Icon(module.icon),
+      title: Text(module.title(l10n)),
+      trailing: const Icon(Icons.tune),
+      onTap: () => _openModuleSettings(context, cubit, module, item),
+    );
+  }
+}
+
+/// Opens a module's settings in a modal bottom sheet, rebuilding its body from
+/// live cubit state so edits reflect immediately.
+Future<void> _openModuleSettings(
+  BuildContext context,
+  DashboardCubit cubit,
+  Module module,
+  DashboardItemConfig item,
+) {
+  final l10n = AppLocalizations.of(context);
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (sheetContext) {
+      return BlocBuilder<DashboardCubit, DashboardState>(
+        bloc: cubit,
+        builder: (context, state) {
+          final current = state.items.firstWhere(
+            (i) => i.moduleId == module.id,
+            orElse: () => item,
+          );
+          return SafeArea(
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading: Icon(module.icon),
+                    title: Text(module.title(l10n)),
+                    trailing: TextButton(
+                      onPressed: () => Navigator.of(sheetContext).pop(),
+                      child: Text(l10n.settingsDone),
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: module.buildSettings(
+                        context,
+                        current.settings,
+                        (s) => cubit.updateSettings(module.id, s),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
 }
 
 class _ModuleTile extends StatelessWidget {
@@ -70,7 +175,7 @@ class _ModuleTile extends StatelessWidget {
               icon: const Icon(Icons.tune),
               tooltip: l10n.settingsTitle,
               onPressed: item.enabled
-                  ? () => _openSettings(context, cubit)
+                  ? () => _openModuleSettings(context, cubit, module, item)
                   : null,
             ),
           Switch(
@@ -91,58 +196,6 @@ class _ModuleTile extends StatelessWidget {
             const SizedBox(width: 40),
         ],
       ),
-    );
-  }
-
-  Future<void> _openSettings(BuildContext context, DashboardCubit cubit) {
-    final l10n = AppLocalizations.of(context);
-    return showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        // Rebuild the sheet body from live state so edits reflect immediately.
-        return BlocBuilder<DashboardCubit, DashboardState>(
-          bloc: cubit,
-          builder: (context, state) {
-            final current = state.items.firstWhere(
-              (i) => i.moduleId == module.id,
-              orElse: () => item,
-            );
-            return SafeArea(
-              child: Padding(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ListTile(
-                      leading: Icon(module.icon),
-                      title: Text(module.title(l10n)),
-                      trailing: TextButton(
-                        onPressed: () => Navigator.of(sheetContext).pop(),
-                        child: Text(l10n.settingsDone),
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    Flexible(
-                      child: SingleChildScrollView(
-                        child: module.buildSettings(
-                          context,
-                          current.settings,
-                          (s) => cubit.updateSettings(module.id, s),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
     );
   }
 }

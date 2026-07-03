@@ -4,7 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nano_dash/l10n/app_localizations.dart';
 
 import '../../../data/repositories/module_repository.dart';
+import '../../../domain/models/app_config.dart';
 import '../../../domain/models/dashboard.dart';
+import '../../settings/cubit/app_config_cubit.dart';
+import '../../widgets/background_view.dart';
 import '../cubit/dashboard_cubit.dart';
 
 /// The subtree mirrored onto the LCD: the enabled modules shown one full-screen
@@ -136,7 +139,15 @@ class DashboardLcdView extends StatelessWidget {
         return Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset('assets/bg.png', fit: BoxFit.cover),
+            // The user-chosen global background, in its own builder so a
+            // background change doesn't rebuild the page switcher above.
+            BlocBuilder<AppConfigCubit, AppConfig>(
+              buildWhen: (prev, curr) =>
+                  prev.backgroundPath != curr.backgroundPath,
+              builder: (context, config) => BackgroundView(
+                path: config.backgroundPath,
+              ),
+            ),
             view,
           ],
         );

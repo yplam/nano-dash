@@ -11,7 +11,9 @@ import 'dart:ffi' as ffi;
 external void pv_init(ffi.Pointer<ffi.Void> api_data, int send_port);
 
 /// Open the panel device and start the worker from a JSON config blob.
-/// Returns 0 on success; -1 bad config, -2 already open, -3 device/setup failure.
+/// Returns 0 on success; -1 bad config, -2 already open, -3 device/setup failure,
+/// -4 unauthorized device (hardware attestation failed or unsupported -- the
+/// device is not, provably, genuine pico-view hardware).
 @ffi.Native<ffi.Int32 Function(ffi.Pointer<ffi.Uint8>, ffi.UintPtr)>()
 external int pv_open(ffi.Pointer<ffi.Uint8> cfg_ptr, int cfg_len);
 
@@ -32,6 +34,35 @@ external int pv_lcd_flush(
   int height,
 );
 
+/// Stream a signed firmware image to the device and commit it. Fire-and-forget:
+/// progress/result arrive as `"type":"ota"` JSON events on the pv_init SendPort.
+/// Returns 0 if enqueued; -1 no device open / null pointer; -2 enqueue failed.
+@ffi.Native<ffi.Int32 Function(ffi.Pointer<ffi.Uint8>, ffi.UintPtr)>()
+external int pv_ota_start(ffi.Pointer<ffi.Uint8> img_ptr, int len);
+
+/// Ask the device to reboot into its factory recovery image.
+/// Returns 0 if enqueued; -1 no device open; -2 enqueue failed.
+@ffi.Native<ffi.Int32 Function()>()
+external int pv_enter_recovery();
+
 /// Stop the worker and close the device. Idempotent. Returns 0.
 @ffi.Native<ffi.Int32 Function()>()
 external int pv_close();
+
+/// Start the host system sampler. Idempotent. Returns 0.
+@ffi.Native<ffi.Int32 Function()>()
+external int pv_sys_open();
+
+/// Sample host telemetry once. Returns a newly-allocated, NUL-terminated UTF-8
+/// JSON string that the caller MUST free with pv_sys_free, or null on failure.
+/// Opens the sampler on first use.
+@ffi.Native<ffi.Pointer<ffi.Char> Function()>()
+external ffi.Pointer<ffi.Char> pv_sys_sample();
+
+/// Free a string returned by pv_sys_sample. Null is a no-op.
+@ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Char>)>()
+external void pv_sys_free(ffi.Pointer<ffi.Char> ptr);
+
+/// Stop the host sampler and free its state. Idempotent. Returns 0.
+@ffi.Native<ffi.Int32 Function()>()
+external int pv_sys_close();

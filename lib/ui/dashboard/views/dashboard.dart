@@ -7,8 +7,11 @@ import 'package:pico_view/pico_view.dart';
 
 import '../../../../data/repositories/module_repository.dart';
 import '../../../../data/services/window_service.dart';
+import '../../../../domain/models/app_config.dart';
 import '../../../../extensions/loggable.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../settings/cubit/app_config_cubit.dart';
+import '../../widgets/background_view.dart';
 import '../cubit/dashboard_cubit.dart';
 import 'dashboard_config_panel.dart';
 import 'dashboard_lcd_view.dart';
@@ -24,6 +27,11 @@ const double _kBackdropBlurSigma = 16;
 
 /// Translucent dark scrim over the blurred backdrop.
 const Color _kBackdropScrim = Color(0x40000000);
+
+/// Semi-transparent circular backing for the page-navigation chevrons.
+final ButtonStyle _chevronButtonStyle = IconButton.styleFrom(
+  backgroundColor: Colors.black.withValues(alpha: 0.2),
+);
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -99,6 +107,13 @@ class _DashboardState extends State<Dashboard> with Loggable {
     try {
       _controller.init();
       _controller.open(const PicoViewConfig());
+    } on PicoViewUnauthorizedException catch (e, s) {
+      logWarning(
+        'pico_view rejected unauthorized device',
+        error: e,
+        stackTrace: s,
+      );
+      _showUnauthorizedSnackBar();
     } on PicoViewException catch (e, s) {
       logWarning('pico_view open failed', error: e, stackTrace: s);
       _showOpenFailedSnackBar();
@@ -106,6 +121,21 @@ class _DashboardState extends State<Dashboard> with Loggable {
       logError('pico_view init/open error', error: e, stackTrace: s);
       _showOpenFailedSnackBar();
     }
+  }
+
+  /// Notify the user that the connected display failed the genuine-hardware
+  /// check.
+  void _showUnauthorizedSnackBar() {
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context).picoViewUnauthorized),
+        duration: const Duration(days: 1),
+        showCloseIcon: true,
+      ),
+    );
   }
 
   /// Notify the user that the LCD couldn't be opened, offering a retry.
@@ -222,7 +252,12 @@ class _DashboardState extends State<Dashboard> with Loggable {
                   sigmaY: _kBackdropBlurSigma,
                   tileMode: TileMode.clamp,
                 ),
-                child: Image.asset('assets/bg.png', fit: BoxFit.cover),
+                child: BlocBuilder<AppConfigCubit, AppConfig>(
+                  buildWhen: (prev, curr) =>
+                      prev.backgroundPath != curr.backgroundPath,
+                  builder: (context, config) =>
+                      BackgroundView(path: config.backgroundPath),
+                ),
               ),
             ),
           ),
@@ -254,6 +289,7 @@ class _DashboardState extends State<Dashboard> with Loggable {
                       child: IconButton(
                         icon: const Icon(Icons.chevron_left),
                         iconSize: 24,
+                        style: _chevronButtonStyle,
                         onPressed: cubit.prevPage,
                       ),
                     ),
@@ -263,6 +299,7 @@ class _DashboardState extends State<Dashboard> with Loggable {
                       child: IconButton(
                         icon: const Icon(Icons.chevron_right),
                         iconSize: 24,
+                        style: _chevronButtonStyle,
                         onPressed: cubit.nextPage,
                       ),
                     ),

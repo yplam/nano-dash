@@ -14,16 +14,22 @@ import 'data/services/locator.dart';
 import 'data/services/tray_service.dart';
 import 'data/services/weather_service.dart';
 import 'data/services/window_service.dart';
+import 'domain/models/app_config.dart';
 import 'l10n/app_localizations.dart';
 import 'ui/dashboard/dashboard.dart';
 import 'ui/live2d/cubit/live2d_cubit.dart';
 import 'ui/modules/clock_module.dart';
 import 'ui/modules/live2d_module.dart';
+import 'ui/modules/settings_module.dart';
 import 'ui/modules/stopwatch_module.dart';
+import 'ui/modules/system_monitor_module.dart';
 import 'ui/modules/timer_module.dart';
+import 'ui/settings/cubit/app_config_cubit.dart';
 import 'ui/stopwatch/cubit/stopwatch_cubit.dart';
+import 'ui/system_monitor/cubit/system_monitor_cubit.dart';
 import 'ui/timer/cubit/timer_cubit.dart';
 import 'ui/weather/weather.dart';
+import 'ui/widgets/panel_theme.dart';
 
 const Locale kAppLocale = Locale('zh');
 
@@ -89,10 +95,12 @@ class NanoDashApp extends StatelessWidget {
         if (tray != null) RepositoryProvider<TrayService>.value(value: tray),
         RepositoryProvider<ModuleRepository>(
           create: (_) => ModuleRepository([
+            const SettingsModule(),
             const ClockModule(),
             const TimerModule(),
             const StopwatchModule(),
             if (!kIsWeb) const Live2DModule(),
+            if (!kIsWeb) const SystemMonitorModule(),
           ]),
         ),
         RepositoryProvider<SettingsRepository>(
@@ -107,6 +115,10 @@ class NanoDashApp extends StatelessWidget {
       ],
       child: MultiBlocProvider(
         providers: [
+          BlocProvider<AppConfigCubit>(
+            create: (context) =>
+                AppConfigCubit(context.read<SettingsRepository>()),
+          ),
           BlocProvider<DashboardCubit>(
             create: (context) => DashboardCubit(
               context.read<SettingsRepository>(),
@@ -126,32 +138,48 @@ class NanoDashApp extends StatelessWidget {
             create: (_) => StopwatchCubit(),
             lazy: false,
           ),
+          if (!kIsWeb)
+            BlocProvider<SystemMonitorCubit>(
+              create: (_) => SystemMonitorCubit(),
+              lazy: false,
+            ),
           if (!kIsWeb) BlocProvider<Live2dCubit>(create: (_) => Live2dCubit()),
         ],
-        child: MaterialApp(
-          onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-          debugShowCheckedModeBanner: false,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          locale: kAppLocale,
-          supportedLocales: AppLocalizations.supportedLocales,
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-            fontFamilyFallback: kCjkFontFallback,
-          ),
-          darkTheme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.indigo,
-              brightness: Brightness.dark,
-            ),
-            fontFamilyFallback: kCjkFontFallback,
-          ),
-          themeMode: ThemeMode.system,
-          home: const Dashboard(),
+        child: BlocBuilder<AppConfigCubit, AppConfig>(
+          builder: (context, config) {
+            final seed = config.themeColor;
+            return MaterialApp(
+              onGenerateTitle: (context) =>
+                  AppLocalizations.of(context).appTitle,
+              debugShowCheckedModeBanner: false,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              // Null follows the OS language (resolved against supportedLocales).
+              locale: config.followsSystemLocale
+                  ? null
+                  : Locale(config.localeTag),
+              supportedLocales: AppLocalizations.supportedLocales,
+              theme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(seedColor: seed),
+                fontFamilyFallback: kCjkFontFallback,
+                extensions: const [PanelTheme()],
+              ),
+              darkTheme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: seed,
+                  brightness: Brightness.dark,
+                ),
+                fontFamilyFallback: kCjkFontFallback,
+                extensions: const [PanelTheme()],
+              ),
+              themeMode: ThemeMode.system,
+              home: const Dashboard(),
+            );
+          },
         ),
       ),
     );
