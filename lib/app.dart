@@ -34,19 +34,10 @@ import 'ui/stopwatch/cubit/stopwatch_cubit.dart';
 import 'ui/system_monitor/cubit/system_monitor_cubit.dart';
 import 'ui/timer/cubit/timer_cubit.dart';
 import 'ui/weather/weather.dart';
+import 'ui/widgets/panel_text.dart';
 import 'ui/widgets/panel_theme.dart';
 
 const Locale kAppLocale = Locale('zh');
-
-/// CJK font fallbacks so Chinese glyphs render without embedding a font file.
-const List<String> kCjkFontFallback = <String>[
-  'PingFang SC', // macOS / iOS
-  'Microsoft YaHei', // Windows
-  'Noto Sans CJK SC', // Linux (Noto package)
-  'Noto Sans SC', // Linux alt naming
-  'Source Han Sans SC', // Linux alt
-  'WenQuanYi Micro Hei', // Linux fallback
-];
 
 Future<void> bootstrapApp({AppFlavor flavor = AppFlavor.desktop}) async {
   WidgetsFlutterBinding.ensureInitialized();

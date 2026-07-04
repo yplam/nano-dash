@@ -1,15 +1,21 @@
 /// The native [PicoViewController]: owns the FFI lifecycle (init / open / flush /
-/// touch channel) for the native pico_view bridge.
+/// event channel) for the native pico_view bridge.
+///
+/// The control plane is protobuf over one generic call: requests are encoded
+/// `PvRequest` messages through `pv_request`, and engine events (touch, link
+/// state, OTA progress) arrive on the `pv_init` SendPort as encoded `PvEvent`
+/// bytes. Only frame delivery (`pv_lcd_flush`) bypasses the message channel.
 library;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:ffi' as ffi;
 import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
 
+import 'gen/pv_ffi.pb.dart' as pb;
+import 'gen/pv_wire.pb.dart' as pbw;
 import 'pico_view_bindings_generated.dart' as bindings;
 import 'pico_view_types.dart';
 
@@ -21,10 +27,16 @@ class PicoViewController {
   final ReceivePort _rx = ReceivePort();
   final StreamController<PicoTouchEvent> _touch =
       StreamController<PicoTouchEvent>.broadcast();
+  final StreamController<PicoLinkState> _link =
+      StreamController<PicoLinkState>.broadcast();
+  final StreamController<PicoOtaEvent> _ota =
+      StreamController<PicoOtaEvent>.broadcast();
 
   bool _initialized = false;
   bool _opened = false;
   bool _disposed = false;
+
+  PicoLinkState _linkState = PicoLinkState.disconnected;
 
   PicoViewConfig _config = const PicoViewConfig();
 
@@ -36,40 +48,103 @@ class PicoViewController {
   /// Physical-touch events in LCD pixel coordinates.
   Stream<PicoTouchEvent> get touches => _touch.stream;
 
+  /// Link-state transitions (connected / disconnected / unauthorized). The
+  /// native engine reconnects on its own; listen here to reflect it in the UI.
+  Stream<PicoLinkState> get linkStates => _link.stream;
+
+  /// The most recent link state (kept current from [linkStates]).
+  PicoLinkState get linkState => _linkState;
+
+  /// Firmware-update progress/result events (see [otaStart]).
+  Stream<PicoOtaEvent> get otaEvents => _ota.stream;
+
   /// The currently-open device config (geometry used by `PicoView`).
   PicoViewConfig get config => _config;
 
+  /// Whether [open] succeeded. For the *live* device state, use [linkState]:
+  /// the engine keeps reconnecting behind this flag.
   bool get isOpen => _opened;
 
-  /// Wire up the Dart DL API + SendPort. Call once before [open].
+  /// Wire up the Dart DL API + SendPort. Call once before [open]. Throws
+  /// [PicoViewException] when the Dart DL API handshake fails (a native
+  /// library / SDK version mismatch) — no events would ever be delivered.
   void init() {
     if (_initialized) return;
-    bindings.pv_init(
+    final rc = bindings.pv_init(
       ffi.NativeApi.initializeApiDLData,
       _rx.sendPort.nativePort,
     );
+    if (rc != 0) {
+      throw PicoViewException(
+        'pv_init failed: Dart DL API version mismatch (code $rc)',
+        code: rc,
+      );
+    }
     _rx.listen(_onMessage);
     _initialized = true;
   }
 
+  /// Send one encoded control-plane request and decode the response. Throws
+  /// [PicoViewException] only when the native side produced no response at all
+  /// (per-request failures come back as an `error` response, handled by the
+  /// callers).
+  pb.PvResponse _request(pb.PvRequest req) {
+    final reqBytes = req.writeToBuffer();
+    final reqPtr = malloc.allocate<ffi.Uint8>(reqBytes.length);
+    final respPtr = malloc.allocate<ffi.Pointer<ffi.Uint8>>(
+      ffi.sizeOf<ffi.Pointer<ffi.Uint8>>(),
+    );
+    final respLen = malloc.allocate<ffi.UintPtr>(ffi.sizeOf<ffi.UintPtr>());
+    try {
+      reqPtr.asTypedList(reqBytes.length).setAll(0, reqBytes);
+      final rc = bindings.pv_request(reqPtr, reqBytes.length, respPtr, respLen);
+      if (rc != 0) {
+        throw PicoViewException('pv_request failed (code $rc)', code: rc);
+      }
+      final ptr = respPtr.value;
+      final len = respLen.value;
+      try {
+        // Parsing copies out of the native buffer, so it can be freed after.
+        return pb.PvResponse.fromBuffer(ptr.asTypedList(len));
+      } finally {
+        bindings.pv_free(ptr, len);
+      }
+    } finally {
+      malloc.free(reqPtr);
+      malloc.free(respPtr);
+      malloc.free(respLen);
+    }
+  }
+
+  /// Throw the matching exception for an `error` response.
+  Never _throwError(pb.Error error, String op) {
+    if (error.code == pb.ErrorCode.ERROR_CODE_UNAUTHORIZED) {
+      throw PicoViewUnauthorizedException();
+    }
+    throw PicoViewException(
+      '$op failed: ${error.message} (${error.code.name})',
+      code: error.code.value,
+    );
+  }
+
   void open(PicoViewConfig config) {
     if (!_initialized) init();
-    final jsonBytes = utf8.encode(jsonEncode(config.toJson()));
-    final ptr = malloc.allocate<ffi.Uint8>(jsonBytes.length);
-    try {
-      ptr.asTypedList(jsonBytes.length).setAll(0, jsonBytes);
-      final rc = bindings.pv_open(ptr, jsonBytes.length);
-      if (rc == -4) {
-        throw PicoViewUnauthorizedException();
-      }
-      if (rc != 0) {
-        throw PicoViewException('pv_open failed (code $rc)', code: rc);
-      }
-      _config = config;
-      _opened = true;
-    } finally {
-      malloc.free(ptr);
+    final req = pb.PvRequest(openDevice: pb.OpenDevice(model: config.model));
+    var resp = _request(req);
+    if (resp.whichResp() == pb.PvResponse_Resp.error &&
+        resp.error.code == pb.ErrorCode.ERROR_CODE_ALREADY_OPEN &&
+        !_opened) {
+      // The native worker survived a hot restart (this controller never
+      // opened it). Tear the stale one down and retry once.
+      _request(pb.PvRequest(closeDevice: pb.CloseDevice()));
+      resp = _request(req);
     }
+    if (resp.whichResp() == pb.PvResponse_Resp.error) {
+      _throwError(resp.error, 'open');
+    }
+    _config = config;
+    _opened = true;
+    _linkState = PicoLinkState.connected;
   }
 
   /// Push one tightly-packed RGBA8888 frame (`rgba.length == width*height*4`).
@@ -86,67 +161,161 @@ class PicoViewController {
         0;
   }
 
+  /// Set the panel backlight level, 0 (off) – 255 (full). Best-effort: returns
+  /// false (without throwing) when no device is open or the engine rejects the
+  /// request, so callers can apply it opportunistically on connect / config
+  /// change. The value is clamped into range.
+  bool setBrightness(int level) {
+    if (_disposed || !_opened) return false;
+    final clamped = level.clamp(0, 255);
+    final resp = _request(
+      pb.PvRequest(setParam: pbw.SetParam(brightness: clamped)),
+    );
+    return resp.whichResp() != pb.PvResponse_Resp.error;
+  }
+
   bool _sysOpen = false;
 
   /// Start the host system sampler (CPU / RAM / network / temperatures).
+  /// Optional: [sampleSystem] opens it on first use.
   void openSystem() {
-    bindings.pv_sys_open();
     _sysOpen = true;
   }
 
   /// Sample host telemetry once. Opens the sampler on first use.
   SystemSnapshot? sampleSystem() {
     if (_disposed) return null;
-    final ptr = bindings.pv_sys_sample();
-    if (ptr == ffi.nullptr) return null;
-    try {
-      final json = jsonDecode(ptr.cast<Utf8>().toDartString());
-      return SystemSnapshot.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      return null;
-    } finally {
-      bindings.pv_sys_free(ptr);
-    }
+    _sysOpen = true;
+    final resp = _request(pb.PvRequest(sysSample: pb.SysSample()));
+    if (resp.whichResp() != pb.PvResponse_Resp.system) return null;
+    return _toSystemSnapshot(resp.system);
   }
 
   /// Stop the host sampler and free its native state. Idempotent.
   void closeSystem() {
-    if (_sysOpen) {
-      bindings.pv_sys_close();
+    if (_sysOpen && !_disposed) {
+      _request(pb.PvRequest(sysClose: pb.SysClose()));
       _sysOpen = false;
     }
   }
 
-  /// Decode a touch event JSON string pushed from the native side, e.g.
-  /// `{"phase":"down","x":12,"y":34}`.
+  /// Stream a signed firmware image to the device. Fire-and-forget: progress
+  /// and the result arrive on [otaEvents]; while it runs, frames are dropped
+  /// and the device reboots into the new image on success (a
+  /// disconnected→connected pair appears on [linkStates]).
+  ///
+  /// Throws [PicoViewException] if the update couldn't be enqueued (no device
+  /// open, or the worker is gone).
+  void otaStart(Uint8List image) {
+    if (_disposed || !_opened) {
+      throw PicoViewException('otaStart: device not open', code: -1);
+    }
+    final resp = _request(pb.PvRequest(otaStart: pb.OtaStart(image: image)));
+    if (resp.whichResp() == pb.PvResponse_Resp.error) {
+      _throwError(resp.error, 'otaStart');
+    }
+  }
+
+  /// Ask the device to reboot into its factory recovery image. Throws
+  /// [PicoViewException] if the request couldn't be enqueued.
+  void enterRecovery() {
+    if (_disposed || !_opened) {
+      throw PicoViewException('enterRecovery: device not open', code: -1);
+    }
+    final resp = _request(pb.PvRequest(enterRecovery: pbw.EnterRecovery()));
+    if (resp.whichResp() == pb.PvResponse_Resp.error) {
+      _throwError(resp.error, 'enterRecovery');
+    }
+  }
+
+  /// Decode one `PvEvent` pushed from the native side and route it to the
+  /// matching stream. Unknown variants are ignored so newer native libraries
+  /// stay compatible with older Dart code.
   void _onMessage(dynamic raw) {
-    if (raw is! String) return;
-    final Map<String, dynamic> map;
+    if (raw is! Uint8List) return;
+    final pb.PvEvent event;
     try {
-      map = jsonDecode(raw) as Map<String, dynamic>;
+      event = pb.PvEvent.fromBuffer(raw);
     } catch (_) {
       return;
     }
-    final phase = switch (map['phase']) {
-      'down' => TouchPhase.down,
-      'move' => TouchPhase.move,
-      'up' => TouchPhase.up,
+    switch (event.whichEvent()) {
+      case pb.PvEvent_Event.touch:
+        _onTouch(event.touch);
+      case pb.PvEvent_Event.link:
+        final state = switch (event.link.state) {
+          pb.LinkState.LINK_STATE_CONNECTED => PicoLinkState.connected,
+          pb.LinkState.LINK_STATE_DISCONNECTED => PicoLinkState.disconnected,
+          pb.LinkState.LINK_STATE_UNAUTHORIZED => PicoLinkState.unauthorized,
+          _ => null,
+        };
+        if (state != null) {
+          _linkState = state;
+          _link.add(state);
+        }
+      case pb.PvEvent_Event.ota:
+        _ota.add(
+          PicoOtaEvent(
+            switch (event.ota.state) {
+              pbw.OtaState.OTA_STATE_RECEIVING => 'receiving',
+              pbw.OtaState.OTA_STATE_VERIFYING => 'verifying',
+              pbw.OtaState.OTA_STATE_DONE => 'done',
+              pbw.OtaState.OTA_STATE_FAILED => 'failed',
+              _ => 'unknown',
+            },
+            event.ota.pct,
+            event.ota.err,
+          ),
+        );
+      default:
+        break;
+    }
+  }
+
+  void _onTouch(pbw.Touch touch) {
+    final phase = switch (touch.phase) {
+      pbw.TouchPhase.TOUCH_PHASE_DOWN => TouchPhase.down,
+      pbw.TouchPhase.TOUCH_PHASE_MOVE => TouchPhase.move,
+      pbw.TouchPhase.TOUCH_PHASE_UP => TouchPhase.up,
       _ => null,
     };
     if (phase == null) return;
-    final x = (map['x'] as num?)?.toInt() ?? 0;
-    final y = (map['y'] as num?)?.toInt() ?? 0;
     if (kDebugMode) {
-      debugPrint('PicoView touch: $phase ($x, $y)');
+      debugPrint('PicoView touch: $phase (${touch.x}, ${touch.y})');
     }
-    _touch.add(PicoTouchEvent(phase, x, y));
+    _touch.add(PicoTouchEvent(phase, touch.x, touch.y));
+  }
+
+  SystemSnapshot _toSystemSnapshot(pb.SystemSnapshot s) {
+    return SystemSnapshot(
+      cpuUsage: s.cpu.usage,
+      cpuCores: List<double>.from(s.cpu.cores),
+      cpuFreqMhz: s.cpu.freqMhz.toInt(),
+      memTotal: s.mem.total.toInt(),
+      memUsed: s.mem.used.toInt(),
+      swapTotal: s.mem.swapTotal.toInt(),
+      swapUsed: s.mem.swapUsed.toInt(),
+      netRxBps: s.net.rxBps.toInt(),
+      netTxBps: s.net.txBps.toInt(),
+      netRxTotal: s.net.rxTotal.toInt(),
+      netTxTotal: s.net.txTotal.toInt(),
+      temperatures: s.temps
+          .map((t) => SystemTemperature(t.label, t.celsius))
+          .toList(),
+      loadAverage: [s.load.one, s.load.five, s.load.fifteen],
+    );
   }
 
   /// Close the device and release all resources. Safe to call multiple times.
+  ///
+  /// Only tears down the native state *this* controller owns: the app runs one
+  /// device controller plus a sampling-only controller (the native engine is a
+  /// global singleton), so an unconditional `pv_close` here would kill the
+  /// other controller's device worker.
   void dispose() {
     if (_disposed) return;
-    _disposed = true;
     closeSystem();
+    _disposed = true;
     if (_opened) {
       bindings.pv_close();
       _opened = false;
@@ -156,6 +325,8 @@ class PicoViewController {
       _frameBuffer = null;
     }
     _touch.close();
+    _link.close();
+    _ota.close();
     _rx.close();
   }
 }

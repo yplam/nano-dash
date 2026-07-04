@@ -97,7 +97,7 @@ class _Card extends StatelessWidget {
       color: colors.surface.withValues(alpha: m.cardAlpha),
       borderRadius: BorderRadius.circular(m.cardRadius),
       child: Padding(
-        padding: m.cardPadding,
+        padding: m.cardPaddingMd,
         child: Row(
           children: [
             left,

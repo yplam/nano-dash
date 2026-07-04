@@ -43,7 +43,7 @@ class TimerListView extends StatelessWidget {
         final side = math.min(constraints.maxWidth, constraints.maxHeight);
         final m = PanelTheme.metricsOf(context, side, shape: PanelShape.square);
         return Padding(
-          padding: m.pageInset,
+          padding: m.pageInset.copyWith(bottom: m.pageInset.bottom - 40),
           child: Column(
             children: [
               Expanded(
@@ -99,7 +99,7 @@ class TimerListView extends StatelessWidget {
                       ),
               ),
               if (state.hasStats) ...[
-                SizedBox(height: side * 0.03),
+                SizedBox(height: 6),
                 _StatsButton(
                   colors: colors,
                   metrics: m,
@@ -200,12 +200,7 @@ class _TimerListRow extends StatelessWidget {
         : colors.onSurface;
     final subdued = emphasised ? foreground : colors.onSurfaceVariant;
     final radius = BorderRadius.circular(m.cardRadius);
-    final cardPadding = EdgeInsets.only(
-      left: m.cardPadding.left,
-      right: m.cardPadding.right,
-      top: m.cardPadding.top + 5,
-      bottom: m.cardPadding.bottom + 5,
-    );
+
     return Material(
       color: background,
       borderRadius: radius,
@@ -213,7 +208,7 @@ class _TimerListRow extends StatelessWidget {
         borderRadius: radius,
         onTap: onTap,
         child: Padding(
-          padding: cardPadding,
+          padding: m.cardPaddingLg,
           child: Row(
             children: [
               Icon(
@@ -227,7 +222,7 @@ class _TimerListRow extends StatelessWidget {
                                       ? Icons.local_cafe_outlined
                                       : Icons.timer_outlined))),
                 color: subdued,
-                size: m.fontMd * 1.2,
+                size: 22,
               ),
               const SizedBox(width: 4),
               Expanded(
@@ -235,7 +230,7 @@ class _TimerListRow extends StatelessWidget {
                   name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: panelFont(m.fontMd, m.weightMedium, foreground),
+                  style: panelFont(m.fontLg, m.weightMedium, foreground),
                 ),
               ),
               const SizedBox(width: 4),

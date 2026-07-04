@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -49,13 +50,29 @@ class _DashboardState extends State<Dashboard> with Loggable {
   /// Whether the module settings panel (and the expanded window) is shown.
   bool _settingsOpen = false;
 
+  /// Re-applies the saved backlight level every time the panel (re)connects.
+  StreamSubscription<PicoLinkState>? _linkSub;
+
   @override
   void initState() {
     super.initState();
+    // The device connects asynchronously (LINK_STATE_CONNECTED arrives after
+    // attestation), so push the saved brightness on each connect.
+    _linkSub = _controller.linkStates.listen((state) {
+      if (state == PicoLinkState.connected) _applyBrightness();
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _applyWindowSize(kDashboardCompactSize);
       _openDevice();
     });
+  }
+
+  /// Send the currently-saved LCD brightness to the device.
+  void _applyBrightness() {
+    if (!mounted) return;
+    _controller.setBrightness(
+      context.read<AppConfigCubit>().state.lcdBrightness,
+    );
   }
 
   /// Resize the window so the Flutter *content area* gets [contentSize].
@@ -161,6 +178,7 @@ class _DashboardState extends State<Dashboard> with Loggable {
 
   @override
   void dispose() {
+    _linkSub?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -204,13 +222,22 @@ class _DashboardState extends State<Dashboard> with Loggable {
       ),
     );
 
-    if (kIsWeb) {
-      return _WebFrame(
-        size: _settingsOpen ? kDashboardExpandedSize : kDashboardCompactSize,
-        child: scaffold,
-      );
-    }
-    return scaffold;
+    final content = kIsWeb
+        ? _WebFrame(
+            size: _settingsOpen
+                ? kDashboardExpandedSize
+                : kDashboardCompactSize,
+            child: scaffold,
+          )
+        : scaffold;
+
+    // Push brightness changes to the panel as soon as they're saved.
+    return BlocListener<AppConfigCubit, AppConfig>(
+      listenWhen: (prev, curr) => prev.lcdBrightness != curr.lcdBrightness,
+      listener: (context, config) =>
+          _controller.setBrightness(config.lcdBrightness),
+      child: content,
+    );
   }
 
   /// The LCD preview block: padding, the round mirror, and the page chevrons.

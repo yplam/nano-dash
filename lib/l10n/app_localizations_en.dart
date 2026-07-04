@@ -69,6 +69,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsThemeColor => 'Theme color';
 
   @override
+  String get settingsBrightness => 'Brightness';
+
+  @override
   String get systemCpu => 'CPU';
 
   @override

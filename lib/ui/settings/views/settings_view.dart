@@ -42,6 +42,7 @@ class SettingsView extends StatelessWidget {
         if (!kIsWeb) _section(l10n.settingsBackground, _backgroundTile(l10n)),
         _section(l10n.settingsLanguage, _languageControl(l10n)),
         _section(l10n.settingsThemeColor, _themeControl()),
+        _section(l10n.settingsBrightness, _brightnessControl()),
         const SizedBox(height: 8),
       ],
     );
@@ -127,6 +128,16 @@ class SettingsView extends StatelessWidget {
     );
   }
 
+  Widget _brightnessControl() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: _BrightnessSlider(
+        value: config.lcdBrightness,
+        onChanged: (v) => onChanged(config.copyWith(lcdBrightness: v)),
+      ),
+    );
+  }
+
   /// Pick an image and copy it into app storage, so the reference survives the
   /// original being moved or deleted.
   Future<void> _pickBackground() async {
@@ -170,6 +181,65 @@ class SettingsView extends StatelessWidget {
   static String _extension(String name) {
     final dot = name.lastIndexOf('.');
     return dot < 0 ? '' : name.substring(dot).toLowerCase();
+  }
+}
+
+/// Backlight slider, shown as a percentage but storing the raw 0–255 value the
+/// device expects. Tracks the drag locally and only commits (persist + device
+/// command) on release, so a drag doesn't flood the engine with `SetParam`s.
+class _BrightnessSlider extends StatefulWidget {
+  const _BrightnessSlider({required this.value, required this.onChanged});
+
+  final int value;
+  final ValueChanged<int> onChanged;
+
+  @override
+  State<_BrightnessSlider> createState() => _BrightnessSliderState();
+}
+
+class _BrightnessSliderState extends State<_BrightnessSlider> {
+  late double _value = widget.value.toDouble();
+
+  @override
+  void didUpdateWidget(_BrightnessSlider old) {
+    super.didUpdateWidget(old);
+    // Reflect an external change (e.g. a reset) unless the user is dragging.
+    if (old.value != widget.value && widget.value.toDouble() != _value) {
+      _value = widget.value.toDouble();
+    }
+  }
+
+  int get _percent =>
+      (_value / AppConfig.maxLcdBrightness * 100).round();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Icon(Icons.brightness_low, size: 20),
+        Expanded(
+          child: Slider(
+            value: _value,
+            min: AppConfig.minLcdBrightness.toDouble(),
+            max: AppConfig.maxLcdBrightness.toDouble(),
+            label: '$_percent%',
+            divisions:
+                AppConfig.maxLcdBrightness - AppConfig.minLcdBrightness,
+            onChanged: (v) => setState(() => _value = v),
+            onChangeEnd: (v) => widget.onChanged(v.round()),
+          ),
+        ),
+        const Icon(Icons.brightness_high, size: 20),
+        SizedBox(
+          width: 44,
+          child: Text(
+            '$_percent%',
+            textAlign: TextAlign.end,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+      ],
+    );
   }
 }
 

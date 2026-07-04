@@ -124,7 +124,7 @@ class _PanelCard extends StatelessWidget {
     return Material(
       color: colors.surface.withValues(alpha: m.cardAlpha),
       borderRadius: BorderRadius.circular(m.cardRadius),
-      child: Padding(padding: m.cardPadding, child: child),
+      child: Padding(padding: m.cardPaddingMd, child: child),
     );
   }
 }

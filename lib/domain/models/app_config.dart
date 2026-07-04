@@ -8,6 +8,7 @@ class AppConfig implements JsonModel {
     this.backgroundPath = '',
     this.localeTag = systemLocaleTag,
     this.themeSeed = defaultThemeSeed,
+    this.lcdBrightness = defaultLcdBrightness,
   });
 
   /// [localeTag] value meaning "follow the operating system".
@@ -15,9 +16,17 @@ class AppConfig implements JsonModel {
 
   static const int defaultThemeSeed = 0xFF3F51B5;
 
+  /// LCD backlight range, matching the device's `SetParam.brightness`
+  /// (0 = off … 255 = full). A ~10% floor keeps the panel from ever going
+  /// fully dark; fresh installs start at ~80%.
+  static const int minLcdBrightness = 26;
+  static const int maxLcdBrightness = 255;
+  static const int defaultLcdBrightness = 204;
+
   static const String _kBackground = 'background';
   static const String _kLocale = 'locale';
   static const String _kThemeSeed = 'themeSeed';
+  static const String _kLcdBrightness = 'lcdBrightness';
 
   /// Absolute path to the chosen background file, or empty to use the bundled `assets/bg.png`.
   final String backgroundPath;
@@ -28,6 +37,10 @@ class AppConfig implements JsonModel {
   /// ARGB value of the theme seed colour.
   final int themeSeed;
 
+  /// LCD backlight level sent to the panel, clamped to
+  /// [[minLcdBrightness], [maxLcdBrightness]].
+  final int lcdBrightness;
+
   Color get themeColor => Color(themeSeed);
 
   /// Whether the app should follow the OS language.
@@ -37,6 +50,9 @@ class AppConfig implements JsonModel {
     backgroundPath: json[_kBackground] as String? ?? '',
     localeTag: json[_kLocale] as String? ?? systemLocaleTag,
     themeSeed: json[_kThemeSeed] as int? ?? defaultThemeSeed,
+    lcdBrightness: _clampBrightness(
+      json[_kLcdBrightness] as int? ?? defaultLcdBrightness,
+    ),
   );
 
   @override
@@ -44,27 +60,37 @@ class AppConfig implements JsonModel {
     _kBackground: backgroundPath,
     _kLocale: localeTag,
     _kThemeSeed: themeSeed,
+    _kLcdBrightness: lcdBrightness,
   };
 
   AppConfig copyWith({
     String? backgroundPath,
     String? localeTag,
     int? themeSeed,
+    int? lcdBrightness,
   }) => AppConfig(
     backgroundPath: backgroundPath ?? this.backgroundPath,
     localeTag: localeTag ?? this.localeTag,
     themeSeed: themeSeed ?? this.themeSeed,
+    lcdBrightness: lcdBrightness == null
+        ? this.lcdBrightness
+        : _clampBrightness(lcdBrightness),
   );
+
+  static int _clampBrightness(int value) =>
+      value.clamp(minLcdBrightness, maxLcdBrightness);
 
   @override
   bool operator ==(Object other) =>
       other is AppConfig &&
       other.backgroundPath == backgroundPath &&
       other.localeTag == localeTag &&
-      other.themeSeed == themeSeed;
+      other.themeSeed == themeSeed &&
+      other.lcdBrightness == lcdBrightness;
 
   @override
-  int get hashCode => Object.hash(backgroundPath, localeTag, themeSeed);
+  int get hashCode =>
+      Object.hash(backgroundPath, localeTag, themeSeed, lcdBrightness);
 }
 
 /// Persistence handle for [AppConfig].

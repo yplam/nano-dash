@@ -20,6 +20,7 @@
   "settingsLanguage": "Language",
   "settingsLanguageSystem": "System",
   "settingsThemeColor": "Theme color",
+  "settingsBrightness": "Brightness",
   "systemCpu": "CPU",
   "systemMemory": "Memory",
   "systemNetwork": "Network",

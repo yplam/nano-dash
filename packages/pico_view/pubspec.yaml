@@ -16,6 +16,11 @@ dependencies:
   ffi: ^2.1.4
   code_assets: ^1.2.1
   hooks: ^2.0.2
+  # Runtime for the generated control-plane messages in lib/src/gen/ (schemas
+  # live in the private pico-view repo under proto/; regenerate with
+  # `protoc --dart_out=lib/src/gen -I <pico-view>/proto pv_ffi.proto pv_wire.proto`).
+  protobuf: ^6.0.0
+  fixnum: ^1.1.1
 
 dev_dependencies:
   flutter_test:

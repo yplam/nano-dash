@@ -8,6 +8,41 @@ import 'package:flutter/foundation.dart';
 /// Phase of a physical-touch event reported by the panel.
 enum TouchPhase { down, move, up }
 
+/// Live state of the USB link to the panel, reported by the native engine on
+/// transitions (the engine reconnects on its own; the app only displays this).
+enum PicoLinkState {
+  /// Device attached, attested, and configured.
+  connected,
+
+  /// Device lost (unplugged / rebooting after an update); the engine is
+  /// retrying in the background.
+  disconnected,
+
+  /// A device is attached but failed hardware attestation; the engine keeps
+  /// retrying, so replacing it with a genuine unit recovers automatically.
+  unauthorized,
+}
+
+/// One firmware-update progress/result event from the native event channel.
+@immutable
+class PicoOtaEvent {
+  const PicoOtaEvent(this.state, this.pct, this.err);
+
+  /// `receiving`, `verifying`, `done`, `failed`, or `unknown`.
+  final String state;
+
+  /// Receive progress, 0–100.
+  final int pct;
+
+  /// `pv_ota_err` code (0 = none; -1 = device disconnected).
+  final int err;
+
+  bool get isTerminal => state == 'done' || state == 'failed';
+
+  @override
+  String toString() => 'PicoOtaEvent($state, $pct%, err $err)';
+}
+
 /// A touch event in LCD pixel coordinates.
 @immutable
 class PicoTouchEvent {
@@ -43,8 +78,6 @@ class PicoViewConfig {
 
   /// Visible height of the selected [model] in pixels, or `0` if unknown.
   int get height => kPicoViewModels[model]?.height ?? 0;
-
-  Map<String, dynamic> toJson() => {'model': model};
 }
 
 @immutable
@@ -108,34 +141,6 @@ class SystemSnapshot {
 
   /// Fraction of memory used, 0.0–1.0 (`0` when [memTotal] is 0).
   double get memFraction => memTotal == 0 ? 0 : memUsed / memTotal;
-
-  factory SystemSnapshot.fromJson(Map<String, dynamic> json) {
-    double d(dynamic v) => (v as num?)?.toDouble() ?? 0;
-    int i(dynamic v) => (v as num?)?.toInt() ?? 0;
-    final cpu = (json['cpu'] as Map?)?.cast<String, dynamic>() ?? const {};
-    final mem = (json['mem'] as Map?)?.cast<String, dynamic>() ?? const {};
-    final net = (json['net'] as Map?)?.cast<String, dynamic>() ?? const {};
-    return SystemSnapshot(
-      cpuUsage: d(cpu['usage']),
-      cpuCores: ((cpu['cores'] as List?) ?? const []).map((e) => d(e)).toList(),
-      cpuFreqMhz: i(cpu['freqMhz']),
-      memTotal: i(mem['total']),
-      memUsed: i(mem['used']),
-      swapTotal: i(mem['swapTotal']),
-      swapUsed: i(mem['swapUsed']),
-      netRxBps: i(net['rxBps']),
-      netTxBps: i(net['txBps']),
-      netRxTotal: i(net['rxTotal']),
-      netTxTotal: i(net['txTotal']),
-      temperatures: ((json['temps'] as List?) ?? const [])
-          .map((e) => (e as Map).cast<String, dynamic>())
-          .map((e) => SystemTemperature(e['label'] as String? ?? '', d(e['c'])))
-          .toList(),
-      loadAverage: ((json['loadAvg'] as List?) ?? const [])
-          .map((e) => d(e))
-          .toList(),
-    );
-  }
 }
 
 /// Thrown when a native call fails.

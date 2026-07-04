@@ -218,6 +218,12 @@ abstract class AppLocalizations {
   /// **'Theme color'**
   String get settingsThemeColor;
 
+  /// No description provided for @settingsBrightness.
+  ///
+  /// In en, this message translates to:
+  /// **'Brightness'**
+  String get settingsBrightness;
+
   /// No description provided for @systemCpu.
   ///
   /// In en, this message translates to:

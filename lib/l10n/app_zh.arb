@@ -20,6 +20,7 @@
   "settingsLanguage": "语言",
   "settingsLanguageSystem": "跟随系统",
   "settingsThemeColor": "主题色",
+  "settingsBrightness": "亮度",
   "systemCpu": "处理器",
   "systemMemory": "内存",
   "systemNetwork": "网络",

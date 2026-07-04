@@ -69,6 +69,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsThemeColor => '主题色';
 
   @override
+  String get settingsBrightness => '亮度';
+
+  @override
   String get systemCpu => '处理器';
 
   @override

@@ -156,18 +156,22 @@ class _DayCard extends StatelessWidget {
       color: colors.surface.withValues(alpha: m.cardAlpha),
       borderRadius: BorderRadius.circular(m.cardRadius),
       child: Padding(
-        padding: m.cardPadding,
+        padding: m.cardPaddingMd,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               _dayLabel(),
-              style: panelFont(m.fontSm, m.weightBold, colors.onSurfaceVariant),
+              style: panelFont(
+                m.fontXs,
+                m.weightMedium,
+                colors.onSurfaceVariant,
+              ),
             ),
-            SizedBox(height: side * 0.015),
+            SizedBox(height: 4),
             for (var i = 0; i < group.events.length; i++)
               Padding(
-                padding: EdgeInsets.only(top: i == 0 ? 0 : side * 0.02),
+                padding: EdgeInsets.only(top: i == 0 ? 0 : 6),
                 child: _EventRow(
                   side: side,
                   event: group.events[i],
@@ -218,21 +222,21 @@ class _EventRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(top: side * 0.01),
+          padding: EdgeInsets.only(top: 4),
           child: Container(
-            width: side * 0.02,
-            height: side * 0.02,
+            width: 8,
+            height: 8,
             decoration: BoxDecoration(
               color: Color(event.color),
               shape: BoxShape.circle,
             ),
           ),
         ),
-        SizedBox(width: side * 0.01),
+        SizedBox(width: 4),
         Padding(
-          padding: EdgeInsets.only(top: side * 0.005),
+          padding: EdgeInsets.only(top: 2),
           child: SizedBox(
-            width: side * 0.15,
+            width: 48,
             child: Text(
               timeLabel,
               style: panelFont(m.fontSm, m.weightMedium, colors.onSurface),
@@ -245,13 +249,9 @@ class _EventRow extends StatelessWidget {
             children: [
               Text(
                 event.title,
-                maxLines: 2,
+                maxLines: 3,
                 overflow: TextOverflow.ellipsis,
-                style: panelFont(
-                  m.fontSm + 4,
-                  m.weightRegular,
-                  colors.onSurface,
-                ),
+                style: panelFont(m.fontMd, m.weightRegular, colors.onSurface),
               ),
               if (event.location != null && event.location!.isNotEmpty)
                 Text(
@@ -259,7 +259,7 @@ class _EventRow extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: panelFont(
-                    m.fontSm * 0.85,
+                    m.fontXs,
                     m.weightRegular,
                     colors.onSurfaceVariant,
                   ),

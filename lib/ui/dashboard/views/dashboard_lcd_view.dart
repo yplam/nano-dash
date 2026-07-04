@@ -20,8 +20,9 @@ import '../cubit/dashboard_cubit.dart';
 /// Page changes flow through [DashboardCubit]: a physical-touch swipe on the
 /// panel advances it here, and the on-screen carousel chevrons step it too.
 /// Minimum net horizontal travel (logical px) that counts as a page swipe when
-/// no fling velocity was measured. Comfortably above [kTouchSlop] so a tap that
-/// drifts a little doesn't flip pages.
+/// no fling velocity was measured. The recognizer only wins the arena after
+/// [kTouchSlop] (18px) of travel, so this only filters out drags that wandered
+/// back to near their starting point.
 const double _kSwipeDistance = 5;
 
 /// Duration of the page-switch slide. Kept short on purpose: the SPI panel has

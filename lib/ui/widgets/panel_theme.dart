@@ -20,12 +20,15 @@ enum PanelShape { square, landscape, portrait }
 /// Shared visual vocabulary for the panel modules (timer, system monitor, …) so
 /// they read as one surface. Split in two on purpose:
 ///
-///  * Resolution-independent tokens — alphas, font weights, corner radii — are
-///    stored as literals.
-///  * Spacing and font sizes are stored as *ratios of `side`* (the min of the
-///    panel's width/height, taken from a `LayoutBuilder`), because the same
-///    subtree is mirrored to LCD panels of differing pixel size and everything
-///    must scale with the panel, not with logical pixels.
+///  * Spacing, font sizes, and other resolution-independent tokens — alphas,
+///    font weights, corner radii — are stored as **fixed pixel literals**. The
+///    panels this app drives sit close to their native pixel size, so fonts,
+///    gaps, and card padding read best at a constant physical size rather than
+///    scaling with the panel.
+///  * The per-page insets stay *ratios of `side`* (the min of the panel's
+///    width/height, taken from a `LayoutBuilder`), because they encode the
+///    round-panel geometry — the largest rectangle of each aspect inscribed in
+///    the circle — and must track the actual panel size.
 ///
 /// Call [resolve] once per build with the panel's `side` and the page's
 /// [PanelShape] to flatten both halves into a [PanelMetrics] with concrete
@@ -54,14 +57,20 @@ class PanelTheme extends ThemeExtension<PanelTheme> {
     // Extra inset (fraction of `side`) added to every page edge so the inscribed
     // rectangle's corners pull in off the rim rather than kissing the bezel.
     this.safeMargin = 0.03,
-    // Spacing as a fraction of `side`.
-    this.cardPadHRatio = 0.04,
-    this.cardPadVRatio = 0.03,
-    this.gapRatio = 0.03,
-    // Font sizes as a fraction of `side`.
-    this.fontLgRatio = 0.07,
-    this.fontMdRatio = 0.05,
-    this.fontSmRatio = 0.03,
+    // Card padding in fixed pixels, in three sizes (horizontal, vertical).
+    this.cardPadSmH = 10,
+    this.cardPadSmV = 6,
+    this.cardPadMdH = 14,
+    this.cardPadMdV = 10,
+    this.cardPadLgH = 18,
+    this.cardPadLgV = 14,
+    this.gap = 10,
+    // Font sizes in fixed pixels.
+    this.fontXs = 10,
+    this.fontSm = 12,
+    this.fontMd = 16,
+    this.fontLg = 18,
+    this.fontXl = 20,
   });
 
   final double cardAlpha;
@@ -78,12 +87,18 @@ class PanelTheme extends ThemeExtension<PanelTheme> {
   final double portraitInsetH;
   final double portraitInsetV;
   final double safeMargin;
-  final double cardPadHRatio;
-  final double cardPadVRatio;
-  final double gapRatio;
-  final double fontLgRatio;
-  final double fontMdRatio;
-  final double fontSmRatio;
+  final double cardPadSmH;
+  final double cardPadSmV;
+  final double cardPadMdH;
+  final double cardPadMdV;
+  final double cardPadLgH;
+  final double cardPadLgV;
+  final double gap;
+  final double fontXs;
+  final double fontSm;
+  final double fontMd;
+  final double fontLg;
+  final double fontXl;
 
   /// The page inset for [shape], resolved against [side], with [safeMargin]
   /// folded into every edge so the inscribed rectangle clears the rim.
@@ -102,19 +117,28 @@ class PanelTheme extends ThemeExtension<PanelTheme> {
     };
   }
 
-  /// Flatten the ratio tokens against [side] (= `min(width, height)`), picking
-  /// the page inset for [shape] and copying the absolute tokens through
-  /// unchanged.
+  /// Resolve the page inset for [shape] against [side] (= `min(width, height)`)
+  /// and copy the fixed-pixel spacing/font tokens through unchanged.
   PanelMetrics resolve(double side, PanelShape shape) => PanelMetrics(
     pageInset: pageInsetFor(shape, side),
-    cardPadding: EdgeInsets.symmetric(
-      horizontal: side * cardPadHRatio,
-      vertical: side * cardPadVRatio,
+    cardPaddingSm: EdgeInsets.symmetric(
+      horizontal: cardPadSmH,
+      vertical: cardPadSmV,
     ),
-    gap: side * gapRatio,
-    fontLg: side * fontLgRatio,
-    fontMd: side * fontMdRatio,
-    fontSm: side * fontSmRatio,
+    cardPaddingMd: EdgeInsets.symmetric(
+      horizontal: cardPadMdH,
+      vertical: cardPadMdV,
+    ),
+    cardPaddingLg: EdgeInsets.symmetric(
+      horizontal: cardPadLgH,
+      vertical: cardPadLgV,
+    ),
+    gap: gap,
+    fontXs: fontXs,
+    fontSm: fontSm,
+    fontMd: fontMd,
+    fontLg: fontLg,
+    fontXl: fontXl,
     cardRadius: cardRadius,
     pillRadius: pillRadius,
     cardAlpha: cardAlpha,
@@ -150,12 +174,18 @@ class PanelTheme extends ThemeExtension<PanelTheme> {
     double? portraitInsetH,
     double? portraitInsetV,
     double? safeMargin,
-    double? cardPadHRatio,
-    double? cardPadVRatio,
-    double? gapRatio,
-    double? fontLgRatio,
-    double? fontMdRatio,
-    double? fontSmRatio,
+    double? cardPadSmH,
+    double? cardPadSmV,
+    double? cardPadMdH,
+    double? cardPadMdV,
+    double? cardPadLgH,
+    double? cardPadLgV,
+    double? gap,
+    double? fontXs,
+    double? fontSm,
+    double? fontMd,
+    double? fontLg,
+    double? fontXl,
   }) => PanelTheme(
     cardAlpha: cardAlpha ?? this.cardAlpha,
     pillAlpha: pillAlpha ?? this.pillAlpha,
@@ -171,12 +201,18 @@ class PanelTheme extends ThemeExtension<PanelTheme> {
     portraitInsetH: portraitInsetH ?? this.portraitInsetH,
     portraitInsetV: portraitInsetV ?? this.portraitInsetV,
     safeMargin: safeMargin ?? this.safeMargin,
-    cardPadHRatio: cardPadHRatio ?? this.cardPadHRatio,
-    cardPadVRatio: cardPadVRatio ?? this.cardPadVRatio,
-    gapRatio: gapRatio ?? this.gapRatio,
-    fontLgRatio: fontLgRatio ?? this.fontLgRatio,
-    fontMdRatio: fontMdRatio ?? this.fontMdRatio,
-    fontSmRatio: fontSmRatio ?? this.fontSmRatio,
+    cardPadSmH: cardPadSmH ?? this.cardPadSmH,
+    cardPadSmV: cardPadSmV ?? this.cardPadSmV,
+    cardPadMdH: cardPadMdH ?? this.cardPadMdH,
+    cardPadMdV: cardPadMdV ?? this.cardPadMdV,
+    cardPadLgH: cardPadLgH ?? this.cardPadLgH,
+    cardPadLgV: cardPadLgV ?? this.cardPadLgV,
+    gap: gap ?? this.gap,
+    fontXs: fontXs ?? this.fontXs,
+    fontSm: fontSm ?? this.fontSm,
+    fontMd: fontMd ?? this.fontMd,
+    fontLg: fontLg ?? this.fontLg,
+    fontXl: fontXl ?? this.fontXl,
   );
 
   @override
@@ -198,12 +234,18 @@ class PanelTheme extends ThemeExtension<PanelTheme> {
       portraitInsetH: d(portraitInsetH, other.portraitInsetH),
       portraitInsetV: d(portraitInsetV, other.portraitInsetV),
       safeMargin: d(safeMargin, other.safeMargin),
-      cardPadHRatio: d(cardPadHRatio, other.cardPadHRatio),
-      cardPadVRatio: d(cardPadVRatio, other.cardPadVRatio),
-      gapRatio: d(gapRatio, other.gapRatio),
-      fontLgRatio: d(fontLgRatio, other.fontLgRatio),
-      fontMdRatio: d(fontMdRatio, other.fontMdRatio),
-      fontSmRatio: d(fontSmRatio, other.fontSmRatio),
+      cardPadSmH: d(cardPadSmH, other.cardPadSmH),
+      cardPadSmV: d(cardPadSmV, other.cardPadSmV),
+      cardPadMdH: d(cardPadMdH, other.cardPadMdH),
+      cardPadMdV: d(cardPadMdV, other.cardPadMdV),
+      cardPadLgH: d(cardPadLgH, other.cardPadLgH),
+      cardPadLgV: d(cardPadLgV, other.cardPadLgV),
+      gap: d(gap, other.gap),
+      fontXs: d(fontXs, other.fontXs),
+      fontSm: d(fontSm, other.fontSm),
+      fontMd: d(fontMd, other.fontMd),
+      fontLg: d(fontLg, other.fontLg),
+      fontXl: d(fontXl, other.fontXl),
     );
   }
 }
@@ -214,11 +256,15 @@ class PanelTheme extends ThemeExtension<PanelTheme> {
 class PanelMetrics {
   const PanelMetrics({
     required this.pageInset,
-    required this.cardPadding,
+    required this.cardPaddingSm,
+    required this.cardPaddingMd,
+    required this.cardPaddingLg,
     required this.gap,
-    required this.fontLg,
-    required this.fontMd,
+    required this.fontXs,
     required this.fontSm,
+    required this.fontMd,
+    required this.fontLg,
+    required this.fontXl,
     required this.cardRadius,
     required this.pillRadius,
     required this.cardAlpha,
@@ -230,11 +276,15 @@ class PanelMetrics {
   });
 
   final EdgeInsets pageInset;
-  final EdgeInsets cardPadding;
+  final EdgeInsets cardPaddingSm;
+  final EdgeInsets cardPaddingMd;
+  final EdgeInsets cardPaddingLg;
   final double gap;
-  final double fontLg;
-  final double fontMd;
+  final double fontXs;
   final double fontSm;
+  final double fontMd;
+  final double fontLg;
+  final double fontXl;
   final double cardRadius;
   final double pillRadius;
   final double cardAlpha;
