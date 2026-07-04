@@ -13,6 +13,7 @@ import 'data/repositories/settings_repository.dart';
 import 'data/repositories/weather_repository.dart';
 import 'data/services/calendar/calendar_service.dart';
 import 'data/services/locator.dart';
+import 'data/services/pico_view_service.dart';
 import 'data/services/tray_service.dart';
 import 'data/services/weather_service.dart';
 import 'data/services/window_service.dart';
@@ -103,6 +104,12 @@ class NanoDashApp extends StatelessWidget {
         ),
         RepositoryProvider<SettingsRepository>(
           create: (_) => SettingsRepository(prefs),
+        ),
+        // Shared handle to the single pico_view controller. The Dashboard drives
+        // its lifecycle; settings and feature cubits use it for haptics etc.
+        RepositoryProvider<PicoViewService>(
+          create: (_) => PicoViewService(),
+          dispose: (service) => service.dispose(),
         ),
         RepositoryProvider<WeatherRepository>(
           create: (context) => WeatherRepository(

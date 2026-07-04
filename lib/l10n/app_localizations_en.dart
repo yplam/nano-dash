@@ -72,6 +72,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsBrightness => 'Brightness';
 
   @override
+  String get settingsAlertEffect => 'Alert effect';
+
+  @override
+  String get alertEffectNone => 'Off';
+
+  @override
+  String get alertEffectClick => 'Click';
+
+  @override
+  String get alertEffectTick => 'Tick';
+
+  @override
+  String get alertEffectDoubleClick => 'Double click';
+
+  @override
+  String get alertEffectBuzz => 'Buzz';
+
+  @override
+  String get alertEffectStrongBuzz => 'Strong buzz';
+
+  @override
+  String get alertEffectAlert750 => 'Alert 750 ms';
+
+  @override
+  String get alertEffectAlert1000 => 'Alert 1000 ms';
+
+  @override
+  String get alertEffectPulsing => 'Pulsing';
+
+  @override
   String get systemCpu => 'CPU';
 
   @override

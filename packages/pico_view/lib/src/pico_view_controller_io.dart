@@ -174,6 +174,33 @@ class PicoViewController {
     return resp.whichResp() != pb.PvResponse_Resp.error;
   }
 
+  /// Play one built-in DRV2605L haptic effect ([effect] is a ROM waveform id,
+  /// 1–123). [library] picks the ROM library (1–7); 0 keeps the firmware
+  /// default (the LRA library). Best-effort and fire-and-forget: returns false
+  /// (without throwing) when no device is open or the engine rejects it, and the
+  /// device sends no acknowledgement. A no-op on devices without haptics.
+  bool playHaptic(int effect, {int library = 0}) {
+    if (_disposed || !_opened) return false;
+    final resp = _request(
+      pb.PvRequest(
+        haptics: pbw.Haptics(
+          play: pbw.HapticsPlay(effect: effect, library: library),
+        ),
+      ),
+    );
+    return resp.whichResp() != pb.PvResponse_Resp.error;
+  }
+
+  /// Stop any haptic effect currently playing on the device. Best-effort; see
+  /// [playHaptic].
+  bool stopHaptic() {
+    if (_disposed || !_opened) return false;
+    final resp = _request(
+      pb.PvRequest(haptics: pbw.Haptics(stop: pbw.HapticsStop())),
+    );
+    return resp.whichResp() != pb.PvResponse_Resp.error;
+  }
+
   bool _sysOpen = false;
 
   /// Start the host system sampler (CPU / RAM / network / temperatures).

@@ -32,6 +32,7 @@ enum PvRequest_Req {
   getDeviceInfo,
   setParam,
   i2cRequest,
+  haptics,
   notSet
 }
 
@@ -46,6 +47,7 @@ class PvRequest extends $pb.GeneratedMessage {
     $0.GetDeviceInfo? getDeviceInfo,
     $0.SetParam? setParam,
     $0.I2cRequest? i2cRequest,
+    $0.Haptics? haptics,
   }) {
     final result = create();
     if (openDevice != null) result.openDevice = openDevice;
@@ -57,6 +59,7 @@ class PvRequest extends $pb.GeneratedMessage {
     if (getDeviceInfo != null) result.getDeviceInfo = getDeviceInfo;
     if (setParam != null) result.setParam = setParam;
     if (i2cRequest != null) result.i2cRequest = i2cRequest;
+    if (haptics != null) result.haptics = haptics;
     return result;
   }
 
@@ -79,13 +82,14 @@ class PvRequest extends $pb.GeneratedMessage {
     16: PvRequest_Req.getDeviceInfo,
     17: PvRequest_Req.setParam,
     18: PvRequest_Req.i2cRequest,
+    19: PvRequest_Req.haptics,
     0: PvRequest_Req.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'PvRequest',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'picoview.ffi'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 8, 9, 16, 17, 18])
+    ..oo(0, [1, 2, 3, 4, 8, 9, 16, 17, 18, 19])
     ..aOM<OpenDevice>(1, _omitFieldNames ? '' : 'openDevice',
         subBuilder: OpenDevice.create)
     ..aOM<CloseDevice>(2, _omitFieldNames ? '' : 'closeDevice',
@@ -104,6 +108,8 @@ class PvRequest extends $pb.GeneratedMessage {
         subBuilder: $0.SetParam.create)
     ..aOM<$0.I2cRequest>(18, _omitFieldNames ? '' : 'i2cRequest',
         subBuilder: $0.I2cRequest.create)
+    ..aOM<$0.Haptics>(19, _omitFieldNames ? '' : 'haptics',
+        subBuilder: $0.Haptics.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -133,6 +139,7 @@ class PvRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(16)
   @$pb.TagNumber(17)
   @$pb.TagNumber(18)
+  @$pb.TagNumber(19)
   PvRequest_Req whichReq() => _PvRequest_ReqByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -143,6 +150,7 @@ class PvRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(16)
   @$pb.TagNumber(17)
   @$pb.TagNumber(18)
+  @$pb.TagNumber(19)
   void clearReq() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -245,6 +253,17 @@ class PvRequest extends $pb.GeneratedMessage {
   void clearI2cRequest() => $_clearField(18);
   @$pb.TagNumber(18)
   $0.I2cRequest ensureI2cRequest() => $_ensure(8);
+
+  @$pb.TagNumber(19)
+  $0.Haptics get haptics => $_getN(9);
+  @$pb.TagNumber(19)
+  set haptics($0.Haptics value) => $_setField(19, value);
+  @$pb.TagNumber(19)
+  $core.bool hasHaptics() => $_has(9);
+  @$pb.TagNumber(19)
+  void clearHaptics() => $_clearField(19);
+  @$pb.TagNumber(19)
+  $0.Haptics ensureHaptics() => $_ensure(9);
 }
 
 /// Open the panel device and start the worker. Responds `ack` when the open was

@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pico_view/pico_view.dart';
 
 import '../../../../data/repositories/module_repository.dart';
+import '../../../../data/services/pico_view_service.dart';
 import '../../../../data/services/window_service.dart';
 import '../../../../domain/models/app_config.dart';
 import '../../../../extensions/loggable.dart';
@@ -45,7 +46,9 @@ class _DashboardState extends State<Dashboard> with Loggable {
   @override
   String get logIdentifier => '[Dashboard]';
 
-  final PicoViewController _controller = PicoViewController();
+  /// The app-wide pico_view handle (owned by a RepositoryProvider); this widget
+  /// drives its open/lifecycle but does not dispose it.
+  late final PicoViewService _service = context.read<PicoViewService>();
 
   /// Whether the module settings panel (and the expanded window) is shown.
   bool _settingsOpen = false;
@@ -58,7 +61,7 @@ class _DashboardState extends State<Dashboard> with Loggable {
     super.initState();
     // The device connects asynchronously (LINK_STATE_CONNECTED arrives after
     // attestation), so push the saved brightness on each connect.
-    _linkSub = _controller.linkStates.listen((state) {
+    _linkSub = _service.linkStates.listen((state) {
       if (state == PicoLinkState.connected) _applyBrightness();
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -70,7 +73,7 @@ class _DashboardState extends State<Dashboard> with Loggable {
   /// Send the currently-saved LCD brightness to the device.
   void _applyBrightness() {
     if (!mounted) return;
-    _controller.setBrightness(
+    _service.setBrightness(
       context.read<AppConfigCubit>().state.lcdBrightness,
     );
   }
@@ -122,8 +125,8 @@ class _DashboardState extends State<Dashboard> with Loggable {
   /// Bring up the native bridge and open the LCD.
   void _openDevice() {
     try {
-      _controller.init();
-      _controller.open(const PicoViewConfig());
+      _service.init();
+      _service.open();
     } on PicoViewUnauthorizedException catch (e, s) {
       logWarning(
         'pico_view rejected unauthorized device',
@@ -179,7 +182,7 @@ class _DashboardState extends State<Dashboard> with Loggable {
   @override
   void dispose() {
     _linkSub?.cancel();
-    _controller.dispose();
+    // The controller is owned by the RepositoryProvider, not this widget.
     super.dispose();
   }
 
@@ -235,7 +238,7 @@ class _DashboardState extends State<Dashboard> with Loggable {
     return BlocListener<AppConfigCubit, AppConfig>(
       listenWhen: (prev, curr) => prev.lcdBrightness != curr.lcdBrightness,
       listener: (context, config) =>
-          _controller.setBrightness(config.lcdBrightness),
+          _service.setBrightness(config.lcdBrightness),
       child: content,
     );
   }
@@ -261,7 +264,7 @@ class _DashboardState extends State<Dashboard> with Loggable {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(180),
         child: PicoView(
-          controller: _controller,
+          controller: _service.controller,
           maxFps: 25,
           child: const DashboardLcdView(),
         ),

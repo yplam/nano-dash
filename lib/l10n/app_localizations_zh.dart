@@ -72,6 +72,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsBrightness => '亮度';
 
   @override
+  String get settingsAlertEffect => '提醒效果';
+
+  @override
+  String get alertEffectNone => '关闭';
+
+  @override
+  String get alertEffectClick => '单击';
+
+  @override
+  String get alertEffectTick => '轻触';
+
+  @override
+  String get alertEffectDoubleClick => '双击';
+
+  @override
+  String get alertEffectBuzz => '振动';
+
+  @override
+  String get alertEffectStrongBuzz => '强振动';
+
+  @override
+  String get alertEffectAlert750 => '提醒 750 毫秒';
+
+  @override
+  String get alertEffectAlert1000 => '提醒 1000 毫秒';
+
+  @override
+  String get alertEffectPulsing => '脉冲';
+
+  @override
   String get systemCpu => '处理器';
 
   @override

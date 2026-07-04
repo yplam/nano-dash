@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../domain/models/app_config.dart';
+import '../../../domain/models/haptic_effect.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// Settings body for the app-wide [AppConfig].
@@ -14,10 +15,15 @@ class SettingsView extends StatelessWidget {
     super.key,
     required this.config,
     required this.onChanged,
+    this.onPreviewEffect,
   });
 
   final AppConfig config;
   final ValueChanged<AppConfig> onChanged;
+
+  /// Plays a haptic effect id on the panel so the user feels a choice as they
+  /// make it. Null when no device handle is available (e.g. web / tests).
+  final ValueChanged<int>? onPreviewEffect;
 
   /// The seed colours offered for the theme.
   static const List<Color> _seeds = <Color>[
@@ -43,6 +49,7 @@ class SettingsView extends StatelessWidget {
         _section(l10n.settingsLanguage, _languageControl(l10n)),
         _section(l10n.settingsThemeColor, _themeControl()),
         _section(l10n.settingsBrightness, _brightnessControl()),
+        _section(l10n.settingsAlertEffect, _alertEffectControl(l10n)),
         const SizedBox(height: 8),
       ],
     );
@@ -136,6 +143,53 @@ class SettingsView extends StatelessWidget {
         onChanged: (v) => onChanged(config.copyWith(lcdBrightness: v)),
       ),
     );
+  }
+
+  /// Curated haptic-alert presets. Selecting one persists it and plays it once
+  /// (via [onPreviewEffect]) so the choice can be felt in real time.
+  Widget _alertEffectControl(AppLocalizations l10n) {
+    final selected = AlertEffect.fromEffect(config.alertEffect);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final effect in AlertEffect.values)
+            ChoiceChip(
+              label: Text(_alertEffectLabel(l10n, effect)),
+              selected: effect == selected,
+              onSelected: (_) {
+                onChanged(config.copyWith(alertEffect: effect.effect));
+                onPreviewEffect?.call(effect.effect);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  static String _alertEffectLabel(AppLocalizations l10n, AlertEffect effect) {
+    switch (effect) {
+      case AlertEffect.none:
+        return l10n.alertEffectNone;
+      case AlertEffect.click:
+        return l10n.alertEffectClick;
+      case AlertEffect.tick:
+        return l10n.alertEffectTick;
+      case AlertEffect.doubleClick:
+        return l10n.alertEffectDoubleClick;
+      case AlertEffect.buzz:
+        return l10n.alertEffectBuzz;
+      case AlertEffect.strongBuzz:
+        return l10n.alertEffectStrongBuzz;
+      case AlertEffect.alert750:
+        return l10n.alertEffectAlert750;
+      case AlertEffect.alert1000:
+        return l10n.alertEffectAlert1000;
+      case AlertEffect.pulsing:
+        return l10n.alertEffectPulsing;
+    }
   }
 
   /// Pick an image and copy it into app storage, so the reference survives the

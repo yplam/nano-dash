@@ -32,6 +32,7 @@ enum HostToDevice_Msg {
   getDeviceInfo,
   setParam,
   i2cRequest,
+  haptics,
   notSet
 }
 
@@ -49,6 +50,7 @@ class HostToDevice extends $pb.GeneratedMessage {
     GetDeviceInfo? getDeviceInfo,
     SetParam? setParam,
     I2cRequest? i2cRequest,
+    Haptics? haptics,
   }) {
     final result = create();
     if (hello != null) result.hello = hello;
@@ -62,6 +64,7 @@ class HostToDevice extends $pb.GeneratedMessage {
     if (getDeviceInfo != null) result.getDeviceInfo = getDeviceInfo;
     if (setParam != null) result.setParam = setParam;
     if (i2cRequest != null) result.i2cRequest = i2cRequest;
+    if (haptics != null) result.haptics = haptics;
     return result;
   }
 
@@ -86,13 +89,14 @@ class HostToDevice extends $pb.GeneratedMessage {
     16: HostToDevice_Msg.getDeviceInfo,
     17: HostToDevice_Msg.setParam,
     18: HostToDevice_Msg.i2cRequest,
+    19: HostToDevice_Msg.haptics,
     0: HostToDevice_Msg.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'HostToDevice',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'picoview.wire'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 16, 17, 18])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 16, 17, 18, 19])
     ..aOM<Hello>(1, _omitFieldNames ? '' : 'hello', subBuilder: Hello.create)
     ..aOM<Config>(2, _omitFieldNames ? '' : 'config', subBuilder: Config.create)
     ..aOM<OtaBegin>(3, _omitFieldNames ? '' : 'otaBegin',
@@ -112,6 +116,8 @@ class HostToDevice extends $pb.GeneratedMessage {
         subBuilder: SetParam.create)
     ..aOM<I2cRequest>(18, _omitFieldNames ? '' : 'i2cRequest',
         subBuilder: I2cRequest.create)
+    ..aOM<Haptics>(19, _omitFieldNames ? '' : 'haptics',
+        subBuilder: Haptics.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -144,6 +150,7 @@ class HostToDevice extends $pb.GeneratedMessage {
   @$pb.TagNumber(16)
   @$pb.TagNumber(17)
   @$pb.TagNumber(18)
+  @$pb.TagNumber(19)
   HostToDevice_Msg whichMsg() => _HostToDevice_MsgByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -156,6 +163,7 @@ class HostToDevice extends $pb.GeneratedMessage {
   @$pb.TagNumber(16)
   @$pb.TagNumber(17)
   @$pb.TagNumber(18)
+  @$pb.TagNumber(19)
   void clearMsg() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -279,6 +287,17 @@ class HostToDevice extends $pb.GeneratedMessage {
   void clearI2cRequest() => $_clearField(18);
   @$pb.TagNumber(18)
   I2cRequest ensureI2cRequest() => $_ensure(10);
+
+  @$pb.TagNumber(19)
+  Haptics get haptics => $_getN(11);
+  @$pb.TagNumber(19)
+  set haptics(Haptics value) => $_setField(19, value);
+  @$pb.TagNumber(19)
+  $core.bool hasHaptics() => $_has(11);
+  @$pb.TagNumber(19)
+  void clearHaptics() => $_clearField(19);
+  @$pb.TagNumber(19)
+  Haptics ensureHaptics() => $_ensure(11);
 }
 
 enum DeviceToHost_Msg {
@@ -550,12 +569,14 @@ class Capabilities extends $pb.GeneratedMessage {
     $core.bool? setParam,
     $core.bool? i2c,
     $core.bool? audio,
+    $core.bool? haptics,
   }) {
     final result = create();
     if (auth != null) result.auth = auth;
     if (setParam != null) result.setParam = setParam;
     if (i2c != null) result.i2c = i2c;
     if (audio != null) result.audio = audio;
+    if (haptics != null) result.haptics = haptics;
     return result;
   }
 
@@ -576,6 +597,7 @@ class Capabilities extends $pb.GeneratedMessage {
     ..aOB(2, _omitFieldNames ? '' : 'setParam')
     ..aOB(3, _omitFieldNames ? '' : 'i2c')
     ..aOB(4, _omitFieldNames ? '' : 'audio')
+    ..aOB(5, _omitFieldNames ? '' : 'haptics')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -633,6 +655,16 @@ class Capabilities extends $pb.GeneratedMessage {
   $core.bool hasAudio() => $_has(3);
   @$pb.TagNumber(4)
   void clearAudio() => $_clearField(4);
+
+  /// Device has a DRV2605L haptic driver and answers Haptics messages.
+  @$pb.TagNumber(5)
+  $core.bool get haptics => $_getBF(4);
+  @$pb.TagNumber(5)
+  set haptics($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasHaptics() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearHaptics() => $_clearField(5);
 }
 
 class HelloAck extends $pb.GeneratedMessage {
@@ -2076,6 +2108,205 @@ class I2cResponse extends $pb.GeneratedMessage {
   $core.bool hasData() => $_has(2);
   @$pb.TagNumber(3)
   void clearData() => $_clearField(3);
+}
+
+enum Haptics_Cmd { play, stop, notSet }
+
+/// Drive the panel's haptic actuator. Fire-and-forget, like SetParam: the device
+/// does not ack (a dropped UI buzz is harmless). `play` triggers one ROM effect
+/// through the DRV2605L waveform sequencer; `stop` clears a running effect.
+/// Effect *sequences* and real-time playback, if ever needed, are new oneof
+/// variants here — receivers ignore unknown ones.
+class Haptics extends $pb.GeneratedMessage {
+  factory Haptics({
+    HapticsPlay? play,
+    HapticsStop? stop,
+  }) {
+    final result = create();
+    if (play != null) result.play = play;
+    if (stop != null) result.stop = stop;
+    return result;
+  }
+
+  Haptics._();
+
+  factory Haptics.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Haptics.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static const $core.Map<$core.int, Haptics_Cmd> _Haptics_CmdByTag = {
+    1: Haptics_Cmd.play,
+    2: Haptics_Cmd.stop,
+    0: Haptics_Cmd.notSet
+  };
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Haptics',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'picoview.wire'),
+      createEmptyInstance: create)
+    ..oo(0, [1, 2])
+    ..aOM<HapticsPlay>(1, _omitFieldNames ? '' : 'play',
+        subBuilder: HapticsPlay.create)
+    ..aOM<HapticsStop>(2, _omitFieldNames ? '' : 'stop',
+        subBuilder: HapticsStop.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Haptics clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Haptics copyWith(void Function(Haptics) updates) =>
+      super.copyWith((message) => updates(message as Haptics)) as Haptics;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Haptics create() => Haptics._();
+  @$core.override
+  Haptics createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Haptics getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Haptics>(create);
+  static Haptics? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  @$pb.TagNumber(2)
+  Haptics_Cmd whichCmd() => _Haptics_CmdByTag[$_whichOneof(0)]!;
+  @$pb.TagNumber(1)
+  @$pb.TagNumber(2)
+  void clearCmd() => $_clearField($_whichOneof(0));
+
+  @$pb.TagNumber(1)
+  HapticsPlay get play => $_getN(0);
+  @$pb.TagNumber(1)
+  set play(HapticsPlay value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPlay() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPlay() => $_clearField(1);
+  @$pb.TagNumber(1)
+  HapticsPlay ensurePlay() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  HapticsStop get stop => $_getN(1);
+  @$pb.TagNumber(2)
+  set stop(HapticsStop value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasStop() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearStop() => $_clearField(2);
+  @$pb.TagNumber(2)
+  HapticsStop ensureStop() => $_ensure(1);
+}
+
+class HapticsPlay extends $pb.GeneratedMessage {
+  factory HapticsPlay({
+    $core.int? effect,
+    $core.int? library,
+  }) {
+    final result = create();
+    if (effect != null) result.effect = effect;
+    if (library != null) result.library = library;
+    return result;
+  }
+
+  HapticsPlay._();
+
+  factory HapticsPlay.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory HapticsPlay.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'HapticsPlay',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'picoview.wire'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'effect', fieldType: $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'library', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  HapticsPlay clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  HapticsPlay copyWith(void Function(HapticsPlay) updates) =>
+      super.copyWith((message) => updates(message as HapticsPlay))
+          as HapticsPlay;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static HapticsPlay create() => HapticsPlay._();
+  @$core.override
+  HapticsPlay createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static HapticsPlay getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<HapticsPlay>(create);
+  static HapticsPlay? _defaultInstance;
+
+  /// ROM effect id, 1..123 (DRV2605L waveform library; see datasheet Table 12).
+  /// 0 is not a valid effect and is ignored by the device.
+  @$pb.TagNumber(1)
+  $core.int get effect => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set effect($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasEffect() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearEffect() => $_clearField(1);
+
+  /// ROM library 1..7 to source the effect from; 0 keeps the firmware default
+  /// (LRA library 6). Lets the host pick an ERM/LRA library without a rebuild.
+  @$pb.TagNumber(2)
+  $core.int get library => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set library($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasLibrary() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearLibrary() => $_clearField(2);
+}
+
+class HapticsStop extends $pb.GeneratedMessage {
+  factory HapticsStop() => create();
+
+  HapticsStop._();
+
+  factory HapticsStop.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory HapticsStop.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'HapticsStop',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'picoview.wire'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  HapticsStop clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  HapticsStop copyWith(void Function(HapticsStop) updates) =>
+      super.copyWith((message) => updates(message as HapticsStop))
+          as HapticsStop;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static HapticsStop create() => HapticsStop._();
+  @$core.override
+  HapticsStop createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static HapticsStop getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<HapticsStop>(create);
+  static HapticsStop? _defaultInstance;
 }
 
 const $core.bool _omitFieldNames =

@@ -38,6 +38,10 @@ class PicoViewController {
 
   bool setBrightness(int level) => false;
 
+  bool playHaptic(int effect, {int library = 0}) => false;
+
+  bool stopHaptic() => false;
+
   void otaStart(Uint8List image) {
     throw PicoViewException('firmware update is not supported on web');
   }

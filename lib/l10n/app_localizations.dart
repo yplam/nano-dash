@@ -224,6 +224,66 @@ abstract class AppLocalizations {
   /// **'Brightness'**
   String get settingsBrightness;
 
+  /// No description provided for @settingsAlertEffect.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert effect'**
+  String get settingsAlertEffect;
+
+  /// No description provided for @alertEffectNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get alertEffectNone;
+
+  /// No description provided for @alertEffectClick.
+  ///
+  /// In en, this message translates to:
+  /// **'Click'**
+  String get alertEffectClick;
+
+  /// No description provided for @alertEffectTick.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick'**
+  String get alertEffectTick;
+
+  /// No description provided for @alertEffectDoubleClick.
+  ///
+  /// In en, this message translates to:
+  /// **'Double click'**
+  String get alertEffectDoubleClick;
+
+  /// No description provided for @alertEffectBuzz.
+  ///
+  /// In en, this message translates to:
+  /// **'Buzz'**
+  String get alertEffectBuzz;
+
+  /// No description provided for @alertEffectStrongBuzz.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong buzz'**
+  String get alertEffectStrongBuzz;
+
+  /// No description provided for @alertEffectAlert750.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert 750 ms'**
+  String get alertEffectAlert750;
+
+  /// No description provided for @alertEffectAlert1000.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert 1000 ms'**
+  String get alertEffectAlert1000;
+
+  /// No description provided for @alertEffectPulsing.
+  ///
+  /// In en, this message translates to:
+  /// **'Pulsing'**
+  String get alertEffectPulsing;
+
   /// No description provided for @systemCpu.
   ///
   /// In en, this message translates to:
