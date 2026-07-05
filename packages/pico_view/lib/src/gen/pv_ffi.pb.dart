@@ -29,6 +29,9 @@ enum PvRequest_Req {
   enterRecovery,
   sysSample,
   sysClose,
+  mediaStart,
+  mediaStop,
+  mediaControl,
   getDeviceInfo,
   setParam,
   i2cRequest,
@@ -44,6 +47,9 @@ class PvRequest extends $pb.GeneratedMessage {
     $0.EnterRecovery? enterRecovery,
     SysSample? sysSample,
     SysClose? sysClose,
+    MediaStart? mediaStart,
+    MediaStop? mediaStop,
+    MediaControl? mediaControl,
     $0.GetDeviceInfo? getDeviceInfo,
     $0.SetParam? setParam,
     $0.I2cRequest? i2cRequest,
@@ -56,6 +62,9 @@ class PvRequest extends $pb.GeneratedMessage {
     if (enterRecovery != null) result.enterRecovery = enterRecovery;
     if (sysSample != null) result.sysSample = sysSample;
     if (sysClose != null) result.sysClose = sysClose;
+    if (mediaStart != null) result.mediaStart = mediaStart;
+    if (mediaStop != null) result.mediaStop = mediaStop;
+    if (mediaControl != null) result.mediaControl = mediaControl;
     if (getDeviceInfo != null) result.getDeviceInfo = getDeviceInfo;
     if (setParam != null) result.setParam = setParam;
     if (i2cRequest != null) result.i2cRequest = i2cRequest;
@@ -79,6 +88,9 @@ class PvRequest extends $pb.GeneratedMessage {
     4: PvRequest_Req.enterRecovery,
     8: PvRequest_Req.sysSample,
     9: PvRequest_Req.sysClose,
+    10: PvRequest_Req.mediaStart,
+    11: PvRequest_Req.mediaStop,
+    12: PvRequest_Req.mediaControl,
     16: PvRequest_Req.getDeviceInfo,
     17: PvRequest_Req.setParam,
     18: PvRequest_Req.i2cRequest,
@@ -89,7 +101,7 @@ class PvRequest extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'PvRequest',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'picoview.ffi'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 8, 9, 16, 17, 18, 19])
+    ..oo(0, [1, 2, 3, 4, 8, 9, 10, 11, 12, 16, 17, 18, 19])
     ..aOM<OpenDevice>(1, _omitFieldNames ? '' : 'openDevice',
         subBuilder: OpenDevice.create)
     ..aOM<CloseDevice>(2, _omitFieldNames ? '' : 'closeDevice',
@@ -102,6 +114,12 @@ class PvRequest extends $pb.GeneratedMessage {
         subBuilder: SysSample.create)
     ..aOM<SysClose>(9, _omitFieldNames ? '' : 'sysClose',
         subBuilder: SysClose.create)
+    ..aOM<MediaStart>(10, _omitFieldNames ? '' : 'mediaStart',
+        subBuilder: MediaStart.create)
+    ..aOM<MediaStop>(11, _omitFieldNames ? '' : 'mediaStop',
+        subBuilder: MediaStop.create)
+    ..aOM<MediaControl>(12, _omitFieldNames ? '' : 'mediaControl',
+        subBuilder: MediaControl.create)
     ..aOM<$0.GetDeviceInfo>(16, _omitFieldNames ? '' : 'getDeviceInfo',
         subBuilder: $0.GetDeviceInfo.create)
     ..aOM<$0.SetParam>(17, _omitFieldNames ? '' : 'setParam',
@@ -136,6 +154,9 @@ class PvRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   @$pb.TagNumber(8)
   @$pb.TagNumber(9)
+  @$pb.TagNumber(10)
+  @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
   @$pb.TagNumber(16)
   @$pb.TagNumber(17)
   @$pb.TagNumber(18)
@@ -147,6 +168,9 @@ class PvRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   @$pb.TagNumber(8)
   @$pb.TagNumber(9)
+  @$pb.TagNumber(10)
+  @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
   @$pb.TagNumber(16)
   @$pb.TagNumber(17)
   @$pb.TagNumber(18)
@@ -220,50 +244,84 @@ class PvRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   SysClose ensureSysClose() => $_ensure(5);
 
+  /// Host media session (independent of any open device).
+  @$pb.TagNumber(10)
+  MediaStart get mediaStart => $_getN(6);
+  @$pb.TagNumber(10)
+  set mediaStart(MediaStart value) => $_setField(10, value);
+  @$pb.TagNumber(10)
+  $core.bool hasMediaStart() => $_has(6);
+  @$pb.TagNumber(10)
+  void clearMediaStart() => $_clearField(10);
+  @$pb.TagNumber(10)
+  MediaStart ensureMediaStart() => $_ensure(6);
+
+  @$pb.TagNumber(11)
+  MediaStop get mediaStop => $_getN(7);
+  @$pb.TagNumber(11)
+  set mediaStop(MediaStop value) => $_setField(11, value);
+  @$pb.TagNumber(11)
+  $core.bool hasMediaStop() => $_has(7);
+  @$pb.TagNumber(11)
+  void clearMediaStop() => $_clearField(11);
+  @$pb.TagNumber(11)
+  MediaStop ensureMediaStop() => $_ensure(7);
+
+  @$pb.TagNumber(12)
+  MediaControl get mediaControl => $_getN(8);
+  @$pb.TagNumber(12)
+  set mediaControl(MediaControl value) => $_setField(12, value);
+  @$pb.TagNumber(12)
+  $core.bool hasMediaControl() => $_has(8);
+  @$pb.TagNumber(12)
+  void clearMediaControl() => $_clearField(12);
+  @$pb.TagNumber(12)
+  MediaControl ensureMediaControl() => $_ensure(8);
+
   /// Phase 2 — forwarded to the device.
   @$pb.TagNumber(16)
-  $0.GetDeviceInfo get getDeviceInfo => $_getN(6);
+  $0.GetDeviceInfo get getDeviceInfo => $_getN(9);
   @$pb.TagNumber(16)
   set getDeviceInfo($0.GetDeviceInfo value) => $_setField(16, value);
   @$pb.TagNumber(16)
-  $core.bool hasGetDeviceInfo() => $_has(6);
+  $core.bool hasGetDeviceInfo() => $_has(9);
   @$pb.TagNumber(16)
   void clearGetDeviceInfo() => $_clearField(16);
   @$pb.TagNumber(16)
-  $0.GetDeviceInfo ensureGetDeviceInfo() => $_ensure(6);
+  $0.GetDeviceInfo ensureGetDeviceInfo() => $_ensure(9);
 
   @$pb.TagNumber(17)
-  $0.SetParam get setParam => $_getN(7);
+  $0.SetParam get setParam => $_getN(10);
   @$pb.TagNumber(17)
   set setParam($0.SetParam value) => $_setField(17, value);
   @$pb.TagNumber(17)
-  $core.bool hasSetParam() => $_has(7);
+  $core.bool hasSetParam() => $_has(10);
   @$pb.TagNumber(17)
   void clearSetParam() => $_clearField(17);
   @$pb.TagNumber(17)
-  $0.SetParam ensureSetParam() => $_ensure(7);
+  $0.SetParam ensureSetParam() => $_ensure(10);
 
   @$pb.TagNumber(18)
-  $0.I2cRequest get i2cRequest => $_getN(8);
+  $0.I2cRequest get i2cRequest => $_getN(11);
   @$pb.TagNumber(18)
   set i2cRequest($0.I2cRequest value) => $_setField(18, value);
   @$pb.TagNumber(18)
-  $core.bool hasI2cRequest() => $_has(8);
+  $core.bool hasI2cRequest() => $_has(11);
   @$pb.TagNumber(18)
   void clearI2cRequest() => $_clearField(18);
   @$pb.TagNumber(18)
-  $0.I2cRequest ensureI2cRequest() => $_ensure(8);
+  $0.I2cRequest ensureI2cRequest() => $_ensure(11);
 
   @$pb.TagNumber(19)
-  $0.Haptics get haptics => $_getN(9);
+  $0.Haptics get haptics => $_getN(12);
   @$pb.TagNumber(19)
   set haptics($0.Haptics value) => $_setField(19, value);
   @$pb.TagNumber(19)
-  $core.bool hasHaptics() => $_has(9);
+  $core.bool hasHaptics() => $_has(12);
   @$pb.TagNumber(19)
   void clearHaptics() => $_clearField(19);
   @$pb.TagNumber(19)
-  $0.Haptics ensureHaptics() => $_ensure(9);
+  $0.Haptics ensureHaptics() => $_ensure(12);
 }
 
 /// Open the panel device and start the worker. Responds `ack` when the open was
@@ -523,6 +581,144 @@ class SysClose extends $pb.GeneratedMessage {
   static SysClose? _defaultInstance;
 }
 
+/// Start observing the host's media session (MPRIS on Linux, SMTC on Windows).
+/// Responds `ack`; snapshots then arrive as MediaSnapshot events — an empty
+/// player_name means "no session". Idempotent (a second start is a no-op), and
+/// a no-op on platforms without a supported media API.
+class MediaStart extends $pb.GeneratedMessage {
+  factory MediaStart() => create();
+
+  MediaStart._();
+
+  factory MediaStart.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MediaStart.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MediaStart',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'picoview.ffi'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MediaStart clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MediaStart copyWith(void Function(MediaStart) updates) =>
+      super.copyWith((message) => updates(message as MediaStart)) as MediaStart;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MediaStart create() => MediaStart._();
+  @$core.override
+  MediaStart createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MediaStart getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MediaStart>(create);
+  static MediaStart? _defaultInstance;
+}
+
+/// Stop observing the media session and release the monitor thread. Responds
+/// `ack`. Idempotent.
+class MediaStop extends $pb.GeneratedMessage {
+  factory MediaStop() => create();
+
+  MediaStop._();
+
+  factory MediaStop.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MediaStop.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MediaStop',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'picoview.ffi'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MediaStop clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MediaStop copyWith(void Function(MediaStop) updates) =>
+      super.copyWith((message) => updates(message as MediaStop)) as MediaStop;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MediaStop create() => MediaStop._();
+  @$core.override
+  MediaStop createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MediaStop getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MediaStop>(create);
+  static MediaStop? _defaultInstance;
+}
+
+/// A transport command for the active media session. Fire-and-forget: responds
+/// `ack` once dispatched (a control that the player rejects is logged, not
+/// reported back). No-op when no session is active.
+class MediaControl extends $pb.GeneratedMessage {
+  factory MediaControl({
+    MediaCommand? command,
+  }) {
+    final result = create();
+    if (command != null) result.command = command;
+    return result;
+  }
+
+  MediaControl._();
+
+  factory MediaControl.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MediaControl.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MediaControl',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'picoview.ffi'),
+      createEmptyInstance: create)
+    ..aE<MediaCommand>(1, _omitFieldNames ? '' : 'command',
+        enumValues: MediaCommand.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MediaControl clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MediaControl copyWith(void Function(MediaControl) updates) =>
+      super.copyWith((message) => updates(message as MediaControl))
+          as MediaControl;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MediaControl create() => MediaControl._();
+  @$core.override
+  MediaControl createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MediaControl getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MediaControl>(create);
+  static MediaControl? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  MediaCommand get command => $_getN(0);
+  @$pb.TagNumber(1)
+  set command(MediaCommand value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasCommand() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearCommand() => $_clearField(1);
+}
+
 enum PvResponse_Resp { ack, error, system, deviceInfo, notSet }
 
 class PvResponse extends $pb.GeneratedMessage {
@@ -752,10 +948,16 @@ class LinkEvent extends $pb.GeneratedMessage {
   factory LinkEvent({
     LinkState? state,
     $core.String? detail,
+    $core.bool? verified,
+    $core.String? deviceId,
+    $core.String? fwVersion,
   }) {
     final result = create();
     if (state != null) result.state = state;
     if (detail != null) result.detail = detail;
+    if (verified != null) result.verified = verified;
+    if (deviceId != null) result.deviceId = deviceId;
+    if (fwVersion != null) result.fwVersion = fwVersion;
     return result;
   }
 
@@ -775,6 +977,9 @@ class LinkEvent extends $pb.GeneratedMessage {
     ..aE<LinkState>(1, _omitFieldNames ? '' : 'state',
         enumValues: LinkState.values)
     ..aOS(2, _omitFieldNames ? '' : 'detail')
+    ..aOB(3, _omitFieldNames ? '' : 'verified')
+    ..aOS(4, _omitFieldNames ? '' : 'deviceId')
+    ..aOS(5, _omitFieldNames ? '' : 'fwVersion')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -813,21 +1018,60 @@ class LinkEvent extends $pb.GeneratedMessage {
   $core.bool hasDetail() => $_has(1);
   @$pb.TagNumber(2)
   void clearDetail() => $_clearField(2);
+
+  /// Genuine-hardware result, meaningful only on CONNECTED: true when the device
+  /// presented a valid vendor-CA-signed certificate and answered the attestation
+  /// challenge. False for self-built / forked / unprovisioned boards, which the
+  /// engine now drives as unverified rather than refusing. The UI can badge an
+  /// unverified device; nothing about driving the panel changes.
+  @$pb.TagNumber(3)
+  $core.bool get verified => $_getBF(2);
+  @$pb.TagNumber(3)
+  set verified($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasVerified() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearVerified() => $_clearField(3);
+
+  /// The attested device id (from the certificate) when `verified`; empty
+  /// otherwise. Meaningful only on CONNECTED.
+  @$pb.TagNumber(4)
+  $core.String get deviceId => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set deviceId($core.String value) => $_setString(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasDeviceId() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearDeviceId() => $_clearField(4);
+
+  /// The device's firmware version string (ESP-IDF app version, e.g. "1.4.0"),
+  /// as reported in the HELLO_ACK handshake. Meaningful only on CONNECTED;
+  /// empty for pre-v2 firmware that doesn't report one.
+  @$pb.TagNumber(5)
+  $core.String get fwVersion => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set fwVersion($core.String value) => $_setString(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasFwVersion() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearFwVersion() => $_clearField(5);
 }
 
-enum PvEvent_Event { touch, link, ota, i2c, notSet }
+enum PvEvent_Event { touch, link, ota, media, i2c, notSet }
 
 class PvEvent extends $pb.GeneratedMessage {
   factory PvEvent({
     $0.Touch? touch,
     LinkEvent? link,
     $0.OtaStatus? ota,
+    MediaSnapshot? media,
     $0.I2cResponse? i2c,
   }) {
     final result = create();
     if (touch != null) result.touch = touch;
     if (link != null) result.link = link;
     if (ota != null) result.ota = ota;
+    if (media != null) result.media = media;
     if (i2c != null) result.i2c = i2c;
     return result;
   }
@@ -845,6 +1089,7 @@ class PvEvent extends $pb.GeneratedMessage {
     1: PvEvent_Event.touch,
     2: PvEvent_Event.link,
     3: PvEvent_Event.ota,
+    4: PvEvent_Event.media,
     16: PvEvent_Event.i2c,
     0: PvEvent_Event.notSet
   };
@@ -852,13 +1097,15 @@ class PvEvent extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'PvEvent',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'picoview.ffi'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 16])
+    ..oo(0, [1, 2, 3, 4, 16])
     ..aOM<$0.Touch>(1, _omitFieldNames ? '' : 'touch',
         subBuilder: $0.Touch.create)
     ..aOM<LinkEvent>(2, _omitFieldNames ? '' : 'link',
         subBuilder: LinkEvent.create)
     ..aOM<$0.OtaStatus>(3, _omitFieldNames ? '' : 'ota',
         subBuilder: $0.OtaStatus.create)
+    ..aOM<MediaSnapshot>(4, _omitFieldNames ? '' : 'media',
+        subBuilder: MediaSnapshot.create)
     ..aOM<$0.I2cResponse>(16, _omitFieldNames ? '' : 'i2c',
         subBuilder: $0.I2cResponse.create)
     ..hasRequiredFields = false;
@@ -884,11 +1131,13 @@ class PvEvent extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
   @$pb.TagNumber(3)
+  @$pb.TagNumber(4)
   @$pb.TagNumber(16)
   PvEvent_Event whichEvent() => _PvEvent_EventByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
   @$pb.TagNumber(3)
+  @$pb.TagNumber(4)
   @$pb.TagNumber(16)
   void clearEvent() => $_clearField($_whichOneof(0));
 
@@ -925,17 +1174,29 @@ class PvEvent extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $0.OtaStatus ensureOta() => $_ensure(2);
 
+  /// Host media session state; an empty player_name means "no session".
+  @$pb.TagNumber(4)
+  MediaSnapshot get media => $_getN(3);
+  @$pb.TagNumber(4)
+  set media(MediaSnapshot value) => $_setField(4, value);
+  @$pb.TagNumber(4)
+  $core.bool hasMedia() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearMedia() => $_clearField(4);
+  @$pb.TagNumber(4)
+  MediaSnapshot ensureMedia() => $_ensure(3);
+
   /// Phase 2.
   @$pb.TagNumber(16)
-  $0.I2cResponse get i2c => $_getN(3);
+  $0.I2cResponse get i2c => $_getN(4);
   @$pb.TagNumber(16)
   set i2c($0.I2cResponse value) => $_setField(16, value);
   @$pb.TagNumber(16)
-  $core.bool hasI2c() => $_has(3);
+  $core.bool hasI2c() => $_has(4);
   @$pb.TagNumber(16)
   void clearI2c() => $_clearField(16);
   @$pb.TagNumber(16)
-  $0.I2cResponse ensureI2c() => $_ensure(3);
+  $0.I2cResponse ensureI2c() => $_ensure(4);
 }
 
 /// Replaces the v1 hand-built JSON from sysmon.rs; field-for-field the same data.
@@ -1457,6 +1718,215 @@ class LoadAverage extends $pb.GeneratedMessage {
   $core.bool hasFifteen() => $_has(2);
   @$pb.TagNumber(3)
   void clearFifteen() => $_clearField(3);
+}
+
+/// A snapshot of the host's currently-playing media session, mapped in Dart to
+/// the domain `NowPlaying`. Emitted as a PvEvent whenever the session changes,
+/// plus a lighter position-only refresh (no art re-sent) while playing.
+///
+/// An empty `player_name` is the idle signal: no player is present, so the Now
+/// Playing page shows its idle state.
+///
+/// Cover art is delivered one of two ways depending on the platform:
+///   - Linux (MPRIS): `art_uri` — a file://, http(s):// or data: URI. The host
+///     leaves fetching to Dart (same machine), so `art_bytes` is empty.
+///   - Windows (SMTC): the thumbnail is a stream with no URL, so the engine
+///     reads it into `art_bytes` (+ `art_mime`). Sent only when the track's
+///     metadata changes, never on a position tick.
+class MediaSnapshot extends $pb.GeneratedMessage {
+  factory MediaSnapshot({
+    $core.String? playerName,
+    $core.String? title,
+    $core.String? artist,
+    $core.String? album,
+    $core.String? artUri,
+    $core.List<$core.int>? artBytes,
+    $core.String? artMime,
+    $fixnum.Int64? positionUs,
+    $fixnum.Int64? durationUs,
+    $core.bool? playing,
+    $core.bool? canNext,
+    $core.bool? canPrevious,
+  }) {
+    final result = create();
+    if (playerName != null) result.playerName = playerName;
+    if (title != null) result.title = title;
+    if (artist != null) result.artist = artist;
+    if (album != null) result.album = album;
+    if (artUri != null) result.artUri = artUri;
+    if (artBytes != null) result.artBytes = artBytes;
+    if (artMime != null) result.artMime = artMime;
+    if (positionUs != null) result.positionUs = positionUs;
+    if (durationUs != null) result.durationUs = durationUs;
+    if (playing != null) result.playing = playing;
+    if (canNext != null) result.canNext = canNext;
+    if (canPrevious != null) result.canPrevious = canPrevious;
+    return result;
+  }
+
+  MediaSnapshot._();
+
+  factory MediaSnapshot.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MediaSnapshot.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MediaSnapshot',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'picoview.ffi'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'playerName')
+    ..aOS(2, _omitFieldNames ? '' : 'title')
+    ..aOS(3, _omitFieldNames ? '' : 'artist')
+    ..aOS(4, _omitFieldNames ? '' : 'album')
+    ..aOS(5, _omitFieldNames ? '' : 'artUri')
+    ..a<$core.List<$core.int>>(
+        6, _omitFieldNames ? '' : 'artBytes', $pb.PbFieldType.OY)
+    ..aOS(7, _omitFieldNames ? '' : 'artMime')
+    ..a<$fixnum.Int64>(
+        8, _omitFieldNames ? '' : 'positionUs', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(
+        9, _omitFieldNames ? '' : 'durationUs', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aOB(10, _omitFieldNames ? '' : 'playing')
+    ..aOB(11, _omitFieldNames ? '' : 'canNext')
+    ..aOB(12, _omitFieldNames ? '' : 'canPrevious')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MediaSnapshot clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MediaSnapshot copyWith(void Function(MediaSnapshot) updates) =>
+      super.copyWith((message) => updates(message as MediaSnapshot))
+          as MediaSnapshot;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MediaSnapshot create() => MediaSnapshot._();
+  @$core.override
+  MediaSnapshot createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MediaSnapshot getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MediaSnapshot>(create);
+  static MediaSnapshot? _defaultInstance;
+
+  /// Friendly source name (MPRIS Identity / SMTC SourceAppUserModelId). Empty
+  /// means "no session".
+  @$pb.TagNumber(1)
+  $core.String get playerName => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set playerName($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPlayerName() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPlayerName() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get title => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set title($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasTitle() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTitle() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get artist => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set artist($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasArtist() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearArtist() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get album => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set album($core.String value) => $_setString(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasAlbum() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearAlbum() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.String get artUri => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set artUri($core.String value) => $_setString(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasArtUri() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearArtUri() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.List<$core.int> get artBytes => $_getN(5);
+  @$pb.TagNumber(6)
+  set artBytes($core.List<$core.int> value) => $_setBytes(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasArtBytes() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearArtBytes() => $_clearField(6);
+
+  /// MIME type for `art_bytes` (e.g. "image/jpeg"); empty when unknown.
+  @$pb.TagNumber(7)
+  $core.String get artMime => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set artMime($core.String value) => $_setString(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasArtMime() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearArtMime() => $_clearField(7);
+
+  /// Playhead position and total length in microseconds (0 duration = unknown,
+  /// e.g. live streams — no progress ring is shown).
+  @$pb.TagNumber(8)
+  $fixnum.Int64 get positionUs => $_getI64(7);
+  @$pb.TagNumber(8)
+  set positionUs($fixnum.Int64 value) => $_setInt64(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasPositionUs() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearPositionUs() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $fixnum.Int64 get durationUs => $_getI64(8);
+  @$pb.TagNumber(9)
+  set durationUs($fixnum.Int64 value) => $_setInt64(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasDurationUs() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearDurationUs() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.bool get playing => $_getBF(9);
+  @$pb.TagNumber(10)
+  set playing($core.bool value) => $_setBool(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasPlaying() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearPlaying() => $_clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.bool get canNext => $_getBF(10);
+  @$pb.TagNumber(11)
+  set canNext($core.bool value) => $_setBool(10, value);
+  @$pb.TagNumber(11)
+  $core.bool hasCanNext() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearCanNext() => $_clearField(11);
+
+  @$pb.TagNumber(12)
+  $core.bool get canPrevious => $_getBF(11);
+  @$pb.TagNumber(12)
+  set canPrevious($core.bool value) => $_setBool(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasCanPrevious() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearCanPrevious() => $_clearField(12);
 }
 
 const $core.bool _omitFieldNames =

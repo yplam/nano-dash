@@ -12,7 +12,9 @@
   "moduleSystemTitle": "System Monitor",
   "moduleWeatherTitle": "Weather",
   "moduleCalendarTitle": "Calendar",
+  "moduleNowPlayingTitle": "Now Playing",
   "moduleSettingsTitle": "Settings",
+  "nowPlayingIdle": "Nothing playing",
   "clear": "Clear",
   "settingsBackground": "Background",
   "settingsBackgroundDefault": "Default",
@@ -31,6 +33,34 @@
   "alertEffectAlert750": "Alert 750 ms",
   "alertEffectAlert1000": "Alert 1000 ms",
   "alertEffectPulsing": "Pulsing",
+  "settingsAdvanced": "Advanced",
+  "settingsFirmwareUpdate": "Firmware update",
+  "settingsFirmwareUpdateHint": "Flash a .bin to the panel over USB",
+  "settingsFirmwareUpdateNotConnected": "Connect the panel to update",
+  "firmwareCurrentVersion": "Installed: {version}",
+  "@firmwareCurrentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "firmwareInvalidImage": "That file isn't a valid ESP32 firmware image.",
+  "firmwareConfirmTitle": "Update panel firmware?",
+  "firmwareConfirmBody": "The panel will reboot into the new firmware. Keep it plugged in until the update finishes.",
+  "firmwareUpdate": "Update",
+  "firmwareReceiving": "Sending firmware…",
+  "firmwareVerifying": "Verifying…",
+  "firmwareDone": "Firmware updated. The panel is rebooting.",
+  "firmwareFailed": "Update failed (error {code}).",
+  "@firmwareFailed": {
+    "placeholders": {
+      "code": {
+        "type": "int"
+      }
+    }
+  },
+  "cancel": "Cancel",
   "systemCpu": "CPU",
   "systemMemory": "Memory",
   "systemNetwork": "Network",

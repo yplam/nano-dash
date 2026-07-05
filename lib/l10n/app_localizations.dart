@@ -170,11 +170,23 @@ abstract class AppLocalizations {
   /// **'Calendar'**
   String get moduleCalendarTitle;
 
+  /// No description provided for @moduleNowPlayingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Now Playing'**
+  String get moduleNowPlayingTitle;
+
   /// No description provided for @moduleSettingsTitle.
   ///
   /// In en, this message translates to:
   /// **'Settings'**
   String get moduleSettingsTitle;
+
+  /// No description provided for @nowPlayingIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing playing'**
+  String get nowPlayingIdle;
 
   /// No description provided for @clear.
   ///
@@ -283,6 +295,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pulsing'**
   String get alertEffectPulsing;
+
+  /// No description provided for @settingsAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get settingsAdvanced;
+
+  /// No description provided for @settingsFirmwareUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware update'**
+  String get settingsFirmwareUpdate;
+
+  /// No description provided for @settingsFirmwareUpdateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Flash a .bin to the panel over USB'**
+  String get settingsFirmwareUpdateHint;
+
+  /// No description provided for @settingsFirmwareUpdateNotConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect the panel to update'**
+  String get settingsFirmwareUpdateNotConnected;
+
+  /// No description provided for @firmwareCurrentVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed: {version}'**
+  String firmwareCurrentVersion(String version);
+
+  /// No description provided for @firmwareInvalidImage.
+  ///
+  /// In en, this message translates to:
+  /// **'That file isn\'t a valid ESP32 firmware image.'**
+  String get firmwareInvalidImage;
+
+  /// No description provided for @firmwareConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update panel firmware?'**
+  String get firmwareConfirmTitle;
+
+  /// No description provided for @firmwareConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The panel will reboot into the new firmware. Keep it plugged in until the update finishes.'**
+  String get firmwareConfirmBody;
+
+  /// No description provided for @firmwareUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get firmwareUpdate;
+
+  /// No description provided for @firmwareReceiving.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending firmware…'**
+  String get firmwareReceiving;
+
+  /// No description provided for @firmwareVerifying.
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying…'**
+  String get firmwareVerifying;
+
+  /// No description provided for @firmwareDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware updated. The panel is rebooting.'**
+  String get firmwareDone;
+
+  /// No description provided for @firmwareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Update failed (error {code}).'**
+  String firmwareFailed(int code);
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
 
   /// No description provided for @systemCpu.
   ///

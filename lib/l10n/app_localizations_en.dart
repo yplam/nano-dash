@@ -45,7 +45,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleCalendarTitle => 'Calendar';
 
   @override
+  String get moduleNowPlayingTitle => 'Now Playing';
+
+  @override
   String get moduleSettingsTitle => 'Settings';
+
+  @override
+  String get nowPlayingIdle => 'Nothing playing';
 
   @override
   String get clear => 'Clear';
@@ -100,6 +106,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alertEffectPulsing => 'Pulsing';
+
+  @override
+  String get settingsAdvanced => 'Advanced';
+
+  @override
+  String get settingsFirmwareUpdate => 'Firmware update';
+
+  @override
+  String get settingsFirmwareUpdateHint => 'Flash a .bin to the panel over USB';
+
+  @override
+  String get settingsFirmwareUpdateNotConnected =>
+      'Connect the panel to update';
+
+  @override
+  String firmwareCurrentVersion(String version) {
+    return 'Installed: $version';
+  }
+
+  @override
+  String get firmwareInvalidImage =>
+      'That file isn\'t a valid ESP32 firmware image.';
+
+  @override
+  String get firmwareConfirmTitle => 'Update panel firmware?';
+
+  @override
+  String get firmwareConfirmBody =>
+      'The panel will reboot into the new firmware. Keep it plugged in until the update finishes.';
+
+  @override
+  String get firmwareUpdate => 'Update';
+
+  @override
+  String get firmwareReceiving => 'Sending firmware…';
+
+  @override
+  String get firmwareVerifying => 'Verifying…';
+
+  @override
+  String get firmwareDone => 'Firmware updated. The panel is rebooting.';
+
+  @override
+  String firmwareFailed(int code) {
+    return 'Update failed (error $code).';
+  }
+
+  @override
+  String get cancel => 'Cancel';
 
   @override
   String get systemCpu => 'CPU';

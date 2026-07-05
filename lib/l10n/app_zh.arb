@@ -12,7 +12,9 @@
   "moduleSystemTitle": "系统监控",
   "moduleWeatherTitle": "天气",
   "moduleCalendarTitle": "日历",
+  "moduleNowPlayingTitle": "正在播放",
   "moduleSettingsTitle": "设置",
+  "nowPlayingIdle": "暂无播放",
   "clear": "清除",
   "settingsBackground": "背景",
   "settingsBackgroundDefault": "默认",
@@ -31,6 +33,34 @@
   "alertEffectAlert750": "提醒 750 毫秒",
   "alertEffectAlert1000": "提醒 1000 毫秒",
   "alertEffectPulsing": "脉冲",
+  "settingsAdvanced": "高级",
+  "settingsFirmwareUpdate": "固件更新",
+  "settingsFirmwareUpdateHint": "通过 USB 向面板刷入 .bin 固件",
+  "settingsFirmwareUpdateNotConnected": "请连接面板后再更新",
+  "firmwareCurrentVersion": "已安装：{version}",
+  "@firmwareCurrentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "firmwareInvalidImage": "该文件不是有效的 ESP32 固件镜像。",
+  "firmwareConfirmTitle": "更新面板固件？",
+  "firmwareConfirmBody": "面板将重启进入新固件。更新完成前请保持连接。",
+  "firmwareUpdate": "更新",
+  "firmwareReceiving": "正在发送固件…",
+  "firmwareVerifying": "正在校验…",
+  "firmwareDone": "固件已更新，面板正在重启。",
+  "firmwareFailed": "更新失败（错误 {code}）。",
+  "@firmwareFailed": {
+    "placeholders": {
+      "code": {
+        "type": "int"
+      }
+    }
+  },
+  "cancel": "取消",
   "systemCpu": "处理器",
   "systemMemory": "内存",
   "systemNetwork": "网络",

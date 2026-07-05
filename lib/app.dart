@@ -22,9 +22,11 @@ import 'l10n/app_localizations.dart';
 import 'ui/calendar/calendar.dart';
 import 'ui/dashboard/dashboard.dart';
 import 'ui/live2d/cubit/live2d_cubit.dart';
+import 'ui/now_playing/cubit/now_playing_cubit.dart';
 import 'ui/modules/calendar_module.dart';
 import 'ui/modules/clock_module.dart';
 import 'ui/modules/live2d_module.dart';
+import 'ui/modules/now_playing_module.dart';
 import 'ui/modules/settings_module.dart';
 import 'ui/modules/stopwatch_module.dart';
 import 'ui/modules/system_monitor_module.dart';
@@ -100,6 +102,7 @@ class NanoDashApp extends StatelessWidget {
             const StopwatchModule(),
             if (!kIsWeb) const Live2DModule(),
             if (!kIsWeb) const SystemMonitorModule(),
+            if (!kIsWeb) const NowPlayingModule(),
           ]),
         ),
         RepositoryProvider<SettingsRepository>(
@@ -147,7 +150,10 @@ class NanoDashApp extends StatelessWidget {
             lazy: false,
           ),
           BlocProvider<TimerCubit>(
-            create: (context) => TimerCubit(context.read<SettingsRepository>()),
+            create: (context) => TimerCubit(
+              context.read<SettingsRepository>(),
+              context.read<PicoViewService>(),
+            ),
             lazy: false,
           ),
           BlocProvider<StopwatchCubit>(
@@ -160,6 +166,12 @@ class NanoDashApp extends StatelessWidget {
               lazy: false,
             ),
           if (!kIsWeb) BlocProvider<Live2dCubit>(create: (_) => Live2dCubit()),
+          if (!kIsWeb)
+            BlocProvider<NowPlayingCubit>(
+              create: (context) =>
+                  NowPlayingCubit(context.read<PicoViewService>()),
+              lazy: false,
+            ),
         ],
         child: BlocBuilder<AppConfigCubit, AppConfig>(
           builder: (context, config) {

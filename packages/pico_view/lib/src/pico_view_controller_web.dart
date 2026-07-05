@@ -13,6 +13,8 @@ class PicoViewController {
       StreamController<PicoLinkState>.broadcast();
   final StreamController<PicoOtaEvent> _ota =
       StreamController<PicoOtaEvent>.broadcast();
+  final StreamController<PicoMediaSnapshot?> _media =
+      StreamController<PicoMediaSnapshot?>.broadcast();
 
   PicoViewConfig _config = const PicoViewConfig();
 
@@ -22,7 +24,12 @@ class PicoViewController {
 
   PicoLinkState get linkState => PicoLinkState.disconnected;
 
+  /// No device on web, so no firmware version.
+  String? get firmwareVersion => null;
+
   Stream<PicoOtaEvent> get otaEvents => _ota.stream;
+
+  Stream<PicoMediaSnapshot?> get mediaEvents => _media.stream;
 
   PicoViewConfig get config => _config;
 
@@ -56,9 +63,16 @@ class PicoViewController {
 
   void closeSystem() {}
 
+  void startMedia() {}
+
+  void stopMedia() {}
+
+  bool mediaControl(PicoMediaCommand command) => false;
+
   void dispose() {
     _touch.close();
     _link.close();
     _ota.close();
+    _media.close();
   }
 }

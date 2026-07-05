@@ -143,6 +143,66 @@ class SystemSnapshot {
   double get memFraction => memTotal == 0 ? 0 : memUsed / memTotal;
 }
 
+/// A transport command for the host media session (see
+/// `PicoViewController.mediaControl`).
+enum PicoMediaCommand { playPause, next, previous }
+
+/// A snapshot of the host's currently-playing media session, pushed on
+/// `PicoViewController.mediaEvents` (`null` on the stream = no session).
+///
+/// Cover art arrives one of two ways, mirroring the source: [artUri] (a
+/// `file://` / `http(s)://` / `data:` URI, from MPRIS on Linux) or [artBytes]
+/// (+ [artMime], the SMTC thumbnail on Windows). The engine sends art only when
+/// a track first appears; on later position updates for the same track both are
+/// empty, so consumers that show art should cache it per track.
+@immutable
+class PicoMediaSnapshot {
+  const PicoMediaSnapshot({
+    required this.playerName,
+    this.title = '',
+    this.artist = '',
+    this.album = '',
+    this.artUri = '',
+    this.artBytes,
+    this.artMime = '',
+    this.position = Duration.zero,
+    this.duration = Duration.zero,
+    this.playing = false,
+    this.canNext = false,
+    this.canPrevious = false,
+  });
+
+  /// Friendly source name (e.g. `Spotify`, `Chrome`).
+  final String playerName;
+
+  final String title;
+  final String artist;
+  final String album;
+
+  /// Cover-art URI (Linux/MPRIS); empty when art travels as [artBytes] or on a
+  /// position-only update.
+  final String artUri;
+
+  /// Cover-art image bytes (Windows/SMTC); `null` when art travels as [artUri]
+  /// or on a position-only update.
+  final Uint8List? artBytes;
+
+  /// MIME type for [artBytes] (e.g. `image/jpeg`); empty when unknown.
+  final String artMime;
+
+  /// Playhead position and total length. A zero [duration] means the length is
+  /// unknown (live streams).
+  final Duration position;
+  final Duration duration;
+
+  final bool playing;
+  final bool canNext;
+  final bool canPrevious;
+
+  /// Whether this snapshot carries cover art (vs. a position-only update).
+  bool get hasArt => artUri.isNotEmpty || (artBytes?.isNotEmpty ?? false);
+}
+
 /// Thrown when a native call fails.
 class PicoViewException implements Exception {
   PicoViewException(this.message, {this.code});

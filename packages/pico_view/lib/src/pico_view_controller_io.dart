@@ -31,12 +31,19 @@ class PicoViewController {
       StreamController<PicoLinkState>.broadcast();
   final StreamController<PicoOtaEvent> _ota =
       StreamController<PicoOtaEvent>.broadcast();
+  final StreamController<PicoMediaSnapshot?> _media =
+      StreamController<PicoMediaSnapshot?>.broadcast();
 
   bool _initialized = false;
   bool _opened = false;
   bool _disposed = false;
 
   PicoLinkState _linkState = PicoLinkState.disconnected;
+
+  /// The connected device's firmware version, reported by the engine on the
+  /// CONNECTED link event; `null` while disconnected or when the device didn't
+  /// report one.
+  String? _firmwareVersion;
 
   PicoViewConfig _config = const PicoViewConfig();
 
@@ -55,8 +62,14 @@ class PicoViewController {
   /// The most recent link state (kept current from [linkStates]).
   PicoLinkState get linkState => _linkState;
 
+  String? get firmwareVersion => _firmwareVersion;
+
   /// Firmware-update progress/result events (see [otaStart]).
   Stream<PicoOtaEvent> get otaEvents => _ota.stream;
+
+  /// Host media-session snapshots (`null` = no session). Independent of any
+  /// open device — start it with [startMedia].
+  Stream<PicoMediaSnapshot?> get mediaEvents => _media.stream;
 
   /// The currently-open device config (geometry used by `PicoView`).
   PicoViewConfig get config => _config;
@@ -226,6 +239,41 @@ class PicoViewController {
     }
   }
 
+  bool _mediaOpen = false;
+
+  /// Start observing the host media session; snapshots arrive on [mediaEvents].
+  /// Independent of any open device. Idempotent.
+  void startMedia() {
+    if (_disposed || _mediaOpen) return;
+    _request(pb.PvRequest(mediaStart: pb.MediaStart()));
+    _mediaOpen = true;
+  }
+
+  /// Stop observing the media session and release the monitor thread.
+  /// Idempotent.
+  void stopMedia() {
+    if (_mediaOpen && !_disposed) {
+      _request(pb.PvRequest(mediaStop: pb.MediaStop()));
+      _mediaOpen = false;
+    }
+  }
+
+  /// Send a transport command to the active media session. Best-effort and
+  /// fire-and-forget: returns false (without throwing) when the engine rejects
+  /// it; a control with no active session is a harmless no-op.
+  bool mediaControl(PicoMediaCommand command) {
+    if (_disposed) return false;
+    final cmd = switch (command) {
+      PicoMediaCommand.playPause => pb.MediaCommand.MEDIA_COMMAND_PLAY_PAUSE,
+      PicoMediaCommand.next => pb.MediaCommand.MEDIA_COMMAND_NEXT,
+      PicoMediaCommand.previous => pb.MediaCommand.MEDIA_COMMAND_PREVIOUS,
+    };
+    final resp = _request(
+      pb.PvRequest(mediaControl: pb.MediaControl(command: cmd)),
+    );
+    return resp.whichResp() != pb.PvResponse_Resp.error;
+  }
+
   /// Stream a signed firmware image to the device. Fire-and-forget: progress
   /// and the result arrive on [otaEvents]; while it runs, frames are dropped
   /// and the device reboots into the new image on success (a
@@ -278,6 +326,11 @@ class PicoViewController {
         };
         if (state != null) {
           _linkState = state;
+          // fw_version is only meaningful on CONNECTED; clear it otherwise so a
+          // stale version can't linger after unplug.
+          _firmwareVersion = state == PicoLinkState.connected
+              ? (event.link.fwVersion.isEmpty ? null : event.link.fwVersion)
+              : null;
           _link.add(state);
         }
       case pb.PvEvent_Event.ota:
@@ -294,9 +347,31 @@ class PicoViewController {
             event.ota.err,
           ),
         );
+      case pb.PvEvent_Event.media:
+        _media.add(_toMediaSnapshot(event.media));
       default:
         break;
     }
+  }
+
+  /// Map a pushed `MediaSnapshot`, treating an empty `playerName` (the engine's
+  /// idle signal) as `null`.
+  PicoMediaSnapshot? _toMediaSnapshot(pb.MediaSnapshot m) {
+    if (m.playerName.isEmpty) return null;
+    return PicoMediaSnapshot(
+      playerName: m.playerName,
+      title: m.title,
+      artist: m.artist,
+      album: m.album,
+      artUri: m.artUri,
+      artBytes: m.artBytes.isEmpty ? null : Uint8List.fromList(m.artBytes),
+      artMime: m.artMime,
+      position: Duration(microseconds: m.positionUs.toInt()),
+      duration: Duration(microseconds: m.durationUs.toInt()),
+      playing: m.playing,
+      canNext: m.canNext,
+      canPrevious: m.canPrevious,
+    );
   }
 
   void _onTouch(pbw.Touch touch) {
@@ -342,6 +417,7 @@ class PicoViewController {
   void dispose() {
     if (_disposed) return;
     closeSystem();
+    stopMedia();
     _disposed = true;
     if (_opened) {
       bindings.pv_close();
@@ -354,6 +430,7 @@ class PicoViewController {
     _touch.close();
     _link.close();
     _ota.close();
+    _media.close();
     _rx.close();
   }
 }

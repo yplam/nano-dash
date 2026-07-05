@@ -16,6 +16,7 @@ class SettingsView extends StatelessWidget {
     required this.config,
     required this.onChanged,
     this.onPreviewEffect,
+    this.advanced,
   });
 
   final AppConfig config;
@@ -24,6 +25,11 @@ class SettingsView extends StatelessWidget {
   /// Plays a haptic effect id on the panel so the user feels a choice as they
   /// make it. Null when no device handle is available (e.g. web / tests).
   final ValueChanged<int>? onPreviewEffect;
+
+  /// Optional device-maintenance controls (e.g. firmware update) rendered under
+  /// an "Advanced" header, separate from the everyday settings. Null on targets
+  /// with no device handle (web / tests).
+  final Widget? advanced;
 
   /// The seed colours offered for the theme.
   static const List<Color> _seeds = <Color>[
@@ -50,6 +56,7 @@ class SettingsView extends StatelessWidget {
         _section(l10n.settingsThemeColor, _themeControl()),
         _section(l10n.settingsBrightness, _brightnessControl()),
         _section(l10n.settingsAlertEffect, _alertEffectControl(l10n)),
+        if (advanced != null) _section(l10n.settingsAdvanced, advanced!),
         const SizedBox(height: 8),
       ],
     );

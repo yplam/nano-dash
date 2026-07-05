@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:pico_view/pico_view.dart';
 
 /// App-wide handle to the single [PicoViewController].
@@ -19,8 +21,20 @@ class PicoViewService {
   /// Link-state transitions (connected / disconnected / unauthorized).
   Stream<PicoLinkState> get linkStates => controller.linkStates;
 
+  /// Host media-session snapshots (`null` = no session). Independent of any
+  /// open device; call [startMedia] to begin observing.
+  Stream<PicoMediaSnapshot?> get mediaEvents => controller.mediaEvents;
+
+  /// Firmware-update progress/result events (see [otaStart]).
+  Stream<PicoOtaEvent> get otaEvents => controller.otaEvents;
+
   /// Whether a device is currently open.
   bool get isOpen => controller.isOpen;
+
+  /// The connected device's firmware version (e.g. `"1.4.0"`), or `null` when
+  /// disconnected or when the device doesn't report one. Refreshed on each
+  /// CONNECTED transition; watch [linkStates] to know when it may have changed.
+  String? get firmwareVersion => controller.firmwareVersion;
 
   /// Wire up the native bridge. Safe to call more than once.
   void init() => controller.init();
@@ -43,6 +57,24 @@ class PicoViewService {
 
   /// Stop any haptic effect currently playing on the device.
   bool stopHaptic() => controller.stopHaptic();
+
+  /// Stream a firmware image to the panel over USB. Fire-and-forget; progress
+  /// and the result arrive on [otaEvents]. Throws [PicoViewException] if the
+  /// update couldn't be enqueued (no device open). See
+  /// [PicoViewController.otaStart].
+  void otaStart(Uint8List image) => controller.otaStart(image);
+
+  /// Start observing the host media session; snapshots arrive on [mediaEvents].
+  /// Idempotent.
+  void startMedia() => controller.startMedia();
+
+  /// Stop observing the host media session. Idempotent.
+  void stopMedia() => controller.stopMedia();
+
+  /// Send a transport command to the active media session. Best-effort; a no-op
+  /// when nothing is playing.
+  bool mediaControl(PicoMediaCommand command) =>
+      controller.mediaControl(command);
 
   /// Tear down the native bridge and close the device.
   void dispose() => controller.dispose();

@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/repositories/settings_repository.dart';
+import '../../../data/services/pico_view_service.dart';
+import '../../../domain/models/app_config.dart';
 import '../models/pomodoro_log.dart';
 import '../models/timer_config.dart';
 
@@ -11,12 +13,15 @@ part 'timer_state.dart';
 /// Owns the countdown timer module's state, including the Pomodoro cycle and the
 /// focus-session log that backs the statistics report.
 class TimerCubit extends Cubit<TimerState> {
-  TimerCubit(this._settings) : super(const TimerState()) {
+  TimerCubit(this._settings, this._pico) : super(const TimerState()) {
     final logs = _settings.loadList(PomodoroLog.kKey, PomodoroLog.fromJson);
     if (logs.isNotEmpty) emit(state.copyWith(logs: logs));
   }
 
   final SettingsRepository _settings;
+
+  /// Plays the physical alert buzz on the panel. A no-op when no device is open.
+  final PicoViewService _pico;
 
   /// Focus-session logs older than this are dropped on write, bounding growth.
   static const Duration _kRetention = Duration(days: 14);
@@ -149,8 +154,7 @@ class TimerCubit extends Cubit<TimerState> {
   /// a finished break returns to focus and waits for a manual restart.
   void _onPhaseComplete() {
     final sel = state.selected;
-    // TODO: honour sel.sound / sel.vibrate here once alert playback (sound +
-    // haptics) is implemented.
+    _fireAlert(sel);
     if (sel == null || !sel.pomodoro) {
       emit(
         state.copyWith(
@@ -199,6 +203,18 @@ class TimerCubit extends Cubit<TimerState> {
         ),
       );
     }
+  }
+
+  /// Signal a phase boundary on the panel, honouring the selected timer's alert
+  /// preferences. Vibration plays the globally configured [AppConfig.alertEffect]
+  /// (read fresh so a settings change is picked up); [playHaptic] is itself a
+  /// no-op when the effect is "none" or no device is open.
+  ///
+  /// TODO(sound): honour [TimerConfig.sound] here once host/device audio
+  /// playback is wired up — deferred for now, so the flag stays inert.
+  void _fireAlert(TimerConfig? sel) {
+    if (sel == null || !sel.vibrate) return;
+    _pico.playHaptic(_settings.load(appConfigKey).alertEffect);
   }
 
   /// Append [log] to the history, trim entries past the retention window, and persist.

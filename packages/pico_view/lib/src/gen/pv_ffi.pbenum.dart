@@ -14,6 +14,31 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
+class MediaCommand extends $pb.ProtobufEnum {
+  static const MediaCommand MEDIA_COMMAND_UNSPECIFIED =
+      MediaCommand._(0, _omitEnumNames ? '' : 'MEDIA_COMMAND_UNSPECIFIED');
+  static const MediaCommand MEDIA_COMMAND_PLAY_PAUSE =
+      MediaCommand._(1, _omitEnumNames ? '' : 'MEDIA_COMMAND_PLAY_PAUSE');
+  static const MediaCommand MEDIA_COMMAND_NEXT =
+      MediaCommand._(2, _omitEnumNames ? '' : 'MEDIA_COMMAND_NEXT');
+  static const MediaCommand MEDIA_COMMAND_PREVIOUS =
+      MediaCommand._(3, _omitEnumNames ? '' : 'MEDIA_COMMAND_PREVIOUS');
+
+  static const $core.List<MediaCommand> values = <MediaCommand>[
+    MEDIA_COMMAND_UNSPECIFIED,
+    MEDIA_COMMAND_PLAY_PAUSE,
+    MEDIA_COMMAND_NEXT,
+    MEDIA_COMMAND_PREVIOUS,
+  ];
+
+  static final $core.List<MediaCommand?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 3);
+  static MediaCommand? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const MediaCommand._(super.value, super.name);
+}
+
 class ErrorCode extends $pb.ProtobufEnum {
   static const ErrorCode ERROR_CODE_UNSPECIFIED =
       ErrorCode._(0, _omitEnumNames ? '' : 'ERROR_CODE_UNSPECIFIED');
@@ -75,7 +100,9 @@ class LinkState extends $pb.ProtobufEnum {
   static const LinkState LINK_STATE_UNSPECIFIED =
       LinkState._(0, _omitEnumNames ? '' : 'LINK_STATE_UNSPECIFIED');
 
-  /// Attached, attested, configured.
+  /// Attached and configured. `verified` / `device_id` say whether this is a
+  /// genuine vendor-provisioned unit; a self-built / forked / unprovisioned
+  /// board still reaches CONNECTED, just with verified = false.
   static const LinkState LINK_STATE_CONNECTED =
       LinkState._(1, _omitEnumNames ? '' : 'LINK_STATE_CONNECTED');
 
@@ -83,8 +110,12 @@ class LinkState extends $pb.ProtobufEnum {
   static const LinkState LINK_STATE_DISCONNECTED =
       LinkState._(2, _omitEnumNames ? '' : 'LINK_STATE_DISCONNECTED');
 
-  /// Attached but failed hardware attestation; retried, so swapping in a
-  /// genuine unit recovers automatically.
+  /// Attached, claimed a vendor identity, but failed certificate/challenge
+  /// verification (a tamper/clone signal) -- retried, so swapping in a genuine
+  /// unit recovers automatically. NOTE: unprovisioned / self-built boards are
+  /// NOT unauthorized; they connect as CONNECTED with verified = false. This
+  /// state is only reached when PV_REQUIRE_GENUINE is set, or when a device
+  /// that presents a cert fails to verify.
   static const LinkState LINK_STATE_UNAUTHORIZED =
       LinkState._(3, _omitEnumNames ? '' : 'LINK_STATE_UNAUTHORIZED');
 

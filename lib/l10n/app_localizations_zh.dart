@@ -45,7 +45,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get moduleCalendarTitle => '日历';
 
   @override
+  String get moduleNowPlayingTitle => '正在播放';
+
+  @override
   String get moduleSettingsTitle => '设置';
+
+  @override
+  String get nowPlayingIdle => '暂无播放';
 
   @override
   String get clear => '清除';
@@ -100,6 +106,52 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get alertEffectPulsing => '脉冲';
+
+  @override
+  String get settingsAdvanced => '高级';
+
+  @override
+  String get settingsFirmwareUpdate => '固件更新';
+
+  @override
+  String get settingsFirmwareUpdateHint => '通过 USB 向面板刷入 .bin 固件';
+
+  @override
+  String get settingsFirmwareUpdateNotConnected => '请连接面板后再更新';
+
+  @override
+  String firmwareCurrentVersion(String version) {
+    return '已安装：$version';
+  }
+
+  @override
+  String get firmwareInvalidImage => '该文件不是有效的 ESP32 固件镜像。';
+
+  @override
+  String get firmwareConfirmTitle => '更新面板固件？';
+
+  @override
+  String get firmwareConfirmBody => '面板将重启进入新固件。更新完成前请保持连接。';
+
+  @override
+  String get firmwareUpdate => '更新';
+
+  @override
+  String get firmwareReceiving => '正在发送固件…';
+
+  @override
+  String get firmwareVerifying => '正在校验…';
+
+  @override
+  String get firmwareDone => '固件已更新，面板正在重启。';
+
+  @override
+  String firmwareFailed(int code) {
+    return '更新失败（错误 $code）。';
+  }
+
+  @override
+  String get cancel => '取消';
 
   @override
   String get systemCpu => '处理器';

@@ -7,6 +7,7 @@ import '../../domain/models/dashboard.dart';
 import '../../domain/models/module.dart';
 import '../../l10n/app_localizations.dart';
 import '../settings/cubit/app_config_cubit.dart';
+import '../settings/views/firmware_update_tile.dart';
 import '../settings/views/settings_view.dart';
 
 /// A settings-only module.
@@ -46,6 +47,9 @@ class SettingsModule extends Module {
         // Play the chosen alert on the panel so it can be felt as it's picked.
         onPreviewEffect: (effect) =>
             context.read<PicoViewService>().playHaptic(effect),
+        advanced: FirmwareUpdateTile(
+          service: context.read<PicoViewService>(),
+        ),
       ),
     );
   }
