@@ -54,6 +54,7 @@ class SettingsView extends StatelessWidget {
         if (!kIsWeb) _section(l10n.settingsBackground, _backgroundTile(l10n)),
         _section(l10n.settingsLanguage, _languageControl(l10n)),
         _section(l10n.settingsThemeColor, _themeControl()),
+        _section(l10n.settingsThemeMode, _themeModeControl(l10n)),
         _section(l10n.settingsBrightness, _brightnessControl()),
         _section(l10n.settingsAlertEffect, _alertEffectControl(l10n)),
         if (advanced != null) _section(l10n.settingsAdvanced, advanced!),
@@ -138,6 +139,34 @@ class SettingsView extends StatelessWidget {
                   onChanged(config.copyWith(themeSeed: color.toARGB32())),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _themeModeControl(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: SegmentedButton<ThemeMode>(
+        segments: [
+          ButtonSegment(
+            value: ThemeMode.system,
+            label: Text(l10n.settingsThemeModeSystem),
+          ),
+          ButtonSegment(
+            value: ThemeMode.light,
+            icon: const Icon(Icons.light_mode_outlined),
+            label: Text(l10n.settingsThemeModeLight),
+          ),
+          ButtonSegment(
+            value: ThemeMode.dark,
+            icon: const Icon(Icons.dark_mode_outlined),
+            label: Text(l10n.settingsThemeModeDark),
+          ),
+        ],
+        selected: {config.themeMode},
+        showSelectedIcon: false,
+        onSelectionChanged: (s) =>
+            onChanged(config.copyWith(themeModeTag: s.first.name)),
       ),
     );
   }

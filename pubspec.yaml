@@ -1,5 +1,5 @@
 name: nano_dash
-description: "Nano dashboard on external SPI LCD."
+description: "Nano dashboard on external LCD."
 publish_to: 'none'
 
 version: 1.0.0+1

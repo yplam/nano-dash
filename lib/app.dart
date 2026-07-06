@@ -12,6 +12,7 @@ import 'data/repositories/module_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'data/repositories/weather_repository.dart';
 import 'data/services/calendar/calendar_service.dart';
+import 'data/services/location_service.dart';
 import 'data/services/locator.dart';
 import 'data/services/pico_view_service.dart';
 import 'data/services/tray_service.dart';
@@ -22,7 +23,6 @@ import 'l10n/app_localizations.dart';
 import 'ui/calendar/calendar.dart';
 import 'ui/dashboard/dashboard.dart';
 import 'ui/live2d/cubit/live2d_cubit.dart';
-import 'ui/now_playing/cubit/now_playing_cubit.dart';
 import 'ui/modules/calendar_module.dart';
 import 'ui/modules/clock_module.dart';
 import 'ui/modules/live2d_module.dart';
@@ -32,6 +32,7 @@ import 'ui/modules/stopwatch_module.dart';
 import 'ui/modules/system_monitor_module.dart';
 import 'ui/modules/timer_module.dart';
 import 'ui/modules/weather_module.dart';
+import 'ui/now_playing/cubit/now_playing_cubit.dart';
 import 'ui/settings/cubit/app_config_cubit.dart';
 import 'ui/stopwatch/cubit/stopwatch_cubit.dart';
 import 'ui/system_monitor/cubit/system_monitor_cubit.dart';
@@ -97,7 +98,7 @@ class NanoDashApp extends StatelessWidget {
             const SettingsModule(),
             const ClockModule(),
             const WeatherModule(),
-            const CalendarModule(),
+            if (!kIsWeb) const CalendarModule(),
             const TimerModule(),
             const StopwatchModule(),
             if (!kIsWeb) const Live2DModule(),
@@ -114,18 +115,22 @@ class NanoDashApp extends StatelessWidget {
           create: (_) => PicoViewService(),
           dispose: (service) => service.dispose(),
         ),
+        RepositoryProvider<LocationService>(
+          create: (_) => LocationService(dio),
+        ),
         RepositoryProvider<WeatherRepository>(
           create: (context) => WeatherRepository(
             context.read<SettingsRepository>(),
             WeatherService(dio),
           ),
         ),
-        RepositoryProvider<CalendarRepository>(
-          create: (context) => CalendarRepository(
-            context.read<SettingsRepository>(),
-            CalendarService(dio),
+        if (!kIsWeb)
+          RepositoryProvider<CalendarRepository>(
+            create: (context) => CalendarRepository(
+              context.read<SettingsRepository>(),
+              CalendarService(dio),
+            ),
           ),
-        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -144,11 +149,12 @@ class NanoDashApp extends StatelessWidget {
                 WeatherCubit(context.read<WeatherRepository>()),
             lazy: false,
           ),
-          BlocProvider<CalendarCubit>(
-            create: (context) =>
-                CalendarCubit(context.read<CalendarRepository>()),
-            lazy: false,
-          ),
+          if (!kIsWeb)
+            BlocProvider<CalendarCubit>(
+              create: (context) =>
+                  CalendarCubit(context.read<CalendarRepository>()),
+              lazy: false,
+            ),
           BlocProvider<TimerCubit>(
             create: (context) => TimerCubit(
               context.read<SettingsRepository>(),
@@ -204,7 +210,7 @@ class NanoDashApp extends StatelessWidget {
                 fontFamilyFallback: kCjkFontFallback,
                 extensions: const [PanelTheme()],
               ),
-              themeMode: ThemeMode.system,
+              themeMode: config.themeMode,
               home: const Dashboard(),
             );
           },

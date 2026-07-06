@@ -43,7 +43,11 @@ class _WeatherDisplayState extends State<WeatherDisplay> {
     // Nothing to show: no city, still loading, or the last fetch failed.
     if (data == null) return const SizedBox.shrink();
 
-    final visual = weatherVisual(data.condition, isDay: data.isDay);
+    final visual = weatherVisual(
+      data.condition,
+      isDay: data.isDay,
+      brightness: Theme.of(context).brightness,
+    );
 
     String temp(double celsius) => '${celsius.round()}';
 

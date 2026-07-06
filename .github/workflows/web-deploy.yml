@@ -1,0 +1,36 @@
+name: Deploy Web
+
+# Manual trigger only — no push/PR auto-deploy.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: web-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Build web (WASM)
+        run: flutter build web --release --wasm --base-href /
+
+      # Cross-origin isolation so skwasm can use its multi-threaded path.
+      - name: Add Cloudflare _headers
+        run: cp web/_headers build/web/_headers
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy build/web --project-name=nanodash

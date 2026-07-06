@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -47,9 +48,9 @@ class SettingsModule extends Module {
         // Play the chosen alert on the panel so it can be felt as it's picked.
         onPreviewEffect: (effect) =>
             context.read<PicoViewService>().playHaptic(effect),
-        advanced: FirmwareUpdateTile(
-          service: context.read<PicoViewService>(),
-        ),
+        advanced: kIsWeb
+            ? null
+            : FirmwareUpdateTile(service: context.read<PicoViewService>()),
       ),
     );
   }

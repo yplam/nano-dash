@@ -230,6 +230,30 @@ abstract class AppLocalizations {
   /// **'Theme color'**
   String get settingsThemeColor;
 
+  /// No description provided for @settingsThemeMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get settingsThemeMode;
+
+  /// No description provided for @settingsThemeModeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get settingsThemeModeSystem;
+
+  /// No description provided for @settingsThemeModeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get settingsThemeModeLight;
+
+  /// No description provided for @settingsThemeModeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get settingsThemeModeDark;
+
   /// No description provided for @settingsBrightness.
   ///
   /// In en, this message translates to:
@@ -655,6 +679,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g. Shanghai'**
   String get weatherCityHint;
+
+  /// No description provided for @weatherUseMyLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Use my location'**
+  String get weatherUseMyLocation;
+
+  /// No description provided for @weatherLocationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t detect your location'**
+  String get weatherLocationFailed;
 
   /// No description provided for @weatherUnitsCelsius.
   ///

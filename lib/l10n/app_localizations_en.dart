@@ -75,6 +75,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsThemeColor => 'Theme color';
 
   @override
+  String get settingsThemeMode => 'Appearance';
+
+  @override
+  String get settingsThemeModeSystem => 'System';
+
+  @override
+  String get settingsThemeModeLight => 'Light';
+
+  @override
+  String get settingsThemeModeDark => 'Dark';
+
+  @override
   String get settingsBrightness => 'Brightness';
 
   @override
@@ -295,6 +307,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weatherCityHint => 'e.g. Shanghai';
+
+  @override
+  String get weatherUseMyLocation => 'Use my location';
+
+  @override
+  String get weatherLocationFailed => 'Couldn\'t detect your location';
 
   @override
   String get weatherUnitsCelsius => 'Celsius (°C)';

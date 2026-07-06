@@ -75,6 +75,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsThemeColor => '主题色';
 
   @override
+  String get settingsThemeMode => '外观';
+
+  @override
+  String get settingsThemeModeSystem => '跟随系统';
+
+  @override
+  String get settingsThemeModeLight => '浅色';
+
+  @override
+  String get settingsThemeModeDark => '深色';
+
+  @override
   String get settingsBrightness => '亮度';
 
   @override
@@ -292,6 +304,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get weatherCityHint => '例如：上海';
+
+  @override
+  String get weatherUseMyLocation => '使用我的位置';
+
+  @override
+  String get weatherLocationFailed => '无法获取你的位置';
 
   @override
   String get weatherUnitsCelsius => '摄氏度 (°C)';

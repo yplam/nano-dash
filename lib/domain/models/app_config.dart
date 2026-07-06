@@ -1,4 +1,4 @@
-import 'dart:ui' show Color;
+import 'package:flutter/material.dart' show Color, ThemeMode;
 
 import 'json_model.dart';
 
@@ -8,6 +8,7 @@ class AppConfig implements JsonModel {
     this.backgroundPath = '',
     this.localeTag = systemLocaleTag,
     this.themeSeed = defaultThemeSeed,
+    this.themeModeTag = defaultThemeModeTag,
     this.lcdBrightness = defaultLcdBrightness,
     this.alertEffect = defaultAlertEffect,
   });
@@ -16,6 +17,9 @@ class AppConfig implements JsonModel {
   static const String systemLocaleTag = 'system';
 
   static const int defaultThemeSeed = 0xFF3F51B5;
+
+  /// [themeModeTag] default: follow the OS light/dark setting.
+  static const String defaultThemeModeTag = 'system';
 
   /// LCD backlight range, matching the device's `SetParam.brightness`
   /// (0 = off … 255 = full). A ~10% floor keeps the panel from ever going
@@ -31,6 +35,7 @@ class AppConfig implements JsonModel {
   static const String _kBackground = 'background';
   static const String _kLocale = 'locale';
   static const String _kThemeSeed = 'themeSeed';
+  static const String _kThemeMode = 'themeMode';
   static const String _kLcdBrightness = 'lcdBrightness';
   static const String _kAlertEffect = 'alertEffect';
 
@@ -43,6 +48,9 @@ class AppConfig implements JsonModel {
   /// ARGB value of the theme seed colour.
   final int themeSeed;
 
+  /// Light/dark preference as a [ThemeMode.name] (`system` / `light` / `dark`).
+  final String themeModeTag;
+
   /// LCD backlight level sent to the panel, clamped to
   /// [[minLcdBrightness], [maxLcdBrightness]].
   final int lcdBrightness;
@@ -53,6 +61,14 @@ class AppConfig implements JsonModel {
 
   Color get themeColor => Color(themeSeed);
 
+  /// The light/dark preference, resolved from [themeModeTag]. Falls back to
+  /// [ThemeMode.system] for any unrecognised tag.
+  ThemeMode get themeMode => switch (themeModeTag) {
+    'light' => ThemeMode.light,
+    'dark' => ThemeMode.dark,
+    _ => ThemeMode.system,
+  };
+
   /// Whether the app should follow the OS language.
   bool get followsSystemLocale => localeTag == systemLocaleTag;
 
@@ -60,6 +76,7 @@ class AppConfig implements JsonModel {
     backgroundPath: json[_kBackground] as String? ?? '',
     localeTag: json[_kLocale] as String? ?? systemLocaleTag,
     themeSeed: json[_kThemeSeed] as int? ?? defaultThemeSeed,
+    themeModeTag: json[_kThemeMode] as String? ?? defaultThemeModeTag,
     lcdBrightness: _clampBrightness(
       json[_kLcdBrightness] as int? ?? defaultLcdBrightness,
     ),
@@ -71,6 +88,7 @@ class AppConfig implements JsonModel {
     _kBackground: backgroundPath,
     _kLocale: localeTag,
     _kThemeSeed: themeSeed,
+    _kThemeMode: themeModeTag,
     _kLcdBrightness: lcdBrightness,
     _kAlertEffect: alertEffect,
   };
@@ -79,12 +97,14 @@ class AppConfig implements JsonModel {
     String? backgroundPath,
     String? localeTag,
     int? themeSeed,
+    String? themeModeTag,
     int? lcdBrightness,
     int? alertEffect,
   }) => AppConfig(
     backgroundPath: backgroundPath ?? this.backgroundPath,
     localeTag: localeTag ?? this.localeTag,
     themeSeed: themeSeed ?? this.themeSeed,
+    themeModeTag: themeModeTag ?? this.themeModeTag,
     lcdBrightness: lcdBrightness == null
         ? this.lcdBrightness
         : _clampBrightness(lcdBrightness),
@@ -100,6 +120,7 @@ class AppConfig implements JsonModel {
       other.backgroundPath == backgroundPath &&
       other.localeTag == localeTag &&
       other.themeSeed == themeSeed &&
+      other.themeModeTag == themeModeTag &&
       other.lcdBrightness == lcdBrightness &&
       other.alertEffect == alertEffect;
 
@@ -108,6 +129,7 @@ class AppConfig implements JsonModel {
     backgroundPath,
     localeTag,
     themeSeed,
+    themeModeTag,
     lcdBrightness,
     alertEffect,
   );

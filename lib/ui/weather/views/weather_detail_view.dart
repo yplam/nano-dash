@@ -142,7 +142,11 @@ class _CurrentCard extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
     final m = PanelTheme.metricsOf(context, side);
-    final visual = weatherVisual(data.condition, isDay: data.isDay);
+    final visual = weatherVisual(
+      data.condition,
+      isDay: data.isDay,
+      brightness: colors.brightness,
+    );
 
     final pills = <Widget>[
       if (data.apparentTemperatureC != null)
@@ -288,7 +292,11 @@ class _HourlyCard extends StatelessWidget {
           separatorBuilder: (_, _) => SizedBox(width: side * 0.03),
           itemBuilder: (context, i) {
             final hour = hours[i];
-            final visual = weatherVisual(hour.condition, isDay: hour.isDay);
+            final visual = weatherVisual(
+              hour.condition,
+              isDay: hour.isDay,
+              brightness: colors.brightness,
+            );
             final label = i == 0 ? nowLabel : hourFmt.format(hour.time);
             return SizedBox(
               width: side * 0.15,
@@ -395,7 +403,7 @@ class _DailyCard extends StatelessWidget {
     required double span,
   }) {
     final colors = Theme.of(context).colorScheme;
-    final visual = weatherVisual(day.condition);
+    final visual = weatherVisual(day.condition, brightness: colors.brightness);
     final tempStyle = panelFont(m.fontSm, m.weightRegular, colors.onSurface);
 
     return Row(

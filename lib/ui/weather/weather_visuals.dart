@@ -11,27 +11,68 @@ class WeatherVisual {
   final Color color;
 }
 
-/// Map a [WeatherCondition] to an icon and tint. [isDay] only changes the clear
-/// case (sun vs. moon); forecast hours that span both can pass any value.
-WeatherVisual weatherVisual(WeatherCondition condition, {bool isDay = true}) {
+/// Map a [WeatherCondition] to an icon and tint. The hue is semantic (it *is*
+/// the condition cue), but the exact shade adapts to [brightness]: richer tones
+/// on a light surface, more luminous ones on a dark surface.
+///
+/// [isDay] only changes the clear case (sun vs. moon); forecast hours that span
+/// both can pass any value.
+WeatherVisual weatherVisual(
+  WeatherCondition condition, {
+  bool isDay = true,
+  Brightness brightness = Brightness.light,
+}) {
+  final dark = brightness == Brightness.dark;
+
+  // For each condition, the first color reads on a light surface, the second on
+  // a dark one.
+  Color pick(Color onLight, Color onDark) => dark ? onDark : onLight;
+
   switch (condition) {
     case WeatherCondition.clear:
       return isDay
-          ? const WeatherVisual(Icons.wb_sunny, Colors.amber)
-          : const WeatherVisual(Icons.nightlight_round, Colors.indigoAccent);
+          ? WeatherVisual(
+              Icons.wb_sunny,
+              pick(Colors.amber.shade700, Colors.amber.shade300),
+            )
+          : WeatherVisual(
+              Icons.nightlight_round,
+              pick(Colors.indigo.shade400, Colors.indigo.shade200),
+            );
     case WeatherCondition.partlyCloudy:
-      return const WeatherVisual(Icons.wb_cloudy, Colors.blueGrey);
+      return WeatherVisual(
+        Icons.wb_cloudy,
+        pick(Colors.blueGrey.shade500, Colors.blueGrey.shade200),
+      );
     case WeatherCondition.cloudy:
-      return const WeatherVisual(Icons.cloud, Colors.blueGrey);
+      return WeatherVisual(
+        Icons.cloud,
+        pick(Colors.blueGrey.shade500, Colors.blueGrey.shade200),
+      );
     case WeatherCondition.fog:
-      return const WeatherVisual(Icons.foggy, Colors.blueGrey);
+      return WeatherVisual(
+        Icons.foggy,
+        pick(Colors.blueGrey.shade400, Colors.blueGrey.shade200),
+      );
     case WeatherCondition.drizzle:
-      return const WeatherVisual(Icons.grain, Colors.lightBlue);
+      return WeatherVisual(
+        Icons.grain,
+        pick(Colors.lightBlue.shade600, Colors.lightBlue.shade200),
+      );
     case WeatherCondition.rain:
-      return const WeatherVisual(Icons.water_drop, Colors.lightBlue);
+      return WeatherVisual(
+        Icons.water_drop,
+        pick(Colors.lightBlue.shade700, Colors.lightBlue.shade200),
+      );
     case WeatherCondition.snow:
-      return const WeatherVisual(Icons.ac_unit, Colors.lightBlueAccent);
+      return WeatherVisual(
+        Icons.ac_unit,
+        pick(Colors.lightBlue.shade400, Colors.lightBlue.shade100),
+      );
     case WeatherCondition.thunderstorm:
-      return const WeatherVisual(Icons.thunderstorm, Colors.deepPurpleAccent);
+      return WeatherVisual(
+        Icons.thunderstorm,
+        pick(Colors.deepPurple.shade400, Colors.deepPurpleAccent.shade100),
+      );
   }
 }
