@@ -1019,11 +1019,10 @@ class LinkEvent extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearDetail() => $_clearField(2);
 
-  /// Genuine-hardware result, meaningful only on CONNECTED: true when the device
-  /// presented a valid vendor-CA-signed certificate and answered the attestation
-  /// challenge. False for self-built / forked / unprovisioned boards, which the
-  /// engine now drives as unverified rather than refusing. The UI can badge an
-  /// unverified device; nothing about driving the panel changes.
+  /// Genuine-hardware result, meaningful only on CONNECTED. Attestation is
+  /// mandatory, so this is always true on CONNECTED: the device presented a
+  /// valid vendor-CA-signed certificate and answered the attestation challenge.
+  /// (Non-genuine devices never reach CONNECTED -- they surface as UNAUTHORIZED.)
   @$pb.TagNumber(3)
   $core.bool get verified => $_getBF(2);
   @$pb.TagNumber(3)
@@ -1033,8 +1032,8 @@ class LinkEvent extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearVerified() => $_clearField(3);
 
-  /// The attested device id (from the certificate) when `verified`; empty
-  /// otherwise. Meaningful only on CONNECTED.
+  /// The attested device id (from the certificate). Meaningful only on
+  /// CONNECTED; empty otherwise.
   @$pb.TagNumber(4)
   $core.String get deviceId => $_getSZ(3);
   @$pb.TagNumber(4)

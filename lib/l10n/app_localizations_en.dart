@@ -45,6 +45,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleCalendarTitle => 'Calendar';
 
   @override
+  String get moduleMarketsTitle => 'Markets';
+
+  @override
   String get moduleNowPlayingTitle => 'Now Playing';
 
   @override
@@ -389,6 +392,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weatherDaily => '7-day forecast';
+
+  @override
+  String get marketsError => 'Market data unavailable';
+
+  @override
+  String get marketsEmpty => 'No symbols in your watchlist';
+
+  @override
+  String get marketsFetchFailed => 'Couldn\'t refresh market data';
+
+  @override
+  String get marketsWatchlist => 'Watchlist';
+
+  @override
+  String get marketsWatchlistHint => 'AAPL\n^GSPC\nBTC-USD';
+
+  @override
+  String get marketsWatchlistHelp =>
+      'One ticker per line, in Yahoo Finance form: ^ for indices (^GSPC), -USD for crypto (BTC-USD), and =X for FX (EURUSD=X).';
+
+  @override
+  String get marketsProxyYahoo => 'Yahoo Finance proxy (optional)';
+
+  @override
+  String get marketsProxyHint => 'host:port or socks5://host:port';
 
   @override
   String get calendarEmpty => 'No upcoming events';

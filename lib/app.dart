@@ -8,12 +8,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants.dart';
 import 'data/repositories/calendar_repository.dart';
+import 'data/repositories/markets_repository.dart';
 import 'data/repositories/module_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'data/repositories/weather_repository.dart';
 import 'data/services/calendar/calendar_service.dart';
 import 'data/services/location_service.dart';
 import 'data/services/locator.dart';
+import 'data/services/markets/markets_service.dart';
 import 'data/services/pico_view_service.dart';
 import 'data/services/tray_service.dart';
 import 'data/services/weather_service.dart';
@@ -23,9 +25,11 @@ import 'l10n/app_localizations.dart';
 import 'ui/calendar/calendar.dart';
 import 'ui/dashboard/dashboard.dart';
 import 'ui/live2d/cubit/live2d_cubit.dart';
+import 'ui/markets/markets.dart';
 import 'ui/modules/calendar_module.dart';
 import 'ui/modules/clock_module.dart';
 import 'ui/modules/live2d_module.dart';
+import 'ui/modules/markets_module.dart';
 import 'ui/modules/now_playing_module.dart';
 import 'ui/modules/settings_module.dart';
 import 'ui/modules/stopwatch_module.dart';
@@ -38,6 +42,7 @@ import 'ui/stopwatch/cubit/stopwatch_cubit.dart';
 import 'ui/system_monitor/cubit/system_monitor_cubit.dart';
 import 'ui/timer/cubit/timer_cubit.dart';
 import 'ui/weather/weather.dart';
+import 'ui/widgets/background_view.dart';
 import 'ui/widgets/panel_text.dart';
 import 'ui/widgets/panel_theme.dart';
 
@@ -64,6 +69,11 @@ Future<void> bootstrapApp({AppFlavor flavor = AppFlavor.desktop}) async {
     await tray.init(lookupAppLocalizations(kAppLocale));
   }
   final prefs = await SharedPreferences.getInstance();
+  // Warm the background before the first frame, so the dashboard paints whole
+  // instead of revealing the backdrop a few frames after the window is up.
+  await BackgroundView.precache(
+    SettingsRepository(prefs).load(appConfigKey).backgroundPath,
+  );
   final dio = Dio(
     BaseOptions(
       connectTimeout: const Duration(seconds: 15),
@@ -98,9 +108,10 @@ class NanoDashApp extends StatelessWidget {
             const SettingsModule(),
             const ClockModule(),
             const WeatherModule(),
-            if (!kIsWeb) const CalendarModule(),
             const TimerModule(),
             const StopwatchModule(),
+            if (!kIsWeb) const CalendarModule(),
+            if (!kIsWeb) const MarketsModule(),
             if (!kIsWeb) const Live2DModule(),
             if (!kIsWeb) const SystemMonitorModule(),
             if (!kIsWeb) const NowPlayingModule(),
@@ -131,6 +142,13 @@ class NanoDashApp extends StatelessWidget {
               CalendarService(dio),
             ),
           ),
+        if (!kIsWeb)
+          RepositoryProvider<MarketsRepository>(
+            create: (context) => MarketsRepository(
+              context.read<SettingsRepository>(),
+              MarketsService(dio),
+            ),
+          ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -155,6 +173,12 @@ class NanoDashApp extends StatelessWidget {
                   CalendarCubit(context.read<CalendarRepository>()),
               lazy: false,
             ),
+          if (!kIsWeb)
+            BlocProvider<MarketsCubit>(
+              create: (context) =>
+                  MarketsCubit(context.read<MarketsRepository>()),
+              lazy: false,
+            ),
           BlocProvider<TimerCubit>(
             create: (context) => TimerCubit(
               context.read<SettingsRepository>(),
@@ -171,7 +195,12 @@ class NanoDashApp extends StatelessWidget {
               create: (_) => SystemMonitorCubit(),
               lazy: false,
             ),
-          if (!kIsWeb) BlocProvider<Live2dCubit>(create: (_) => Live2dCubit()),
+          if (!kIsWeb)
+            BlocProvider<Live2dCubit>(
+              create: (context) =>
+                  Live2dCubit(context.read<SettingsRepository>())..preload(),
+              lazy: false,
+            ),
           if (!kIsWeb)
             BlocProvider<NowPlayingCubit>(
               create: (context) =>

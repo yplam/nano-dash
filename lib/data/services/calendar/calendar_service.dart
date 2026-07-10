@@ -4,8 +4,7 @@ import 'package:dio/dio.dart';
 
 import '../../../domain/models/calendar.dart';
 import '../../../extensions/loggable.dart';
-import 'calendar_proxy_stub.dart'
-    if (dart.library.io) 'calendar_proxy_io.dart';
+import '../http_proxy_stub.dart' if (dart.library.io) '../http_proxy_io.dart';
 import 'ics_parser.dart';
 
 /// Thrown when a calendar feed can't be fetched or parsed.

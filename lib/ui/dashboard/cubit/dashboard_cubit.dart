@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nano_dash/ui/modules/timer_module.dart';
 
 import '../../../data/repositories/module_repository.dart';
 import '../../../data/repositories/settings_repository.dart';
@@ -43,7 +44,7 @@ class DashboardCubit extends Cubit<DashboardState> with Loggable {
     for (final module in _modules.modules) {
       if (seen.contains(module.id)) continue;
       final settingsOnly = module.hasSettings && !module.hasDisplay;
-      const defaultOn = {ClockModule.kId, WeatherModule.kId};
+      const defaultOn = {ClockModule.kId, WeatherModule.kId, TimerModule.kId};
       items.add(
         DashboardItemConfig(
           moduleId: module.id,

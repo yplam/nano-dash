@@ -7,6 +7,7 @@
 library;
 
 import 'dart:ffi' as ffi;
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
@@ -22,20 +23,28 @@ class Live2dController {
   /// Create a renderer with an offscreen RGBA framebuffer of [width]x[height].
   /// [shaderDir] optionally overrides where framework shaders are read from; the
   /// bundled library embeds them, so it can be omitted.
-  factory Live2dController({
+  ///
+  /// `nl_create` blocks synchronously while the native worker thread spins up
+  /// its offscreen GL context, so the call runs on a background isolate (the
+  /// pointer it returns is sent back as a plain address) to keep the caller's
+  /// event loop — and any on-screen animation — from stalling while it waits.
+  static Future<Live2dController> create({
     required int width,
     required int height,
     String? shaderDir,
-  }) {
-    if (shaderDir != null) {
-      final sd = shaderDir.toNativeUtf8();
-      try {
-        bindings.nl_set_shader_dir(sd);
-      } finally {
-        malloc.free(sd);
+  }) async {
+    final handleAddress = await Isolate.run(() {
+      if (shaderDir != null) {
+        final sd = shaderDir.toNativeUtf8();
+        try {
+          bindings.nl_set_shader_dir(sd);
+        } finally {
+          malloc.free(sd);
+        }
       }
-    }
-    final h = bindings.nl_create(width, height);
+      return bindings.nl_create(width, height).address;
+    });
+    final h = ffi.Pointer<ffi.Void>.fromAddress(handleAddress);
     if (h == ffi.nullptr) {
       throw Live2dException('nl_create($width, $height) failed');
     }
@@ -52,16 +61,31 @@ class Live2dController {
   int get frameBytes => width * height * 4;
 
   /// Load a model.
-  bool load(String dir, String model3Json) {
+  ///
+  /// `nl_load` blocks synchronously while the native worker decodes textures
+  /// and motions, so — like [create] — it runs on a background isolate to keep
+  /// the caller's event loop from stalling while it waits.
+  Future<bool> load(String dir, String model3Json) async {
     _checkAlive();
-    final d = dir.toNativeUtf8();
-    final j = model3Json.toNativeUtf8();
-    try {
-      return bindings.nl_load(_handle, d, j) == 0;
-    } finally {
-      malloc.free(d);
-      malloc.free(j);
-    }
+    final handleAddress = _handle.address;
+    final result = await Isolate.run(() {
+      final h = ffi.Pointer<ffi.Void>.fromAddress(handleAddress);
+      final d = dir.toNativeUtf8();
+      final j = model3Json.toNativeUtf8();
+      try {
+        return bindings.nl_load(h, d, j);
+      } finally {
+        malloc.free(d);
+        malloc.free(j);
+      }
+    });
+    return result == 0;
+  }
+
+  /// Pause ([active] false) or resume ([active] true) the native render loop.
+  void setActive(bool active) {
+    if (_disposed) return;
+    bindings.nl_set_active(_handle, active ? 1 : 0);
   }
 
   /// Look-at target, normalized to [-1, 1] (0,0 = center).
@@ -105,6 +129,98 @@ class Live2dController {
     }
   }
 
+  /// Mouth openness in `[0, 1]` (clamped natively), applied to the model's
+  /// LipSync parameters.
+  void setLipSyncValue(double value) {
+    if (_disposed) return;
+    bindings.nl_set_lip_sync_value(_handle, value);
+  }
+
+  /// Number of expressions the loaded model declares (0 if none, or if no model
+  /// is loaded). See [expressionName].
+  int get expressionCount {
+    if (_disposed) return 0;
+    return bindings.nl_expression_count(_handle);
+  }
+
+  /// The name of expression [index], or null when [index] is out of range.
+  String? expressionName(int index) {
+    if (_disposed) return null;
+    const cap = 128;
+    final buf = malloc<ffi.Uint8>(cap).cast<Utf8>();
+    try {
+      final len = bindings.nl_expression_name(_handle, index, buf, cap);
+      if (len <= 0) return null;
+      return buf.toDartString();
+    } finally {
+      malloc.free(buf);
+    }
+  }
+
+  /// Every expression name, in the order the model declares them.
+  List<String> get expressionNames => [
+    for (var i = 0; i < expressionCount; i++) expressionName(i) ?? '',
+  ];
+
+  /// Fade to the expression called [name] (one of [expressionNames]), or back to
+  /// no expression when [name] is null or empty. Unknown names are ignored.
+  void setExpression(String? name) {
+    if (_disposed) return;
+    final n = (name ?? '').toNativeUtf8();
+    try {
+      bindings.nl_set_expression(_handle, n);
+    } finally {
+      malloc.free(n);
+    }
+  }
+
+  /// Pin the Cubism parameter [id] (e.g. `'ParamMouthForm'`) to [value], blended
+  /// by [weight]. The override is re-applied after motions and effects on every
+  /// frame — so it always wins — until [clearParameter]. When [add] is true it
+  /// adds to what the motions and effects produced instead of replacing it.
+  void setParameter(
+    String id,
+    double value, {
+    double weight = 1.0,
+    bool add = false,
+  }) {
+    if (_disposed) return;
+    final p = id.toNativeUtf8();
+    try {
+      if (add) {
+        bindings.nl_add_parameter(_handle, p, value, weight);
+      } else {
+        bindings.nl_set_parameter(_handle, p, value, weight);
+      }
+    } finally {
+      malloc.free(p);
+    }
+  }
+
+  /// Drop the override on [id], or on every parameter when [id] is null.
+  void clearParameter([String? id]) {
+    if (_disposed) return;
+    final p = (id ?? '').toNativeUtf8();
+    try {
+      bindings.nl_clear_parameter(_handle, p);
+    } finally {
+      malloc.free(p);
+    }
+  }
+
+  /// The current value of parameter [id] as of the worker's last update (after
+  /// motions, effects and overrides). 0 when the model isn't loaded or has no
+  /// such parameter. Blocks briefly for the worker's reply.
+  double getParameter(String id) {
+    if (_disposed) return 0;
+    final p = id.toNativeUtf8();
+    try {
+      return bindings.nl_get_parameter(_handle, p);
+    } finally {
+      malloc.free(p);
+    }
+  }
+
   /// Acquire the newest worker-rendered frame as RGBA8888 pixels (top row first,
   /// [frameBytes] long), or null if no new frame has been produced since the
   /// last [acquireFrame].
@@ -123,6 +239,9 @@ class Live2dController {
     bindings.nl_release_frame(_handle);
   }
 
+  /// Callers must not dispose while a [create]/[load] call is still in flight
+  /// on its background isolate — that isolate holds the same native handle and
+  /// racing it with `nl_destroy` here is a use-after-free on the native side.
   void dispose() {
     if (_disposed) return;
     _disposed = true;

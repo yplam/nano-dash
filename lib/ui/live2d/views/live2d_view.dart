@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -13,10 +14,18 @@ import '../cubit/live2d_cubit.dart';
 /// [ui.Image], and paints it with [RawImage] so the enclosing `PicoView`'s
 /// `RepaintBoundary` mirrors it to the panel.
 class Live2dView extends StatefulWidget {
-  const Live2dView({super.key, required this.modelDir});
+  const Live2dView({
+    super.key,
+    required this.modelDir,
+    this.backgroundPath = '',
+  });
 
   /// Directory holding the model's `*.model3.json`; empty means "none chosen".
   final String modelDir;
+
+  /// Absolute path to a background image painted under the model; empty falls
+  /// back to the app-wide background showing through the transparent frame.
+  final String backgroundPath;
 
   @override
   State<Live2dView> createState() => _Live2dViewState();
@@ -28,6 +37,12 @@ class _Live2dViewState extends State<Live2dView>
   ui.Image? _image;
   bool _decoding = false;
 
+  /// Cached cubit so [dispose] can reach it without a `context` lookup: when the
+  /// app is backgrounded the whole subtree (including the provider above us)
+  /// unmounts in one pass, and by the time our `dispose` runs the provider
+  /// element is already gone, so `context.read` there throws.
+  Live2dCubit? _cubit;
+
   /// Pointer-down position, to tell a tap (→ motion) from a drag (→ look-at).
   Offset? _downAt;
 
@@ -36,9 +51,22 @@ class _Live2dViewState extends State<Live2dView>
     super.initState();
     // Kick the load after the first frame so the cubit is readable from context.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.read<Live2dCubit>().loadModel(widget.modelDir);
+      if (!mounted) return;
+      final cubit = context.read<Live2dCubit>();
+      // This page is on-screen again — resume the worker paused on the last
+      // dispose (the carousel disposes/recreates the page on every swipe).
+      cubit.resume();
+      cubit.loadModel(widget.modelDir);
     });
     _ticker = createTicker(_onTick)..start();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Grab the cubit while the widget is active; [dispose] uses this instead of
+    // a `context.read`, which is unsafe once the provider above us has unmounted.
+    _cubit = context.read<Live2dCubit>();
   }
 
   @override
@@ -81,6 +109,9 @@ class _Live2dViewState extends State<Live2dView>
 
   @override
   void dispose() {
+    // The page is leaving the tree (carousel swipe / navigation); nothing will
+    // consume frames, so park the app-scoped worker until this page returns.
+    _cubit?.pause();
     _ticker?.dispose();
     _image?.dispose();
     super.dispose();
@@ -101,10 +132,8 @@ class _Live2dViewState extends State<Live2dView>
       builder: (context, state) {
         return switch (state) {
           Live2dReady() => _buildModel(context),
-          Live2dLoading() => const _Centered(
-            child: CircularProgressIndicator(),
-          ),
-          Live2dError(:final kind) => _Centered(
+          Live2dLoading() => const Center(child: CircularProgressIndicator()),
+          Live2dError(:final kind) => Center(
             child: _Message(
               icon: Icons.error_outline,
               text: switch (kind) {
@@ -113,10 +142,10 @@ class _Live2dViewState extends State<Live2dView>
               },
             ),
           ),
-          Live2dUnavailable() => _Centered(
+          Live2dUnavailable() => Center(
             child: _Message(icon: Icons.block, text: l10n.live2dUnavailable),
           ),
-          Live2dIdle() => _Centered(
+          Live2dIdle() => Center(
             child: _Message(
               icon: Icons.face_retouching_natural,
               text: l10n.live2dPickHint,
@@ -150,15 +179,25 @@ class _Live2dViewState extends State<Live2dView>
               }
             }
           },
-          child: image == null
-              ? const ColoredBox(color: Colors.transparent)
-              : SizedBox.expand(
-                  child: RawImage(
-                    image: image,
-                    fit: BoxFit.cover,
-                    filterQuality: FilterQuality.medium,
-                  ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (widget.backgroundPath.isNotEmpty)
+                Image.file(
+                  File(widget.backgroundPath),
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                  errorBuilder: (context, error, stack) =>
+                      const ColoredBox(color: Colors.transparent),
                 ),
+              if (image != null)
+                RawImage(
+                  image: image,
+                  fit: BoxFit.cover,
+                  filterQuality: FilterQuality.medium,
+                ),
+            ],
+          ),
         );
       },
     );
@@ -170,15 +209,6 @@ class _Live2dViewState extends State<Live2dView>
     final (nx, ny) = _normalize(p, size);
     controller.setDrag(nx, ny);
   }
-}
-
-class _Centered extends StatelessWidget {
-  const _Centered({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => Center(child: child);
 }
 
 class _Message extends StatelessWidget {

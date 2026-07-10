@@ -45,6 +45,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get moduleCalendarTitle => '日历';
 
   @override
+  String get moduleMarketsTitle => '行情';
+
+  @override
   String get moduleNowPlayingTitle => '正在播放';
 
   @override
@@ -386,6 +389,31 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get weatherDaily => '7 天预报';
+
+  @override
+  String get marketsError => '行情数据不可用';
+
+  @override
+  String get marketsEmpty => '自选列表为空';
+
+  @override
+  String get marketsFetchFailed => '无法刷新行情数据';
+
+  @override
+  String get marketsWatchlist => '自选列表';
+
+  @override
+  String get marketsWatchlistHint => 'AAPL\n^GSPC\nBTC-USD';
+
+  @override
+  String get marketsWatchlistHelp =>
+      '每行一个代码，使用 Yahoo Finance 格式：指数用 ^（^GSPC），加密货币用 -USD（BTC-USD），外汇用 =X（EURUSD=X）。';
+
+  @override
+  String get marketsProxyYahoo => 'Yahoo Finance 代理（可选）';
+
+  @override
+  String get marketsProxyHint => 'host:port 或 socks5://host:port';
 
   @override
   String get calendarEmpty => '暂无日程';

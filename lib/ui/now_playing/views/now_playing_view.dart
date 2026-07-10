@@ -8,6 +8,7 @@ import '../../../data/services/pico_view_service.dart';
 import '../../../domain/models/haptic_effect.dart';
 import '../../../domain/models/now_playing.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../widgets/panel_empty.dart';
 import '../../widgets/panel_text.dart';
 import '../../widgets/panel_theme.dart';
 import '../cubit/now_playing_cubit.dart';
@@ -43,7 +44,11 @@ class NowPlayingView extends StatelessWidget {
     final m = PanelTheme.metricsOf(context, side, shape: PanelShape.square);
 
     if (np == null || (np.title == null && np.artist == null)) {
-      return _Idle(side: side, m: m);
+      return PanelEmpty(
+        side: side,
+        icon: Icons.music_note_outlined,
+        label: AppLocalizations.of(context).nowPlayingIdle,
+      );
     }
 
     final art = np.artBytes != null
@@ -71,53 +76,6 @@ class NowPlayingView extends StatelessWidget {
           child: _Content(side: side, m: m, np: np, art: art),
         ),
       ],
-    );
-  }
-}
-
-/// The idle state: a muted note icon and a "nothing playing" line, centered.
-class _Idle extends StatelessWidget {
-  const _Idle({required this.side, required this.m});
-
-  final double side;
-  final PanelMetrics m;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context);
-    final diameter = side * 0.48;
-    return Center(
-      // A small, semi-transparent round backdrop so the idle note reads as an
-      // intentional resting state rather than an empty panel.
-      child: Container(
-        width: diameter,
-        height: diameter,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: colors.surface.withValues(alpha: m.cardAlpha),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.music_note_outlined,
-              size: side * 0.16,
-              color: colors.onSurfaceVariant,
-            ),
-            SizedBox(height: m.gap),
-            Text(
-              l10n.nowPlayingIdle,
-              style: panelFont(
-                m.fontMd,
-                m.weightRegular,
-                colors.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

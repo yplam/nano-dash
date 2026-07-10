@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../../domain/models/calendar.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../widgets/panel_empty.dart';
 import '../../widgets/panel_text.dart';
 import '../../widgets/panel_theme.dart';
 import '../cubit/calendar_cubit.dart';
@@ -55,26 +56,18 @@ class _CalendarDetailViewState extends State<CalendarDetailView> {
 
   Widget _body(BuildContext context, double side, CalendarState state) {
     final l10n = AppLocalizations.of(context);
-    final colors = Theme.of(context).colorScheme;
     final m = PanelTheme.metricsOf(context, side, shape: PanelShape.landscape);
 
     final groups = _group(state.events, state.range);
     if (groups.isEmpty) {
-      final label = state.loading
-          ? null
-          : (state.error != null ? l10n.calendarError : l10n.calendarEmpty);
-      return Center(
-        child: label == null
-            ? const CircularProgressIndicator()
-            : Text(
-                label,
-                textAlign: TextAlign.center,
-                style: panelFont(
-                  m.fontMd,
-                  m.weightRegular,
-                  colors.onSurfaceVariant,
-                ),
-              ),
+      if (state.loading) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      final failed = state.error != null;
+      return PanelEmpty(
+        side: side,
+        icon: failed ? Icons.error_outline : Icons.event_busy_outlined,
+        label: failed ? l10n.calendarError : l10n.calendarEmpty,
       );
     }
 

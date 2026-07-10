@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +10,7 @@ import '../../../domain/models/app_config.dart';
 import '../../../domain/models/dashboard.dart';
 import '../../settings/cubit/app_config_cubit.dart';
 import '../../widgets/background_view.dart';
+import '../../widgets/panel_empty.dart';
 import '../cubit/dashboard_cubit.dart';
 
 /// The subtree mirrored onto the LCD: the enabled modules shown one full-screen
@@ -81,7 +84,7 @@ class DashboardLcdView extends StatelessWidget {
       builder: (context, state) {
         final pages = modules.pages(state.items);
         if (pages.isEmpty) {
-          return const _EmptyLcd();
+          return _withBackground(const _EmptyLcd());
         }
         final count = pages.length;
         final cur = state.currentPage.clamp(0, count - 1);
@@ -134,25 +137,24 @@ class DashboardLcdView extends StatelessWidget {
           );
         }
 
-        // Shared room background, painted once below the page switcher. Modules
-        // render transparently on top (the LCD subtree composites over this), so
-        // a page switch only transitions the module while the background stays static.
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            // The user-chosen global background, in its own builder so a
-            // background change doesn't rebuild the page switcher above.
-            BlocBuilder<AppConfigCubit, AppConfig>(
-              buildWhen: (prev, curr) =>
-                  prev.backgroundPath != curr.backgroundPath,
-              builder: (context, config) => BackgroundView(
-                path: config.backgroundPath,
-              ),
-            ),
-            view,
-          ],
-        );
+        return _withBackground(view);
       },
+    );
+  }
+
+  Widget _withBackground(Widget view) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // The user-chosen global background, in its own builder so a
+        // background change doesn't rebuild the page switcher above.
+        BlocBuilder<AppConfigCubit, AppConfig>(
+          buildWhen: (prev, curr) => prev.backgroundPath != curr.backgroundPath,
+          builder: (context, config) =>
+              BackgroundView(path: config.backgroundPath),
+        ),
+        view,
+      ],
     );
   }
 
@@ -192,34 +194,15 @@ class _EmptyLcd extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return ColoredBox(
-      color: Colors.black,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.dashboard_customize,
-              color: Colors.white54,
-              size: 40,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              l10n.dashboardEmpty,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-            ),
-            const SizedBox(height: 4),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                l10n.dashboardEmptyHint,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white54, fontSize: 12),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final side = math.min(constraints.maxWidth, constraints.maxHeight);
+        return PanelEmpty(
+          side: side,
+          icon: Icons.dashboard_customize_outlined,
+          label: l10n.dashboardEmpty,
+        );
+      },
     );
   }
 }

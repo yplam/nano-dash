@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../../domain/models/weather.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../widgets/panel_empty.dart';
 import '../../widgets/panel_text.dart';
 import '../../widgets/panel_theme.dart';
 import '../cubit/weather_cubit.dart';
@@ -57,23 +58,18 @@ class _WeatherDetailViewState extends State<WeatherDetailView> {
 
   Widget _body(BuildContext context, double side, WeatherState state) {
     final l10n = AppLocalizations.of(context);
-    final colors = Theme.of(context).colorScheme;
     final m = PanelTheme.metricsOf(context, side, shape: PanelShape.square);
 
     final data = state.data;
     if (data == null) {
       // No city, still loading the first result, or the last fetch failed.
-      return Center(
-        child: state.loading
-            ? const CircularProgressIndicator()
-            : Text(
-                l10n.weatherError,
-                style: panelFont(
-                  m.fontMd,
-                  m.weightRegular,
-                  colors.onSurfaceVariant,
-                ),
-              ),
+      if (state.loading) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      return PanelEmpty(
+        side: side,
+        icon: Icons.cloud_off_outlined,
+        label: l10n.weatherError,
       );
     }
 

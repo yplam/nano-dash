@@ -100,9 +100,9 @@ class LinkState extends $pb.ProtobufEnum {
   static const LinkState LINK_STATE_UNSPECIFIED =
       LinkState._(0, _omitEnumNames ? '' : 'LINK_STATE_UNSPECIFIED');
 
-  /// Attached and configured. `verified` / `device_id` say whether this is a
-  /// genuine vendor-provisioned unit; a self-built / forked / unprovisioned
-  /// board still reaches CONNECTED, just with verified = false.
+  /// Attached and configured. Attestation is mandatory, so only a genuine
+  /// vendor-provisioned unit reaches CONNECTED; `device_id` names it and
+  /// `verified` is always true here.
   static const LinkState LINK_STATE_CONNECTED =
       LinkState._(1, _omitEnumNames ? '' : 'LINK_STATE_CONNECTED');
 
@@ -110,12 +110,10 @@ class LinkState extends $pb.ProtobufEnum {
   static const LinkState LINK_STATE_DISCONNECTED =
       LinkState._(2, _omitEnumNames ? '' : 'LINK_STATE_DISCONNECTED');
 
-  /// Attached, claimed a vendor identity, but failed certificate/challenge
-  /// verification (a tamper/clone signal) -- retried, so swapping in a genuine
-  /// unit recovers automatically. NOTE: unprovisioned / self-built boards are
-  /// NOT unauthorized; they connect as CONNECTED with verified = false. This
-  /// state is only reached when PV_REQUIRE_GENUINE is set, or when a device
-  /// that presents a cert fails to verify.
+  /// Attached but not a genuine vendor unit -- no AUTH capability, an
+  /// unprovisioned / self-built / forked board, or a presented certificate that
+  /// fails cert/challenge verification (tamper/clone). Refused, and retried, so
+  /// swapping in a genuine unit recovers automatically.
   static const LinkState LINK_STATE_UNAUTHORIZED =
       LinkState._(3, _omitEnumNames ? '' : 'LINK_STATE_UNAUTHORIZED');
 

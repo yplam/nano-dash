@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../../widgets/panel_empty.dart';
 import '../../widgets/panel_text.dart';
 import '../../widgets/panel_theme.dart';
 import '../cubit/timer_cubit.dart';
@@ -43,20 +44,15 @@ class TimerListView extends StatelessWidget {
         final side = math.min(constraints.maxWidth, constraints.maxHeight);
         final m = PanelTheme.metricsOf(context, side, shape: PanelShape.square);
         return Padding(
-          padding: m.pageInset.copyWith(bottom: m.pageInset.bottom - 40),
+          padding: m.pageInset.copyWith(bottom: m.pageInset.bottom - 42),
           child: Column(
             children: [
               Expanded(
                 child: timers.isEmpty
-                    ? Center(
-                        child: Text(
-                          l10n.timerEmpty,
-                          style: panelFont(
-                            m.fontMd,
-                            m.weightRegular,
-                            colors.onSurfaceVariant,
-                          ),
-                        ),
+                    ? PanelEmpty(
+                        side: side,
+                        icon: Icons.timer_outlined,
+                        label: l10n.timerEmpty,
                       )
                     : LayoutBuilder(
                         builder: (context, c) {
@@ -99,7 +95,7 @@ class TimerListView extends StatelessWidget {
                       ),
               ),
               if (state.hasStats) ...[
-                SizedBox(height: 6),
+                SizedBox(height: 8),
                 _StatsButton(
                   colors: colors,
                   metrics: m,
@@ -141,12 +137,12 @@ class _StatsButton extends StatelessWidget {
         borderRadius: radius,
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.bar_chart, size: 18, color: colors.onSurfaceVariant),
-              const SizedBox(width: 6),
+              const SizedBox(width: 10),
               Text(
                 label,
                 style: panelFont(

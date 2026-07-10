@@ -15,6 +15,7 @@ class Live2DModule extends Module {
   static const String kId = 'live2d';
 
   static const String _kModelDir = 'modelDir';
+  static const String _kBackground = 'background';
 
   @override
   String get id => kId;
@@ -32,15 +33,24 @@ class Live2DModule extends Module {
   bool get hasSettings => true;
 
   @override
-  ModuleSettings get defaultSettings => const {_kModelDir: ''};
+  ModuleSettings get defaultSettings => const {
+    _kModelDir: '',
+    _kBackground: '',
+  };
 
-  static String _dirOf(ModuleSettings settings) =>
+  static String modelDirOf(ModuleSettings settings) =>
       settings[_kModelDir] as String? ?? '';
+
+  static String _backgroundOf(ModuleSettings settings) =>
+      settings[_kBackground] as String? ?? '';
 
   @override
   Widget build(BuildContext context, ModuleSettings settings) {
     if (kIsWeb) return const SizedBox.shrink();
-    return Live2dView(modelDir: _dirOf(settings));
+    return Live2dView(
+      modelDir: modelDirOf(settings),
+      backgroundPath: _backgroundOf(settings),
+    );
   }
 
   @override
@@ -50,8 +60,10 @@ class Live2DModule extends Module {
     ValueChanged<ModuleSettings> onChanged,
   ) {
     return Live2dSettingsView(
-      modelDir: _dirOf(settings),
-      onChanged: (dir) => onChanged({_kModelDir: dir}),
+      modelDir: modelDirOf(settings),
+      backgroundPath: _backgroundOf(settings),
+      onModelDirChanged: (dir) => onChanged({...settings, _kModelDir: dir}),
+      onBackgroundChanged: (bg) => onChanged({...settings, _kBackground: bg}),
     );
   }
 }

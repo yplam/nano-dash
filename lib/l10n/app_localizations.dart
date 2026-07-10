@@ -170,6 +170,12 @@ abstract class AppLocalizations {
   /// **'Calendar'**
   String get moduleCalendarTitle;
 
+  /// No description provided for @moduleMarketsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Markets'**
+  String get moduleMarketsTitle;
+
   /// No description provided for @moduleNowPlayingTitle.
   ///
   /// In en, this message translates to:
@@ -835,6 +841,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'7-day forecast'**
   String get weatherDaily;
+
+  /// No description provided for @marketsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Market data unavailable'**
+  String get marketsError;
+
+  /// No description provided for @marketsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No symbols in your watchlist'**
+  String get marketsEmpty;
+
+  /// No description provided for @marketsFetchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t refresh market data'**
+  String get marketsFetchFailed;
+
+  /// No description provided for @marketsWatchlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Watchlist'**
+  String get marketsWatchlist;
+
+  /// No description provided for @marketsWatchlistHint.
+  ///
+  /// In en, this message translates to:
+  /// **'AAPL\n^GSPC\nBTC-USD'**
+  String get marketsWatchlistHint;
+
+  /// No description provided for @marketsWatchlistHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'One ticker per line, in Yahoo Finance form: ^ for indices (^GSPC), -USD for crypto (BTC-USD), and =X for FX (EURUSD=X).'**
+  String get marketsWatchlistHelp;
+
+  /// No description provided for @marketsProxyYahoo.
+  ///
+  /// In en, this message translates to:
+  /// **'Yahoo Finance proxy (optional)'**
+  String get marketsProxyYahoo;
+
+  /// No description provided for @marketsProxyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'host:port or socks5://host:port'**
+  String get marketsProxyHint;
 
   /// No description provided for @calendarEmpty.
   ///
