@@ -1,0 +1,6 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    # Generated FFI bindings; not our style to lint.
+    - lib/src/voice_engine_bindings_generated.dart

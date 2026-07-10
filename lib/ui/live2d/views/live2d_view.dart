@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../../widgets/panel_empty.dart';
 import '../cubit/live2d_cubit.dart';
 
 /// Shows the app-wide Live2D renderer ([Live2dCubit]) as an LCD page.
@@ -128,78 +130,81 @@ class _Live2dViewState extends State<Live2dView>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return BlocBuilder<Live2dCubit, Live2dState>(
-      builder: (context, state) {
-        return switch (state) {
-          Live2dReady() => _buildModel(context),
-          Live2dLoading() => const Center(child: CircularProgressIndicator()),
-          Live2dError(:final kind) => Center(
-            child: _Message(
-              icon: Icons.error_outline,
-              text: switch (kind) {
-                Live2dErrorKind.noModelJson => l10n.live2dNoModelJson,
-                Live2dErrorKind.loadFailed => l10n.live2dLoadFailed,
-              },
-            ),
-          ),
-          Live2dUnavailable() => Center(
-            child: _Message(icon: Icons.block, text: l10n.live2dUnavailable),
-          ),
-          Live2dIdle() => Center(
-            child: _Message(
-              icon: Icons.face_retouching_natural,
-              text: l10n.live2dPickHint,
-            ),
-          ),
-        };
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = constraints.biggest;
+        final side = math.min(size.width, size.height);
+        return BlocBuilder<Live2dCubit, Live2dState>(
+          builder: (context, state) {
+            return switch (state) {
+              Live2dReady() => _buildModel(context, size),
+              Live2dLoading() => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              Live2dError(:final kind) => PanelEmpty(
+                side: side,
+                icon: Icons.error_outline,
+                label: switch (kind) {
+                  Live2dErrorKind.noModelJson => l10n.live2dNoModelJson,
+                  Live2dErrorKind.loadFailed => l10n.live2dLoadFailed,
+                },
+              ),
+              Live2dUnavailable() => PanelEmpty(
+                side: side,
+                icon: Icons.block,
+                label: l10n.live2dUnavailable,
+              ),
+              Live2dIdle() => PanelEmpty(
+                side: side,
+                icon: Icons.face_retouching_natural,
+                label: l10n.live2dPickHint,
+              ),
+            };
+          },
+        );
       },
     );
   }
 
-  Widget _buildModel(BuildContext context) {
+  Widget _buildModel(BuildContext context, Size size) {
     final image = _image;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final size = constraints.biggest;
-        return Listener(
-          onPointerDown: (e) {
-            _downAt = e.localPosition;
-            _sendDrag(context, e.localPosition, size);
-          },
-          onPointerMove: (e) => _sendDrag(context, e.localPosition, size),
-          onPointerUp: (e) {
-            final down = _downAt;
-            _downAt = null;
-            // A small total travel reads as a tap → trigger a motion.
-            if (down != null && (e.localPosition - down).distance < 12) {
-              final controller = context.read<Live2dCubit>().controller;
-              if (controller != null) {
-                final (nx, ny) = _normalize(e.localPosition, size);
-                controller.tap(nx, ny);
-              }
-            }
-          },
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              if (widget.backgroundPath.isNotEmpty)
-                Image.file(
-                  File(widget.backgroundPath),
-                  fit: BoxFit.cover,
-                  gaplessPlayback: true,
-                  errorBuilder: (context, error, stack) =>
-                      const ColoredBox(color: Colors.transparent),
-                ),
-              if (image != null)
-                RawImage(
-                  image: image,
-                  fit: BoxFit.cover,
-                  filterQuality: FilterQuality.medium,
-                ),
-            ],
-          ),
-        );
+    return Listener(
+      onPointerDown: (e) {
+        _downAt = e.localPosition;
+        _sendDrag(context, e.localPosition, size);
       },
+      onPointerMove: (e) => _sendDrag(context, e.localPosition, size),
+      onPointerUp: (e) {
+        final down = _downAt;
+        _downAt = null;
+        // A small total travel reads as a tap → trigger a motion.
+        if (down != null && (e.localPosition - down).distance < 12) {
+          final controller = context.read<Live2dCubit>().controller;
+          if (controller != null) {
+            final (nx, ny) = _normalize(e.localPosition, size);
+            controller.tap(nx, ny);
+          }
+        }
+      },
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (widget.backgroundPath.isNotEmpty)
+            Image.file(
+              File(widget.backgroundPath),
+              fit: BoxFit.cover,
+              gaplessPlayback: true,
+              errorBuilder: (context, error, stack) =>
+                  const ColoredBox(color: Colors.transparent),
+            ),
+          if (image != null)
+            RawImage(
+              image: image,
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.medium,
+            ),
+        ],
+      ),
     );
   }
 
@@ -208,31 +213,5 @@ class _Live2dViewState extends State<Live2dView>
     if (controller == null) return;
     final (nx, ny) = _normalize(p, size);
     controller.setDrag(nx, ny);
-  }
-}
-
-class _Message extends StatelessWidget {
-  const _Message({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: Colors.white54, size: 40),
-        const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white70, fontSize: 14),
-          ),
-        ),
-      ],
-    );
   }
 }

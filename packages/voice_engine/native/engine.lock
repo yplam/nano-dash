@@ -1,0 +1,17 @@
+# Pins the prebuilt `voice-engine` release that hook/build.dart downloads.
+#
+# `repo` is the PUBLIC repo whose release page hosts the assets; the engine
+# source itself lives in a separate private repo, whose CI uploads them here.
+repo = yplam/nano-dash
+tag = voice-engine-v0.1.0
+
+# Built from voice-engine 0.1.0 (commit 68cdd71); see the release's VERSION.
+#
+# SHA-256 of each release asset, in `sha256sum` output format so the published
+# SHA256SUMS can be pasted in verbatim. The hook fails closed: an asset with no
+# digest here, or one whose bytes do not match, is never linked.
+47b98d4169d8c2b9b88723d8a15217730686b50464c8aac585cf9ef79a2f2df8  libvoice_engine-x86_64-unknown-linux-gnu.so
+f22aa2d3dcc5b078aad5821520e60265a52cb2f51128b55990cd615f907f4559  libvoice_engine-aarch64-unknown-linux-gnu.so
+08eb66e822fd22271fc8c9edbbfc04aee62d8cd643bf96a052c06f9fb052c3f7  libvoice_engine-aarch64-apple-darwin.dylib
+9e3d42ed1d67de4e93aaacd46403febac55625eaf64ad64e2b864243b9157bf0  libvoice_engine-x86_64-apple-darwin.dylib
+75e4a26203c8151beaa6b057d04dbc734dcceb9a3769564fcb91a6f8e73653d1  voice_engine-x86_64-pc-windows-msvc.dll

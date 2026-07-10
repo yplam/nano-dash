@@ -1,0 +1,26 @@
+name: voice_engine
+description: "Full-duplex local voice engine with a Dart FFI surface."
+version: 0.1.0
+repository: https://github.com/yplam/nano-dash
+publish_to: 'none'
+
+environment:
+  sdk: ^3.12.2
+  flutter: '>=3.44.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  ffi: ^2.1.4
+
+  code_assets: ^1.2.1
+  hooks: ^2.0.2
+  crypto: ^3.0.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # Regenerate the FFI bindings with `dart run ffigen --config ffigen.yaml`.
+  ffigen: ^20.1.1

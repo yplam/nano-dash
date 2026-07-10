@@ -3,7 +3,7 @@ name: macOS Release
 on:
   push:
     tags:
-      - 'v*'
+      - 'v[0-9]*'
   workflow_dispatch:
 
 jobs:
@@ -29,8 +29,8 @@ jobs:
           if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
             tag="${GITHUB_REF_NAME}"
           else
-            # Manual run: use the most recent tag.
-            tag=$(git describe --tags --abbrev=0)
+            # Manual run: use the most recent app tag.
+            tag=$(git describe --tags --abbrev=0 --match 'v[0-9]*')
           fi
           version=${tag#v}
           echo "tag=$tag" >> "$GITHUB_OUTPUT"

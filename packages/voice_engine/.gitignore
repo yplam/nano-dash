@@ -1,0 +1,8 @@
+# The engine binaries are downloaded by hook/build.dart, never committed — they
+# are ~32 MB each. See native/README.md.
+native/*.so
+native/*.dylib
+native/*.dll
+
+# Per-developer override pointing hook/build.dart at a locally built engine.
+native/engine.local
