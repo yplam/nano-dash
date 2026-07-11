@@ -35,6 +35,8 @@ class Live2dController {
 
   void setDrag(double nx, double ny) {}
 
+  void setView(double scale, double offX, double offY) {}
+
   void tap(double nx, double ny) {}
 
   int motionCount([String group = '']) => 0;

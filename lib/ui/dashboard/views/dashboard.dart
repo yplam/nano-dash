@@ -73,9 +73,7 @@ class _DashboardState extends State<Dashboard> with Loggable {
   /// Send the currently-saved LCD brightness to the device.
   void _applyBrightness() {
     if (!mounted) return;
-    _service.setBrightness(
-      context.read<AppConfigCubit>().state.lcdBrightness,
-    );
+    _service.setBrightness(context.read<AppConfigCubit>().state.lcdBrightness);
   }
 
   /// Resize the window so the Flutter *content area* gets [contentSize].

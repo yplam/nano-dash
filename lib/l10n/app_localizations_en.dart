@@ -51,6 +51,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleNowPlayingTitle => 'Now Playing';
 
   @override
+  String get moduleVoiceTitle => 'Voice';
+
+  @override
   String get moduleSettingsTitle => 'Settings';
 
   @override
@@ -206,6 +209,133 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get live2dUnavailable => 'Live2D isn\'t available on this device.';
+
+  @override
+  String get live2dZoom => 'Zoom';
+
+  @override
+  String get live2dVerticalOffset => 'Vertical offset';
+
+  @override
+  String get voiceModelsDir => 'Models folder';
+
+  @override
+  String get voiceNoModelsDir => 'No folder selected';
+
+  @override
+  String get voiceWakeWord => 'Wake word';
+
+  @override
+  String get voiceWakeWordHint =>
+      'Listen for the wake word before transcribing. Off keeps the mic transcribing continuously.';
+
+  @override
+  String get voiceAec => 'Echo cancellation';
+
+  @override
+  String get voiceAecHint =>
+      'Remove the spoken reply from the microphone, so it can be interrupted while it talks.';
+
+  @override
+  String get voiceLanguage => 'Recognition language';
+
+  @override
+  String get voiceLanguageAuto => 'Auto';
+
+  @override
+  String get voiceTtsBackend => 'Speech backend';
+
+  @override
+  String get voiceTtsNone => 'None (text only)';
+
+  @override
+  String get voiceTtsApiKey => 'API key';
+
+  @override
+  String get voiceTtsBaseUrl => 'Base URL';
+
+  @override
+  String get voiceTtsResourceId => 'Resource id';
+
+  @override
+  String get voiceTtsSpeaker => 'Voice';
+
+  @override
+  String get voiceTtsModel => 'Model';
+
+  @override
+  String get voiceTtsLanguage => 'Speech language';
+
+  @override
+  String get voiceTtsInstructions => 'Voice instructions';
+
+  @override
+  String get voiceTtsProxy => 'Proxy';
+
+  @override
+  String get voiceSpeakerId => 'Speaker id';
+
+  @override
+  String get voiceSpeed => 'Speed';
+
+  @override
+  String get voiceRestartToApply =>
+      'Turn the microphone off and on again to apply these settings.';
+
+  @override
+  String get voiceSpeakerYou => 'You';
+
+  @override
+  String get moduleAgentTitle => 'Assistant';
+
+  @override
+  String get agentEnable => 'Enable assistant';
+
+  @override
+  String get agentEnableHint =>
+      'Answer questions heard by the microphone with an AI model.';
+
+  @override
+  String get agentApiKey => 'API key';
+
+  @override
+  String get agentBaseUrl => 'Base URL';
+
+  @override
+  String get agentProxy => 'Proxy';
+
+  @override
+  String get agentLightModel => 'Quick model';
+
+  @override
+  String get agentLightModelHint =>
+      'Hears every question and answers the simple ones.';
+
+  @override
+  String get agentProModel => 'Smart model';
+
+  @override
+  String get agentProModelHint =>
+      'Takes over complex questions, with data tools.';
+
+  @override
+  String get agentPersona => 'Persona';
+
+  @override
+  String get agentPersonaHint =>
+      'Optional character description for the assistant.';
+
+  @override
+  String get agentNeedsApiKey => 'Set an API key for the assistant to answer.';
+
+  @override
+  String get agentErrorLine => 'Sorry, something went wrong.';
+
+  @override
+  String get agentSpeakerName => 'Assistant';
+
+  @override
+  String get agentStop => 'Stop';
 
   @override
   String get timerHours => 'Hours';

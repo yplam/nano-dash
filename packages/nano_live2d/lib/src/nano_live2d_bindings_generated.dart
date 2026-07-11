@@ -29,6 +29,12 @@ external int nl_load(
 @ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>, ffi.Float, ffi.Float)>()
 external void nl_set_drag(ffi.Pointer<ffi.Void> h, double nx, double ny);
 
+@ffi.Native<
+    ffi.Void Function(
+        ffi.Pointer<ffi.Void>, ffi.Float, ffi.Float, ffi.Float)>()
+external void nl_set_view(
+    ffi.Pointer<ffi.Void> h, double scale, double offx, double offy);
+
 @ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>, ffi.Float, ffi.Float)>()
 external void nl_tap(ffi.Pointer<ffi.Void> h, double nx, double ny);
 

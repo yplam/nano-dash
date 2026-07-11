@@ -96,12 +96,7 @@ class TimerListView extends StatelessWidget {
               ),
               if (state.hasStats) ...[
                 SizedBox(height: 8),
-                _StatsButton(
-                  colors: colors,
-                  metrics: m,
-                  label: l10n.timerStats,
-                  onTap: onStats,
-                ),
+                _StatsButton(colors: colors, metrics: m, onTap: onStats),
               ],
             ],
           ),
@@ -111,47 +106,39 @@ class TimerListView extends StatelessWidget {
   }
 }
 
-/// The pill at the foot of the timer list that opens the statistics page.
+/// The round icon button at the foot of the timer list that opens the
+/// statistics page.
 class _StatsButton extends StatelessWidget {
   const _StatsButton({
     required this.colors,
     required this.metrics,
-    required this.label,
     required this.onTap,
   });
 
   final ColorScheme colors;
   final PanelMetrics metrics;
-  final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(metrics.pillRadius);
-    return Material(
-      color: colors.surfaceContainerHighest.withValues(
-        alpha: metrics.pillAlpha,
-      ),
-      borderRadius: radius,
-      child: InkWell(
-        borderRadius: radius,
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.bar_chart, size: 18, color: colors.onSurfaceVariant),
-              const SizedBox(width: 10),
-              Text(
-                label,
-                style: panelFont(
-                  metrics.fontSm,
-                  metrics.weightMedium,
-                  colors.onSurfaceVariant,
-                ),
-              ),
-            ],
+    final diameter = metrics.fontLg * 2.4;
+    return Center(
+      child: Material(
+        shape: const CircleBorder(),
+        color: colors.surfaceContainerHighest.withValues(
+          alpha: metrics.pillAlpha,
+        ),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: SizedBox(
+            width: diameter,
+            height: diameter,
+            child: Icon(
+              Icons.bar_chart,
+              size: metrics.fontLg,
+              color: colors.onSurfaceVariant,
+            ),
           ),
         ),
       ),

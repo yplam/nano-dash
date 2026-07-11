@@ -99,9 +99,16 @@ class TimerCubit extends Cubit<TimerState> {
 
   /// Start (or resume) the selected countdown.
   void start() {
-    if (state.running || state.remaining <= Duration.zero) return;
-    _run(state.remaining);
-    emit(state.copyWith(running: true, finished: false));
+    if (state.running) return;
+    var base = state.remaining;
+    if (base <= Duration.zero) {
+      final sel = state.selected;
+      if (sel == null || sel.pomodoro) return;
+      base = state.duration;
+    }
+    if (base <= Duration.zero) return;
+    _run(base);
+    emit(state.copyWith(remaining: base, running: true, finished: false));
   }
 
   /// Pause, holding the remaining time.

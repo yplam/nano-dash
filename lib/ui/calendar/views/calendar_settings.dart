@@ -64,8 +64,8 @@ class _CalendarSettingsState extends State<CalendarSettings> {
   void _commit({bool immediate = false}) {
     _debounce?.cancel();
     void emit() => widget.onConfigChanged(
-          CalendarConfig(sources: List.of(_sources), range: _range),
-        );
+      CalendarConfig(sources: List.of(_sources), range: _range),
+    );
     if (immediate) {
       emit();
     } else {
@@ -225,7 +225,8 @@ class _SourceTileState extends State<_SourceTile> {
     _pass = TextEditingController(text: widget.source.password ?? '');
     _proxy = TextEditingController(text: widget.source.proxy ?? '');
     // Open the extra fields by default when credentials or a proxy are set.
-    _expanded = (widget.source.username ?? '').isNotEmpty ||
+    _expanded =
+        (widget.source.username ?? '').isNotEmpty ||
         (widget.source.proxy ?? '').isNotEmpty;
   }
 
@@ -312,8 +313,10 @@ class _SourceTileState extends State<_SourceTile> {
                 if (widget.error != null)
                   IconButton(
                     tooltip: widget.error,
-                    icon: Icon(Icons.warning_amber_rounded,
-                        color: colors.error),
+                    icon: Icon(
+                      Icons.warning_amber_rounded,
+                      color: colors.error,
+                    ),
                     onPressed: _showError,
                   ),
                 Switch(
@@ -341,10 +344,7 @@ class _SourceTileState extends State<_SourceTile> {
                 alignment: Alignment.centerLeft,
                 child: SegmentedButton<CalendarKind>(
                   segments: const [
-                    ButtonSegment(
-                      value: CalendarKind.ics,
-                      label: Text('ICS'),
-                    ),
+                    ButtonSegment(value: CalendarKind.ics, label: Text('ICS')),
                     ButtonSegment(
                       value: CalendarKind.caldav,
                       label: Text('CalDAV'),

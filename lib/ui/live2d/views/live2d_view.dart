@@ -8,7 +8,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../widgets/panel_empty.dart';
+import '../../widgets/panel_theme.dart';
+import '../../widgets/voice_agent_button.dart';
 import '../cubit/live2d_cubit.dart';
+import '../widgets/voice_dialogue.dart';
 
 /// Shows the app-wide Live2D renderer ([Live2dCubit]) as an LCD page.
 ///
@@ -47,6 +50,9 @@ class _Live2dViewState extends State<Live2dView>
 
   /// Pointer-down position, to tell a tap (→ motion) from a drag (→ look-at).
   Offset? _downAt;
+
+  /// Mic button diameter, as a fraction of the panel's side.
+  static const double _kMicDiameter = 0.16;
 
   @override
   void initState() {
@@ -137,7 +143,7 @@ class _Live2dViewState extends State<Live2dView>
         return BlocBuilder<Live2dCubit, Live2dState>(
           builder: (context, state) {
             return switch (state) {
-              Live2dReady() => _buildModel(context, size),
+              Live2dReady() => _buildModel(context, size, side),
               Live2dLoading() => const Center(
                 child: CircularProgressIndicator(),
               ),
@@ -166,46 +172,87 @@ class _Live2dViewState extends State<Live2dView>
     );
   }
 
-  Widget _buildModel(BuildContext context, Size size) {
+  Widget _buildModel(BuildContext context, Size size, double side) {
     final image = _image;
-    return Listener(
-      onPointerDown: (e) {
-        _downAt = e.localPosition;
-        _sendDrag(context, e.localPosition, size);
-      },
-      onPointerMove: (e) => _sendDrag(context, e.localPosition, size),
-      onPointerUp: (e) {
-        final down = _downAt;
-        _downAt = null;
-        // A small total travel reads as a tap → trigger a motion.
-        if (down != null && (e.localPosition - down).distance < 12) {
-          final controller = context.read<Live2dCubit>().controller;
-          if (controller != null) {
-            final (nx, ny) = _normalize(e.localPosition, size);
-            controller.tap(nx, ny);
-          }
-        }
-      },
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          if (widget.backgroundPath.isNotEmpty)
-            Image.file(
-              File(widget.backgroundPath),
-              fit: BoxFit.cover,
-              gaplessPlayback: true,
-              errorBuilder: (context, error, stack) =>
-                  const ColoredBox(color: Colors.transparent),
+    final micDiameter = side * _kMicDiameter;
+    final micTopLeft = _micTopLeft(side, micDiameter);
+    final micInset = micDiameter * (VoiceAgentButton.kBoxScale - 1) / 2;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Listener(
+          onPointerDown: (e) {
+            _downAt = e.localPosition;
+            _sendDrag(context, e.localPosition, size);
+          },
+          onPointerMove: (e) => _sendDrag(context, e.localPosition, size),
+          onPointerUp: (e) {
+            final down = _downAt;
+            _downAt = null;
+            // A small total travel reads as a tap → trigger a motion.
+            if (down != null && (e.localPosition - down).distance < 12) {
+              final controller = context.read<Live2dCubit>().controller;
+              if (controller != null) {
+                final (nx, ny) = _normalize(e.localPosition, size);
+                controller.tap(nx, ny);
+              }
+            }
+          },
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (widget.backgroundPath.isNotEmpty)
+                Image.file(
+                  File(widget.backgroundPath),
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                  errorBuilder: (context, error, stack) =>
+                      const ColoredBox(color: Colors.transparent),
+                ),
+              if (image != null)
+                RawImage(
+                  image: image,
+                  fit: BoxFit.cover,
+                  filterQuality: FilterQuality.medium,
+                ),
+            ],
+          ),
+        ),
+        Center(
+          child: SizedBox(
+            width: side,
+            height: side,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: VoiceDialogue(side: side),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: micTopLeft.dx - micInset,
+                  top: micTopLeft.dy - micInset,
+                  child: VoiceAgentButton(diameter: micDiameter),
+                ),
+              ],
             ),
-          if (image != null)
-            RawImage(
-              image: image,
-              fit: BoxFit.cover,
-              filterQuality: FilterQuality.medium,
-            ),
-        ],
-      ),
+          ),
+        ),
+      ],
     );
+  }
+
+  Offset _micTopLeft(double side, double diameter) {
+    final rim =
+        side *
+        (Theme.of(context).extension<PanelTheme>() ?? const PanelTheme())
+            .safeMargin;
+    final r = side / 2;
+    final k = (r - rim - diameter / 2) / math.sqrt2;
+    return Offset(r + k - diameter / 2, r - k - diameter / 2);
   }
 
   void _sendDrag(BuildContext context, Offset p, Size size) {

@@ -39,6 +39,10 @@ class TimerDetailView extends StatelessWidget {
         ? colors.error
         : (state.onBreak ? colors.tertiary : colors.primary);
     final atFull = !state.running && state.remaining == state.duration;
+    final startEnabled =
+        state.running ||
+        state.remaining > Duration.zero ||
+        (!selected.pomodoro && selected.duration > Duration.zero);
 
     // The phase caption and progress dots shown for a Pomodoro task.
     final pomodoro = state.isPomodoro;
@@ -187,9 +191,9 @@ class TimerDetailView extends StatelessWidget {
                           diameter: btn,
                           color: colors.primary,
                           foreground: colors.onPrimary,
-                          onPressed: state.remaining <= Duration.zero
-                              ? null
-                              : (state.running ? cubit.pause : cubit.start),
+                          onPressed: startEnabled
+                              ? (state.running ? cubit.pause : cubit.start)
+                              : null,
                         ),
                       ],
                     ),

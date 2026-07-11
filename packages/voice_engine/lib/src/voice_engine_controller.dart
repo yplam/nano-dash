@@ -262,6 +262,13 @@ class VoiceEngineController {
   /// Whether TTS audio is currently playing (latest [speaking] value).
   bool get isSpeaking => _isSpeaking;
 
+  /// The current lip-sync mouth-opening level in `[0, 1]`, from the RMS of the
+  /// TTS audio playing out right now (`0.0` when nothing plays). A lock-free
+  /// native read, so poll it — e.g. once per Live2D render frame — rather than
+  /// expecting a stream. Independent of [speaking]'s hangover: it tracks the
+  /// instantaneous envelope, dropping to `0.0` in the gaps between sentences.
+  double get speakingLevel => bindings.ve_speaking_level();
+
   /// Fires when the wake word is recognized and the engine leaves the idle
   /// state (ASR is now running). Only meaningful when opened with `enableWake`.
   Stream<void> get wake => _wake.stream;

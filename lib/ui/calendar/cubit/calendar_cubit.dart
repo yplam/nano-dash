@@ -54,8 +54,8 @@ class CalendarCubit extends Cubit<CalendarState> with Loggable {
   /// when the feeds themselves changed. A range-only change is a display filter,
   /// so it persists without hitting the network.
   void setConfig(CalendarConfig config) {
-    final feedsChanged = _encodeSources(state.sources) !=
-        _encodeSources(config.sources);
+    final feedsChanged =
+        _encodeSources(state.sources) != _encodeSources(config.sources);
     emit(state.copyWith(sources: config.sources, range: config.range));
     _persist();
     if (feedsChanged) _fetch();
@@ -80,20 +80,24 @@ class CalendarCubit extends Cubit<CalendarState> with Loggable {
 
   Future<void> _fetch() async {
     if (state.sources.where((s) => s.enabled).isEmpty) {
-      emit(state.copyWith(
-        events: const [],
-        loading: false,
-        clearError: true,
-        sourceErrors: const {},
-      ));
+      emit(
+        state.copyWith(
+          events: const [],
+          loading: false,
+          clearError: true,
+          sourceErrors: const {},
+        ),
+      );
       return;
     }
 
     final id = ++_requestId;
     _lastFetchAt = DateTime.now();
     emit(state.copyWith(loading: true, clearError: true));
-    logInfo('fetch: polling ${state.sources.where((s) => s.enabled).length} '
-        'enabled source(s)');
+    logInfo(
+      'fetch: polling ${state.sources.where((s) => s.enabled).length} '
+      'enabled source(s)',
+    );
     try {
       final result = await _repository.fetch();
       if (isClosed || id != _requestId) return;
@@ -102,8 +106,10 @@ class CalendarCubit extends Cubit<CalendarState> with Loggable {
           logWarning('source ${entry.key} failed', error: entry.value);
         }
       }
-      logInfo('fetch done: ${result.events.length} event(s), '
-          '${result.errors.length} source error(s)');
+      logInfo(
+        'fetch done: ${result.events.length} event(s), '
+        '${result.errors.length} source error(s)',
+      );
       emit(
         state.copyWith(
           events: result.events,
@@ -129,12 +135,13 @@ class CalendarCubit extends Cubit<CalendarState> with Loggable {
   void _persist() {
     _repository
         .save(CalendarConfig(sources: state.sources, range: state.range))
-        .catchError((
-      Object e,
-      StackTrace s,
-    ) {
-      logError('failed to persist calendar settings', error: e, stackTrace: s);
-    });
+        .catchError((Object e, StackTrace s) {
+          logError(
+            'failed to persist calendar settings',
+            error: e,
+            stackTrace: s,
+          );
+        });
   }
 
   @override

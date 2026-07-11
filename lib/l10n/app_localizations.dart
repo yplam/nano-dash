@@ -182,6 +182,12 @@ abstract class AppLocalizations {
   /// **'Now Playing'**
   String get moduleNowPlayingTitle;
 
+  /// No description provided for @moduleVoiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice'**
+  String get moduleVoiceTitle;
+
   /// No description provided for @moduleSettingsTitle.
   ///
   /// In en, this message translates to:
@@ -481,6 +487,246 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Live2D isn\'t available on this device.'**
   String get live2dUnavailable;
+
+  /// No description provided for @live2dZoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom'**
+  String get live2dZoom;
+
+  /// No description provided for @live2dVerticalOffset.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical offset'**
+  String get live2dVerticalOffset;
+
+  /// No description provided for @voiceModelsDir.
+  ///
+  /// In en, this message translates to:
+  /// **'Models folder'**
+  String get voiceModelsDir;
+
+  /// No description provided for @voiceNoModelsDir.
+  ///
+  /// In en, this message translates to:
+  /// **'No folder selected'**
+  String get voiceNoModelsDir;
+
+  /// No description provided for @voiceWakeWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Wake word'**
+  String get voiceWakeWord;
+
+  /// No description provided for @voiceWakeWordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen for the wake word before transcribing. Off keeps the mic transcribing continuously.'**
+  String get voiceWakeWordHint;
+
+  /// No description provided for @voiceAec.
+  ///
+  /// In en, this message translates to:
+  /// **'Echo cancellation'**
+  String get voiceAec;
+
+  /// No description provided for @voiceAecHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the spoken reply from the microphone, so it can be interrupted while it talks.'**
+  String get voiceAecHint;
+
+  /// No description provided for @voiceLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognition language'**
+  String get voiceLanguage;
+
+  /// No description provided for @voiceLanguageAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get voiceLanguageAuto;
+
+  /// No description provided for @voiceTtsBackend.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech backend'**
+  String get voiceTtsBackend;
+
+  /// No description provided for @voiceTtsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None (text only)'**
+  String get voiceTtsNone;
+
+  /// No description provided for @voiceTtsApiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'API key'**
+  String get voiceTtsApiKey;
+
+  /// No description provided for @voiceTtsBaseUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Base URL'**
+  String get voiceTtsBaseUrl;
+
+  /// No description provided for @voiceTtsResourceId.
+  ///
+  /// In en, this message translates to:
+  /// **'Resource id'**
+  String get voiceTtsResourceId;
+
+  /// No description provided for @voiceTtsSpeaker.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice'**
+  String get voiceTtsSpeaker;
+
+  /// No description provided for @voiceTtsModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get voiceTtsModel;
+
+  /// No description provided for @voiceTtsLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech language'**
+  String get voiceTtsLanguage;
+
+  /// No description provided for @voiceTtsInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice instructions'**
+  String get voiceTtsInstructions;
+
+  /// No description provided for @voiceTtsProxy.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy'**
+  String get voiceTtsProxy;
+
+  /// No description provided for @voiceSpeakerId.
+  ///
+  /// In en, this message translates to:
+  /// **'Speaker id'**
+  String get voiceSpeakerId;
+
+  /// No description provided for @voiceSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get voiceSpeed;
+
+  /// No description provided for @voiceRestartToApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn the microphone off and on again to apply these settings.'**
+  String get voiceRestartToApply;
+
+  /// No description provided for @voiceSpeakerYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get voiceSpeakerYou;
+
+  /// No description provided for @moduleAgentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Assistant'**
+  String get moduleAgentTitle;
+
+  /// No description provided for @agentEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable assistant'**
+  String get agentEnable;
+
+  /// No description provided for @agentEnableHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer questions heard by the microphone with an AI model.'**
+  String get agentEnableHint;
+
+  /// No description provided for @agentApiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'API key'**
+  String get agentApiKey;
+
+  /// No description provided for @agentBaseUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Base URL'**
+  String get agentBaseUrl;
+
+  /// No description provided for @agentProxy.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy'**
+  String get agentProxy;
+
+  /// No description provided for @agentLightModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick model'**
+  String get agentLightModel;
+
+  /// No description provided for @agentLightModelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hears every question and answers the simple ones.'**
+  String get agentLightModelHint;
+
+  /// No description provided for @agentProModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart model'**
+  String get agentProModel;
+
+  /// No description provided for @agentProModelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Takes over complex questions, with data tools.'**
+  String get agentProModelHint;
+
+  /// No description provided for @agentPersona.
+  ///
+  /// In en, this message translates to:
+  /// **'Persona'**
+  String get agentPersona;
+
+  /// No description provided for @agentPersonaHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional character description for the assistant.'**
+  String get agentPersonaHint;
+
+  /// No description provided for @agentNeedsApiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Set an API key for the assistant to answer.'**
+  String get agentNeedsApiKey;
+
+  /// No description provided for @agentErrorLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorry, something went wrong.'**
+  String get agentErrorLine;
+
+  /// No description provided for @agentSpeakerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Assistant'**
+  String get agentSpeakerName;
+
+  /// No description provided for @agentStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get agentStop;
 
   /// No description provided for @timerHours.
   ///

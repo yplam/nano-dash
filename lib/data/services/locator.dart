@@ -6,7 +6,5 @@ final GetIt locator = GetIt.instance;
 
 /// Set up [GetIt] locator.
 Future<void> setUpLocator() async {
-  locator.registerSingleton<Logger>(
-    Logger(),
-  );
+  locator.registerSingleton<Logger>(Logger());
 }

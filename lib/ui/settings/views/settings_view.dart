@@ -299,8 +299,7 @@ class _BrightnessSliderState extends State<_BrightnessSlider> {
     }
   }
 
-  int get _percent =>
-      (_value / AppConfig.maxLcdBrightness * 100).round();
+  int get _percent => (_value / AppConfig.maxLcdBrightness * 100).round();
 
   @override
   Widget build(BuildContext context) {
@@ -313,8 +312,7 @@ class _BrightnessSliderState extends State<_BrightnessSlider> {
             min: AppConfig.minLcdBrightness.toDouble(),
             max: AppConfig.maxLcdBrightness.toDouble(),
             label: '$_percent%',
-            divisions:
-                AppConfig.maxLcdBrightness - AppConfig.minLcdBrightness,
+            divisions: AppConfig.maxLcdBrightness - AppConfig.minLcdBrightness,
             onChanged: (v) => setState(() => _value = v),
             onChangeEnd: (v) => widget.onChanged(v.round()),
           ),

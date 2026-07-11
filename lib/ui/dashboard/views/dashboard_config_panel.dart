@@ -28,42 +28,40 @@ class DashboardConfigPanel extends StatelessWidget {
             if (!modules.isSettingsOnly(item)) item,
         ];
 
-        return Column(
-          children: [
-            for (final item in pinned)
-              if (modules.byId(item.moduleId) case final module?)
-                _PinnedTile(
-                  key: ValueKey(item.moduleId),
-                  module: module,
-                  item: item,
+        return ReorderableListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          buildDefaultDragHandles: false,
+          header: pinned.isEmpty
+              ? null
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final item in pinned)
+                      if (modules.byId(item.moduleId) case final module?)
+                        _PinnedTile(
+                          key: ValueKey(item.moduleId),
+                          module: module,
+                          item: item,
+                        ),
+                    const Divider(height: 1),
+                  ],
                 ),
-            if (pinned.isNotEmpty) const Divider(height: 1),
-            Expanded(
-              child: ReorderableListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                buildDefaultDragHandles: false,
-                itemCount: rest.length,
-                onReorderItem: (oldIndex, newIndex) =>
-                    context.read<DashboardCubit>().reorder(
-                      oldIndex + pinned.length,
-                      newIndex + pinned.length,
-                    ),
-                itemBuilder: (context, index) {
-                  final DashboardItemConfig item = rest[index];
-                  final module = modules.byId(item.moduleId);
-                  if (module == null) {
-                    return SizedBox.shrink(key: ValueKey('missing-$index'));
-                  }
-                  return _ModuleTile(
-                    key: ValueKey(item.moduleId),
-                    index: index,
-                    module: module,
-                    item: item,
-                  );
-                },
-              ),
-            ),
-          ],
+          itemCount: rest.length,
+          onReorderItem: (oldIndex, newIndex) =>
+              context.read<DashboardCubit>().reorder(oldIndex, newIndex),
+          itemBuilder: (context, index) {
+            final DashboardItemConfig item = rest[index];
+            final module = modules.byId(item.moduleId);
+            if (module == null) {
+              return SizedBox.shrink(key: ValueKey('missing-$index'));
+            }
+            return _ModuleTile(
+              key: ValueKey(item.moduleId),
+              index: index,
+              module: module,
+              item: item,
+            );
+          },
         );
       },
     );

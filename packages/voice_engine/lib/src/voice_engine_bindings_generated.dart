@@ -43,6 +43,13 @@ external int ve_stop();
 @ffi.Native<ffi.Int32 Function(ffi.Int32)>()
 external int ve_set_active(int active);
 
+/// The current lip-sync mouth-opening level in [0, 1], derived from the RMS of the
+/// TTS audio playing out right now (0.0 when nothing is playing or nothing is
+/// open). A lock-free read; poll it once per Live2D render frame to drive a
+/// LipSync parameter.
+@ffi.Native<ffi.Float Function()>()
+external double ve_speaking_level();
+
 /// Stop the worker threads and close the audio devices. Idempotent. Returns 0.
 @ffi.Native<ffi.Int32 Function()>()
 external int ve_close();

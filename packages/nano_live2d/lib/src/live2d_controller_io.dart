@@ -94,6 +94,15 @@ class Live2dController {
     bindings.nl_set_drag(_handle, nx, ny);
   }
 
+  /// Reframe the render: [scale] magnifies about the frame centre (1 = the
+  /// default full-model fit, >1 zooms in), then [offX]/[offY] pan the framing in
+  /// the same normalized [-1, 1] space as [setDrag]/[tap] (+y toward the model's
+  /// head).
+  void setView(double scale, double offX, double offY) {
+    if (_disposed) return;
+    bindings.nl_set_view(_handle, scale, offX, offY);
+  }
+
   /// Tap at a normalized point [-1, 1]; a body hit triggers a motion.
   void tap(double nx, double ny) {
     if (_disposed) return;

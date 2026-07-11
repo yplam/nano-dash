@@ -3,15 +3,13 @@
 # `repo` is the PUBLIC repo whose release page hosts the assets; the engine
 # source itself lives in a separate private repo, whose CI uploads them here.
 repo = yplam/nano-dash
-tag = voice-engine-v0.1.0
+tag = voice-engine-v0.3.0
 
-# Built from voice-engine 0.1.0 (commit 68cdd71); see the release's VERSION.
-#
 # SHA-256 of each release asset, in `sha256sum` output format so the published
 # SHA256SUMS can be pasted in verbatim. The hook fails closed: an asset with no
 # digest here, or one whose bytes do not match, is never linked.
-47b98d4169d8c2b9b88723d8a15217730686b50464c8aac585cf9ef79a2f2df8  libvoice_engine-x86_64-unknown-linux-gnu.so
-f22aa2d3dcc5b078aad5821520e60265a52cb2f51128b55990cd615f907f4559  libvoice_engine-aarch64-unknown-linux-gnu.so
-08eb66e822fd22271fc8c9edbbfc04aee62d8cd643bf96a052c06f9fb052c3f7  libvoice_engine-aarch64-apple-darwin.dylib
-9e3d42ed1d67de4e93aaacd46403febac55625eaf64ad64e2b864243b9157bf0  libvoice_engine-x86_64-apple-darwin.dylib
-75e4a26203c8151beaa6b057d04dbc734dcceb9a3769564fcb91a6f8e73653d1  voice_engine-x86_64-pc-windows-msvc.dll
+d529d24f7726a732340d4a9b9197f981658b8528cf9a33fab26afaec42aeebe8  libvoice_engine-aarch64-apple-darwin.dylib
+d106b3a7809f4d8e7b1715779c3017e3444312f5bb5543cda2e4b13d1fe91fa9  libvoice_engine-aarch64-unknown-linux-gnu.so
+41cb2003d4a25a905522af66cd1f134563c72a560d059a6dce08a448dbd6438c  libvoice_engine-x86_64-apple-darwin.dylib
+c20fa155af51b3245889884968c0b68f2a96da24cdbbf3576d799c66b1b66013  libvoice_engine-x86_64-unknown-linux-gnu.so
+fe2dd0d9390aabde2c1e6dc75187dac70c31d6f29799038c8814340fd2644762  voice_engine-x86_64-pc-windows-msvc.dll

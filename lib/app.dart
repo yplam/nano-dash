@@ -7,25 +7,32 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants.dart';
+import 'data/repositories/agent_repository.dart';
 import 'data/repositories/calendar_repository.dart';
 import 'data/repositories/markets_repository.dart';
 import 'data/repositories/module_repository.dart';
 import 'data/repositories/settings_repository.dart';
+import 'data/repositories/voice_repository.dart';
 import 'data/repositories/weather_repository.dart';
+import 'data/services/agent_service.dart';
+import 'data/services/agent_tools.dart';
 import 'data/services/calendar/calendar_service.dart';
 import 'data/services/location_service.dart';
 import 'data/services/locator.dart';
 import 'data/services/markets/markets_service.dart';
 import 'data/services/pico_view_service.dart';
 import 'data/services/tray_service.dart';
+import 'data/services/voice_service.dart';
 import 'data/services/weather_service.dart';
 import 'data/services/window_service.dart';
 import 'domain/models/app_config.dart';
 import 'l10n/app_localizations.dart';
+import 'ui/agent/agent.dart';
 import 'ui/calendar/calendar.dart';
 import 'ui/dashboard/dashboard.dart';
 import 'ui/live2d/cubit/live2d_cubit.dart';
 import 'ui/markets/markets.dart';
+import 'ui/modules/agent_module.dart';
 import 'ui/modules/calendar_module.dart';
 import 'ui/modules/clock_module.dart';
 import 'ui/modules/live2d_module.dart';
@@ -35,12 +42,14 @@ import 'ui/modules/settings_module.dart';
 import 'ui/modules/stopwatch_module.dart';
 import 'ui/modules/system_monitor_module.dart';
 import 'ui/modules/timer_module.dart';
+import 'ui/modules/voice_module.dart';
 import 'ui/modules/weather_module.dart';
 import 'ui/now_playing/cubit/now_playing_cubit.dart';
 import 'ui/settings/cubit/app_config_cubit.dart';
 import 'ui/stopwatch/cubit/stopwatch_cubit.dart';
 import 'ui/system_monitor/cubit/system_monitor_cubit.dart';
 import 'ui/timer/cubit/timer_cubit.dart';
+import 'ui/voice/voice.dart';
 import 'ui/weather/weather.dart';
 import 'ui/widgets/background_view.dart';
 import 'ui/widgets/panel_text.dart';
@@ -115,6 +124,8 @@ class NanoDashApp extends StatelessWidget {
             if (!kIsWeb) const Live2DModule(),
             if (!kIsWeb) const SystemMonitorModule(),
             if (!kIsWeb) const NowPlayingModule(),
+            if (!kIsWeb) const VoiceModule(),
+            if (!kIsWeb) const AgentModule(),
           ]),
         ),
         RepositoryProvider<SettingsRepository>(
@@ -148,6 +159,29 @@ class NanoDashApp extends StatelessWidget {
               context.read<SettingsRepository>(),
               MarketsService(dio),
             ),
+          ),
+        if (!kIsWeb)
+          RepositoryProvider<VoiceRepository>(
+            create: (context) => VoiceRepository(
+              context.read<SettingsRepository>(),
+              VoiceService(),
+            ),
+            dispose: (repository) => repository.dispose(),
+          ),
+        if (!kIsWeb)
+          RepositoryProvider<AgentRepository>(
+            create: (context) => AgentRepository(
+              context.read<SettingsRepository>(),
+              context.read<VoiceRepository>(),
+              AgentService(),
+              tools: buildAgentTools(
+                weather: context.read<WeatherRepository>(),
+                calendar: context.read<CalendarRepository>(),
+                markets: context.read<MarketsRepository>(),
+              ),
+              errorLine: lookupAppLocalizations(kAppLocale).agentErrorLine,
+            ),
+            dispose: (repository) => repository.dispose(),
           ),
       ],
       child: MultiBlocProvider(
@@ -196,9 +230,22 @@ class NanoDashApp extends StatelessWidget {
               lazy: false,
             ),
           if (!kIsWeb)
+            BlocProvider<VoiceCubit>(
+              create: (context) => VoiceCubit(context.read<VoiceRepository>()),
+              lazy: false,
+            ),
+          if (!kIsWeb)
+            BlocProvider<AgentCubit>(
+              create: (context) => AgentCubit(context.read<AgentRepository>()),
+              lazy: false,
+            ),
+          if (!kIsWeb)
             BlocProvider<Live2dCubit>(
-              create: (context) =>
-                  Live2dCubit(context.read<SettingsRepository>())..preload(),
+              create: (context) => Live2dCubit(
+                context.read<SettingsRepository>(),
+                voice: context.read<VoiceRepository>(),
+                agent: context.read<AgentRepository>(),
+              )..preload(),
               lazy: false,
             ),
           if (!kIsWeb)

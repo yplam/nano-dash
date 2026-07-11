@@ -39,7 +39,9 @@ class CalendarEvent {
   bool get isMultiDay {
     final s = DateTime(start.year, start.month, start.day);
     // All-day end is exclusive, so subtract an instant before comparing days.
-    final effectiveEnd = allDay ? end.subtract(const Duration(seconds: 1)) : end;
+    final effectiveEnd = allDay
+        ? end.subtract(const Duration(seconds: 1))
+        : end;
     final e = DateTime(effectiveEnd.year, effectiveEnd.month, effectiveEnd.day);
     return e.isAfter(s);
   }
@@ -197,11 +199,13 @@ class CalendarConfig implements JsonModel {
   /// configs keep their previous behaviour.
   final CalendarRange range;
 
-  CalendarConfig copyWith({List<CalendarSource>? sources, CalendarRange? range}) =>
-      CalendarConfig(
-        sources: sources ?? this.sources,
-        range: range ?? this.range,
-      );
+  CalendarConfig copyWith({
+    List<CalendarSource>? sources,
+    CalendarRange? range,
+  }) => CalendarConfig(
+    sources: sources ?? this.sources,
+    range: range ?? this.range,
+  );
 
   factory CalendarConfig.fromJson(Map<String, Object?> json) {
     final raw = json['sources'];

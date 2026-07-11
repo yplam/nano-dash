@@ -41,5 +41,11 @@ int32_t ve_stop(void);
 // Returns 0.
 int32_t ve_set_active(int32_t active);
 
+// The current lip-sync mouth-opening level in [0, 1], derived from the RMS of the
+// TTS audio playing out right now (0.0 when nothing is playing or nothing is
+// open). A lock-free read; poll it once per Live2D render frame to drive a
+// LipSync parameter.
+float ve_speaking_level(void);
+
 // Stop the worker threads and close the audio devices. Idempotent. Returns 0.
 int32_t ve_close(void);

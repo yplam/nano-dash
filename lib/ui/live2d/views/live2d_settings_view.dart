@@ -5,16 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../../modules/live2d_module.dart';
 
 /// Settings for the Live2D module: pick the folder holding the model's
-/// `*.model3.json`, and an optional background image shown under the model.
+/// `*.model3.json`, an optional background image shown under the model, and the
+/// base framing (zoom + vertical offset) applied to the model.
 class Live2dSettingsView extends StatelessWidget {
   const Live2dSettingsView({
     super.key,
     required this.modelDir,
     required this.backgroundPath,
+    required this.baseZoom,
+    required this.baseOffY,
     required this.onModelDirChanged,
     required this.onBackgroundChanged,
+    required this.onBaseFramingChanged,
   });
 
   /// Currently selected model directory, or empty if none.
@@ -24,8 +29,16 @@ class Live2dSettingsView extends StatelessWidget {
   /// app-wide background.
   final String backgroundPath;
 
+  /// Base framing zoom (1 = default fit) and vertical offset (+ raises the
+  /// model), in the ranges [Live2DModule] clamps to.
+  final double baseZoom;
+  final double baseOffY;
+
   final ValueChanged<String> onModelDirChanged;
   final ValueChanged<String> onBackgroundChanged;
+
+  /// Called with the new `(zoom, offY)` as either slider drags.
+  final void Function(double zoom, double offY) onBaseFramingChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +85,44 @@ class Live2dSettingsView extends StatelessWidget {
                 ),
           onTap: _pickBackground,
         ),
+        _framingSlider(
+          icon: Icons.zoom_in,
+          label: l10n.live2dZoom,
+          value: baseZoom,
+          min: Live2DModule.kMinZoom,
+          max: Live2DModule.kMaxZoom,
+          onChanged: (v) => onBaseFramingChanged(v, baseOffY),
+        ),
+        _framingSlider(
+          icon: Icons.height,
+          label: l10n.live2dVerticalOffset,
+          value: baseOffY,
+          min: Live2DModule.kMinOffY,
+          max: Live2DModule.kMaxOffY,
+          onChanged: (v) => onBaseFramingChanged(baseZoom, v),
+        ),
       ],
+    );
+  }
+
+  /// A labelled slider for one framing dimension.
+  Widget _framingSlider({
+    required IconData icon,
+    required String label,
+    required double value,
+    required double min,
+    required double max,
+    required ValueChanged<double> onChanged,
+  }) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(label),
+      subtitle: Slider(
+        value: value.clamp(min, max),
+        min: min,
+        max: max,
+        onChanged: onChanged,
+      ),
     );
   }
 

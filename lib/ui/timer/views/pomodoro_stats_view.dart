@@ -55,37 +55,43 @@ class PomodoroStatsView extends StatelessWidget {
                     child: InkResponse(
                       onTap: onBack,
                       radius: side * 0.08,
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.chevron_left,
-                            size: side * 0.09,
-                            color: colors.onSurfaceVariant,
-                          ),
-                          Expanded(
-                            child: Text(
-                              l10n.timerStats,
-                              textAlign: TextAlign.center,
-                              style: panelFont(
-                                side * 0.065,
-                                600,
-                                colors.onSurface,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: side * 0.03),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.chevron_left,
+                              size: side * 0.09,
+                              color: colors.onSurfaceVariant,
+                            ),
+                            Expanded(
+                              child: Text(
+                                l10n.timerStats,
+                                textAlign: TextAlign.center,
+                                style: panelFont(
+                                  side * 0.065,
+                                  600,
+                                  colors.onSurface,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
                   InkResponse(
                     onTap: rows.isEmpty ? null : onClear,
                     radius: side * 0.08,
-                    child: Icon(
-                      Icons.delete_outline,
-                      size: side * 0.08,
-                      color: rows.isEmpty
-                          ? colors.onSurface.withValues(alpha: 0.25)
-                          : colors.onSurfaceVariant,
+                    child: Padding(
+                      padding: EdgeInsets.all(side * 0.03),
+                      child: Icon(
+                        Icons.delete_outline,
+                        size: side * 0.08,
+                        color: rows.isEmpty
+                            ? colors.onSurface.withValues(alpha: 0.25)
+                            : colors.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],

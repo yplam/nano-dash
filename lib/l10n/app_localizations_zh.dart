@@ -51,6 +51,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get moduleNowPlayingTitle => '正在播放';
 
   @override
+  String get moduleVoiceTitle => '语音';
+
+  @override
   String get moduleSettingsTitle => '设置';
 
   @override
@@ -203,6 +206,126 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get live2dUnavailable => '此设备不支持 Live2D。';
+
+  @override
+  String get live2dZoom => '缩放';
+
+  @override
+  String get live2dVerticalOffset => '垂直偏移';
+
+  @override
+  String get voiceModelsDir => '模型文件夹';
+
+  @override
+  String get voiceNoModelsDir => '未选择文件夹';
+
+  @override
+  String get voiceWakeWord => '唤醒词';
+
+  @override
+  String get voiceWakeWordHint => '先听到唤醒词再开始识别。关闭后麦克风将持续识别。';
+
+  @override
+  String get voiceAec => '回声消除';
+
+  @override
+  String get voiceAecHint => '从麦克风中消除正在播放的回复，使其说话时也能被打断。';
+
+  @override
+  String get voiceLanguage => '识别语言';
+
+  @override
+  String get voiceLanguageAuto => '自动';
+
+  @override
+  String get voiceTtsBackend => '语音合成后端';
+
+  @override
+  String get voiceTtsNone => '无（仅文字）';
+
+  @override
+  String get voiceTtsApiKey => 'API 密钥';
+
+  @override
+  String get voiceTtsBaseUrl => '服务地址';
+
+  @override
+  String get voiceTtsResourceId => '资源 ID';
+
+  @override
+  String get voiceTtsSpeaker => '音色';
+
+  @override
+  String get voiceTtsModel => '模型';
+
+  @override
+  String get voiceTtsLanguage => '合成语言';
+
+  @override
+  String get voiceTtsInstructions => '音色指令';
+
+  @override
+  String get voiceTtsProxy => '代理';
+
+  @override
+  String get voiceSpeakerId => '说话人 ID';
+
+  @override
+  String get voiceSpeed => '语速';
+
+  @override
+  String get voiceRestartToApply => '关闭并重新打开麦克风以应用这些设置。';
+
+  @override
+  String get voiceSpeakerYou => '我';
+
+  @override
+  String get moduleAgentTitle => '智能助手';
+
+  @override
+  String get agentEnable => '启用助手';
+
+  @override
+  String get agentEnableHint => '用 AI 模型回答麦克风听到的问题。';
+
+  @override
+  String get agentApiKey => 'API 密钥';
+
+  @override
+  String get agentBaseUrl => '接口地址';
+
+  @override
+  String get agentProxy => '代理';
+
+  @override
+  String get agentLightModel => '快速模型';
+
+  @override
+  String get agentLightModelHint => '先听到每个问题，简单的直接回答。';
+
+  @override
+  String get agentProModel => '增强模型';
+
+  @override
+  String get agentProModelHint => '接手复杂问题，可调用数据工具。';
+
+  @override
+  String get agentPersona => '角色设定';
+
+  @override
+  String get agentPersonaHint => '可选的助手角色描述。';
+
+  @override
+  String get agentNeedsApiKey => '填写 API 密钥后助手才能回答。';
+
+  @override
+  String get agentErrorLine => '抱歉，我这边出了点问题。';
+
+  @override
+  String get agentSpeakerName => '助手';
+
+  @override
+  String get agentStop => '停止';
 
   @override
   String get timerHours => '小时';

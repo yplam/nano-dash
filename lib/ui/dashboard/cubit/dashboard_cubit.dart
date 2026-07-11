@@ -80,12 +80,15 @@ class DashboardCubit extends Cubit<DashboardState> with Loggable {
     _commit(items);
   }
 
-  /// Reorder the full list (display order). [newIndex] is the final target
-  /// index (already adjusted for the removal — `onReorderItem` semantics).
+  /// Reorder the display order. Both indices are relative to the reorderable
+  /// items: settings-only modules stay pinned at the front of [state.items] and
+  /// are skipped over here. [newIndex] is the final target index (already
+  /// adjusted for the removal — `onReorderItem` semantics).
   void reorder(int oldIndex, int newIndex) {
+    final pinned = state.items.where(_modules.isSettingsOnly).length;
     final items = [...state.items];
-    final moved = items.removeAt(oldIndex);
-    items.insert(newIndex, moved);
+    final moved = items.removeAt(oldIndex + pinned);
+    items.insert(newIndex + pinned, moved);
     _commit(items);
   }
 
