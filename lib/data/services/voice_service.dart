@@ -7,7 +7,8 @@ import 'package:voice_engine/voice_engine.dart';
 import '../../domain/models/voice.dart';
 import '../../extensions/loggable.dart';
 
-export 'package:voice_engine/voice_engine.dart' show VoiceTranscript;
+export 'package:voice_engine/voice_engine.dart'
+    show VoiceTranscript, EnrollmentResult;
 
 /// Thrown when the voice engine can't be started.
 class VoiceException implements Exception {
@@ -18,6 +19,17 @@ class VoiceException implements Exception {
   @override
   String toString() => 'VoiceException: $message';
 }
+
+/// Canned greetings spoken the instant the wake word fires, before the user has
+/// said anything. One is chosen round-robin by the engine, which pre-synthesizes
+/// and caches them with the local TTS model at open (that first synthesis also
+/// warms up ONNX Runtime, so the first real reply is quicker) and plays the
+/// cached audio with no synthesis latency on wake. Local backend + wake only.
+const List<String> kWakeAckPhrases = <String>[
+  '我在，有什么可以帮到你吗？',
+  '嗯，我在听。',
+  '你好呀，需要我做什么？',
+];
 
 /// Configuration for the full-duplex voice engine. The user points it at a
 /// single [modelsDir]; the ASR, TTS and keyword-spotter models live in fixed
@@ -47,6 +59,9 @@ class VoiceConfig {
     this.ttsLanguage = '',
     this.ttsInstructions = '',
     this.ttsProxy = '',
+    this.wakeAckPhrases = kWakeAckPhrases,
+    this.enableSpeakerId = false,
+    this.speakerVerify = false,
   });
 
   /// Build the engine-facing config from the persisted user [settings].
@@ -66,6 +81,8 @@ class VoiceConfig {
     ttsLanguage: settings.ttsLanguage,
     ttsInstructions: settings.ttsInstructions,
     ttsProxy: settings.ttsProxy,
+    enableSpeakerId: settings.enableSpeakerId,
+    speakerVerify: settings.enableSpeakerId,
   );
 
   /// Root folder holding the `asr/`, `tts/` and `kws/` model subfolders.
@@ -115,6 +132,28 @@ class VoiceConfig {
   /// `http://127.0.0.1:1080`); empty connects directly. Used when [ttsBackend]
   /// is `'vllm'` or `'openai'`.
   final String ttsProxy;
+
+  /// Canned wake greetings (see [kWakeAckPhrases]). Passed to the engine only for
+  /// the local backend with wake gating on; otherwise dropped, since only the
+  /// local TTS worker caches and plays them.
+  final List<String> wakeAckPhrases;
+
+  /// Load the speaker-identification model (from [speakerModelDir]) so the user
+  /// can enroll a voice. When `false` no speaker model is loaded.
+  final bool enableSpeakerId;
+
+  /// Enforce the speaker gate: drop transcripts from anyone but the enrolled
+  /// voice. Needs [enableSpeakerId]; accepts all voices until someone is enrolled.
+  final bool speakerVerify;
+
+  /// Speaker-embedding model folder; its `model.onnx` is the voiceprint model.
+  String get speakerModelDir => p.join(modelsDir, 'speaker');
+
+  /// The speaker-embedding model file passed to the engine.
+  String get speakerModelPath => p.join(speakerModelDir, 'model.onnx');
+
+  /// Where enrolled voiceprints are persisted (survives restarts).
+  String get speakerProfilePath => p.join(modelsDir, 'speaker_profile.json');
 
   /// Whether the Volcengine online WebSocket TTS backend is selected.
   bool get isVolcengineTts => ttsBackend == 'volcengine';
@@ -178,6 +217,10 @@ class VoiceConfig {
     energyGate: kEnergyGate,
     enableWake: enableWake,
     kwsModelDir: kwsModelDir,
+    wakeAckPhrases: (isLocalTts && enableWake) ? wakeAckPhrases : const [],
+    speakerModelPath: enableSpeakerId ? speakerModelPath : '',
+    speakerProfilePath: enableSpeakerId ? speakerProfilePath : '',
+    speakerVerify: enableSpeakerId && speakerVerify,
   );
 }
 
@@ -217,10 +260,15 @@ class VoiceService with Loggable {
   double get speakingLevel => _controller.speakingLevel;
 
   /// Fires when the wake word is recognized and ASR starts (wake-gated runs).
-  Stream<void> get wake => _controller.wake;
+  /// Carries the canned greeting the engine began playing, or `null` when none.
+  Stream<String?> get wake => _controller.wake;
 
   /// Fires when the engine returns to the idle (asleep) state.
   Stream<void> get sleep => _controller.sleep;
+
+  /// Fires with the outcome of each [enrollEnd]. Only meaningful when started
+  /// with `enableSpeakerId`.
+  Stream<EnrollmentResult> get enrolled => _controller.enrolled;
 
   bool get isRunning => _running;
 
@@ -250,6 +298,9 @@ class VoiceService with Loggable {
         ...['model.onnx', 'tokens.txt']
             .map((f) => p.join(config.ttsModelDir, f))
             .where((f) => !File(f).existsSync()),
+      // Speaker verification needs its embedding model when enabled.
+      if (config.enableSpeakerId && !File(config.speakerModelPath).existsSync())
+        config.speakerModelPath,
     ];
 
     // The Volcengine backend needs credentials instead of model files.
@@ -327,6 +378,19 @@ class VoiceService with Loggable {
 
   /// Barge-in: cancel current speech and discard queued/in-flight audio.
   Future<void> stopSpeaking() => _controller.stop();
+
+  /// Begin capturing the enrolled voice: the engine accumulates mic audio (and
+  /// pauses ASR) until [enrollEnd]. No-op unless started with `enableSpeakerId`.
+  /// Have the user speak a short phrase, then call [enrollEnd].
+  void enrollBegin() => _controller.enrollBegin();
+
+  /// Finish enrollment: store the voiceprint under [name] (empty uses the default
+  /// `'owner'`). The outcome arrives on [enrolled]. Call the pair a few times to
+  /// enroll several samples for a more robust voiceprint.
+  void enrollEnd([String name = '']) => _controller.enrollEnd(name);
+
+  /// Forget every voiceprint under [name] (empty uses `'owner'`) to re-enroll.
+  void enrollReset([String name = '']) => _controller.enrollReset(name);
 
   /// Put the engine back to sleep (listen only for the wake word). No-op unless
   /// started with `enableWake`.

@@ -3,6 +3,10 @@
   "appTitle": "Nano Dash",
   "dashboardEmpty": "No widgets enabled",
   "dashboardEmptyHint": "Enable a widget below to show it here.",
+  "moduleVisibilityOff": "Off",
+  "moduleVisibilityAssistant": "Assistant only",
+  "moduleVisibilityCarousel": "In carousel",
+  "moduleVisibilityTooltip": "Off: hidden. Assistant only: hidden from swiping, but the assistant can show it. In carousel: a normal swipe page.",
   "settingsTitle": "Settings",
   "settingsDone": "Done",
   "moduleClockTitle": "Clock",
@@ -13,10 +17,25 @@
   "moduleWeatherTitle": "Weather",
   "moduleCalendarTitle": "Calendar",
   "moduleMarketsTitle": "Markets",
+  "moduleUsageMonitorTitle": "Usage Monitor",
   "moduleNowPlayingTitle": "Now Playing",
   "moduleVoiceTitle": "Voice",
+  "moduleVideoTitle": "Video",
   "moduleSettingsTitle": "Settings",
   "nowPlayingIdle": "Nothing playing",
+  "videoIdle": "No video",
+  "videoPickHint": "Tap to choose a file",
+  "videoError": "Playback error",
+  "videoPlaying": "Playing on panel",
+  "videoStopHint": "Tap to stop",
+  "videoPause": "Pause",
+  "videoResume": "Resume",
+  "videoStop": "Stop",
+  "videoRewind": "Back 10s",
+  "videoForward": "Forward 10s",
+  "videoErrorFfmpeg": "FFmpeg not found — set its path in Settings",
+  "videoErrorPanel": "Unknown panel size",
+  "videoErrorDecode": "Playback stopped",
   "clear": "Clear",
   "settingsBackground": "Background",
   "settingsBackgroundDefault": "Default",
@@ -30,15 +49,22 @@
   "settingsThemeModeDark": "Dark",
   "settingsBrightness": "Brightness",
   "settingsAlertEffect": "Alert effect",
+  "settingsFfmpeg": "FFmpeg",
+  "settingsFfmpegAuto": "Auto-detect",
+  "settingsFfmpegHint": "Used by the Video module to decode files",
+  "settingsFfmpegNotFound": "Not found on PATH — tap to choose",
   "alertEffectNone": "Off",
-  "alertEffectClick": "Click",
-  "alertEffectTick": "Tick",
-  "alertEffectDoubleClick": "Double click",
+  "alertEffectBump": "Bump",
+  "alertEffectPulse": "Pulse",
+  "alertEffectMediumBuzz": "Medium buzz",
   "alertEffectBuzz": "Buzz",
   "alertEffectStrongBuzz": "Strong buzz",
   "alertEffectAlert750": "Alert 750 ms",
   "alertEffectAlert1000": "Alert 1000 ms",
   "alertEffectPulsing": "Pulsing",
+  "settingsReset": "Reset to default",
+  "settingsResetConfirmTitle": "Reset all settings?",
+  "settingsResetConfirmBody": "This restores every setting to its default and removes the chosen background.",
   "settingsAdvanced": "Advanced",
   "settingsFirmwareUpdate": "Firmware update",
   "settingsFirmwareUpdateHint": "Flash a .bin to the panel over USB",
@@ -103,6 +129,31 @@
   "voiceSpeed": "Speed",
   "voiceRestartToApply": "Turn the microphone off and on again to apply these settings.",
   "voiceSpeakerYou": "You",
+  "voiceSpeakerIdent": "Speaker identification",
+  "voiceSpeakerIdentHint": "Load the speaker model and answer only your enrolled voice.",
+  "voiceVoiceprint": "Voiceprint",
+  "voiceEnrollRecord": "Record",
+  "voiceEnrollStop": "Stop",
+  "voiceEnrollForget": "Forget",
+  "voiceEnrollStarting": "Starting…",
+  "voiceEnrollRecording": "Recording… speak now, then tap Stop.",
+  "voiceEnrollPrompt": "Record your voiceprint so the assistant knows your voice.",
+  "voiceEnrollCount": "{count, plural, =0{No voiceprint recorded yet} =1{1 sample enrolled} other{{count} samples enrolled}}",
+  "@voiceEnrollCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceEnrollFailed": "Enrollment failed: {reason}",
+  "@voiceEnrollFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "moduleAgentTitle": "Assistant",
   "agentEnable": "Enable assistant",
   "agentEnableHint": "Answer questions heard by the microphone with an AI model.",
@@ -117,6 +168,16 @@
   "agentPersonaHint": "Optional character description for the assistant.",
   "agentNeedsApiKey": "Set an API key for the assistant to answer.",
   "agentErrorLine": "Sorry, something went wrong.",
+  "agentReminderLine": "Reminder: {text}",
+  "@agentReminderLine": {
+    "placeholders": { "text": { "type": "String" } }
+  },
+  "agentReminderMissedLine": "While I was off you missed a reminder: {text}",
+  "@agentReminderMissedLine": {
+    "placeholders": { "text": { "type": "String" } }
+  },
+  "reminderNotificationTitle": "Reminder",
+  "reminderNotificationMissedTitle": "Missed reminder",
   "agentSpeakerName": "Assistant",
   "agentStop": "Stop",
   "timerHours": "Hours",
@@ -145,6 +206,9 @@
   "@timerStatsSessions": {
     "placeholders": { "count": { "type": "int" } }
   },
+  "timerNotificationFinished": "Timer finished",
+  "timerNotificationFocusDone": "Focus complete — time for a break",
+  "timerNotificationBreakDone": "Break over — back to focus",
   "moduleControlsTitle": "Controls",
   "moduleWidgetsTitle": "Widgets",
   "controlsPower": "Power",
@@ -190,6 +254,23 @@
   "marketsWatchlistHelp": "One ticker per line, in Yahoo Finance form: ^ for indices (^GSPC), -USD for crypto (BTC-USD), and =X for FX (EURUSD=X).",
   "marketsProxyYahoo": "Yahoo Finance proxy (optional)",
   "marketsProxyHint": "host:port or socks5://host:port",
+  "usageMonitorEmpty": "No providers enabled",
+  "usageMonitorNoData": "No usage data",
+  "usageMonitorNotSignedIn": "Not signed in",
+  "usageMonitorAuthExpired": "Login expired",
+  "usageMonitorRateLimited": "Rate limited",
+  "usageMonitorNetworkError": "Network error",
+  "usageMonitorUpstreamError": "Service unavailable",
+  "usageMonitorUnknownError": "Unavailable",
+  "usageMonitorResetsSoon": "resetting…",
+  "usageMonitorResetsIn": "resets in {time}",
+  "@usageMonitorResetsIn": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "usageMonitorProxy": "Proxy (optional)",
+  "usageMonitorProxyHint": "host:port or socks5://host:port",
   "calendarEmpty": "No upcoming events",
   "calendarError": "Calendar unavailable",
   "calendarToday": "Today",

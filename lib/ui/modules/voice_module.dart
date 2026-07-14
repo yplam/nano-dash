@@ -37,17 +37,33 @@ class VoiceModule extends Module {
     final l10n = AppLocalizations.of(context);
     return BlocBuilder<VoiceCubit, VoiceState>(
       buildWhen: (prev, curr) =>
-          prev.status != curr.status || prev.error != curr.error,
-      builder: (context, state) => VoiceSettingsView(
-        initialSettings: state.settings,
-        statusHint: switch (state.status) {
-          VoiceStatus.error => state.error,
-          _ when state.status.isOpen => l10n.voiceRestartToApply,
-          _ => null,
-        },
-        onSettingsChanged: (next) =>
-            context.read<VoiceCubit>().updateSettings(next),
-      ),
+          prev.status != curr.status ||
+          prev.error != curr.error ||
+          prev.enrolling != curr.enrolling ||
+          prev.enrollCount != curr.enrollCount ||
+          prev.enrollMessage != curr.enrollMessage ||
+          prev.enrollOk != curr.enrollOk,
+      builder: (context, state) {
+        final cubit = context.read<VoiceCubit>();
+        return VoiceSettingsView(
+          initialSettings: state.settings,
+          status: state.status,
+          statusHint: switch (state.status) {
+            VoiceStatus.error => state.error,
+            _ when state.status.isOpen => l10n.voiceRestartToApply,
+            _ => null,
+          },
+          enrolling: state.enrolling,
+          enrollCount: state.enrollCount,
+          enrollMessage: state.enrollMessage,
+          enrollOk: state.enrollOk,
+          onEnrollStart: cubit.startEnroll,
+          onEnrollStop: cubit.stopEnroll,
+          onEnrollForget: cubit.forgetVoiceprint,
+          onEnrollSessionEnd: cubit.endEnrollSession,
+          onSettingsChanged: cubit.updateSettings,
+        );
+      },
     );
   }
 }

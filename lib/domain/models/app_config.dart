@@ -29,8 +29,8 @@ class AppConfig implements JsonModel {
   static const int defaultLcdBrightness = 204;
 
   /// DRV2605L ROM waveform id played for alerts. Matches
-  /// [AlertEffect.fallback] (a short click); see [AlertEffect] for the presets.
-  static const int defaultAlertEffect = 1;
+  /// [AlertEffect.fallback] (a gentle bump); see [AlertEffect] for the presets.
+  static const int defaultAlertEffect = 7;
 
   static const String _kBackground = 'background';
   static const String _kLocale = 'locale';

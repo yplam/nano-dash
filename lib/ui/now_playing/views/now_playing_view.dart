@@ -212,7 +212,7 @@ class _Transport extends StatelessWidget {
   final NowPlaying np;
 
   void _tap(BuildContext context, VoidCallback action) {
-    context.read<PicoViewService>().playHaptic(AlertEffect.tick.effect);
+    context.read<PicoViewService>().playHaptic(AlertEffect.bump.effect);
     action();
   }
 

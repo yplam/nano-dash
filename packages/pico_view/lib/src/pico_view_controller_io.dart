@@ -52,6 +52,11 @@ class PicoViewController {
   ffi.Pointer<ffi.Uint8>? _frameBuffer;
   int _frameBufferCap = 0;
 
+  /// When true, an external frame producer (e.g. the video module) is pushing
+  /// frames straight to the panel via [flushRgba], so the [PicoView] mirror loop
+  /// must pause its own captures to avoid two writers fighting over the panel.
+  bool suspendCapture = false;
+
   /// Physical-touch events in LCD pixel coordinates.
   Stream<PicoTouchEvent> get touches => _touch.stream;
 

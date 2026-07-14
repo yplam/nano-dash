@@ -15,12 +15,19 @@ class SettingsView extends StatelessWidget {
     super.key,
     required this.config,
     required this.onChanged,
+    this.deviceConnected = false,
     this.onPreviewEffect,
     this.advanced,
   });
 
   final AppConfig config;
   final ValueChanged<AppConfig> onChanged;
+
+  /// Whether a panel is currently connected. The hardware-only controls
+  /// (brightness, alert effect, firmware) are shown only while it is true, so
+  /// they stay hidden with no device attached and on web (which never opens
+  /// one).
+  final bool deviceConnected;
 
   /// Plays a haptic effect id on the panel so the user feels a choice as they
   /// make it. Null when no device handle is available (e.g. web / tests).
@@ -33,7 +40,6 @@ class SettingsView extends StatelessWidget {
 
   /// The seed colours offered for the theme.
   static const List<Color> _seeds = <Color>[
-    Colors.indigo,
     Colors.blue,
     Colors.teal,
     Colors.green,
@@ -55,11 +61,29 @@ class SettingsView extends StatelessWidget {
         _section(l10n.settingsLanguage, _languageControl(l10n)),
         _section(l10n.settingsThemeColor, _themeControl()),
         _section(l10n.settingsThemeMode, _themeModeControl(l10n)),
-        _section(l10n.settingsBrightness, _brightnessControl()),
-        _section(l10n.settingsAlertEffect, _alertEffectControl(l10n)),
-        if (advanced != null) _section(l10n.settingsAdvanced, advanced!),
+        // Hardware-only controls: shown only while a panel is connected (and so
+        // never on web, which never opens a device).
+        if (deviceConnected) ...[
+          _section(l10n.settingsBrightness, _brightnessControl()),
+          _section(l10n.settingsAlertEffect, _alertEffectControl(l10n)),
+          if (advanced != null) _section(l10n.settingsAdvanced, advanced!),
+        ],
+        _resetButton(l10n),
         const SizedBox(height: 8),
       ],
+    );
+  }
+
+  Widget _resetButton(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      child: Builder(
+        builder: (context) => OutlinedButton.icon(
+          onPressed: () => _resetToDefault(context),
+          icon: const Icon(Icons.restart_alt),
+          label: Text(l10n.settingsReset),
+        ),
+      ),
     );
   }
 
@@ -209,12 +233,12 @@ class SettingsView extends StatelessWidget {
     switch (effect) {
       case AlertEffect.none:
         return l10n.alertEffectNone;
-      case AlertEffect.click:
-        return l10n.alertEffectClick;
-      case AlertEffect.tick:
-        return l10n.alertEffectTick;
-      case AlertEffect.doubleClick:
-        return l10n.alertEffectDoubleClick;
+      case AlertEffect.bump:
+        return l10n.alertEffectBump;
+      case AlertEffect.pulse:
+        return l10n.alertEffectPulse;
+      case AlertEffect.mediumBuzz:
+        return l10n.alertEffectMediumBuzz;
       case AlertEffect.buzz:
         return l10n.alertEffectBuzz;
       case AlertEffect.strongBuzz:
@@ -248,6 +272,34 @@ class SettingsView extends StatelessWidget {
     final previous = config.backgroundPath;
     onChanged(config.copyWith(backgroundPath: dest));
     await _deleteQuietly(previous, keep: dest);
+  }
+
+  /// Restore every setting to its [AppConfig] default after confirmation, and
+  /// remove the copied background file so nothing is left behind on disk.
+  Future<void> _resetToDefault(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.settingsResetConfirmTitle),
+        content: Text(l10n.settingsResetConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.settingsReset),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final previous = config.backgroundPath;
+    onChanged(const AppConfig());
+    await _deleteQuietly(previous);
   }
 
   Future<void> _clearBackground() async {

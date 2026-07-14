@@ -112,21 +112,23 @@ class _AgentSettingsViewState extends State<AgentSettingsView> {
           value: _settings.enabled,
           onChanged: (v) => _commit(_settings.copyWith(enabled: v)),
         ),
-        _field('apiKey', l10n.agentApiKey, obscure: true),
-        _field('baseUrl', l10n.agentBaseUrl),
-        _field('proxy', l10n.agentProxy),
-        _field(
-          'lightModel',
-          l10n.agentLightModel,
-          help: l10n.agentLightModelHint,
-        ),
-        _field('proModel', l10n.agentProModel, help: l10n.agentProModelHint),
-        _field(
-          'persona',
-          l10n.agentPersona,
-          help: l10n.agentPersonaHint,
-          lines: 3,
-        ),
+        if (_settings.enabled) ...[
+          _field('apiKey', l10n.agentApiKey, obscure: true),
+          _field('baseUrl', l10n.agentBaseUrl),
+          _field('proxy', l10n.agentProxy),
+          _field(
+            'lightModel',
+            l10n.agentLightModel,
+            help: l10n.agentLightModelHint,
+          ),
+          _field('proModel', l10n.agentProModel, help: l10n.agentProModelHint),
+          _field(
+            'persona',
+            l10n.agentPersona,
+            help: l10n.agentPersonaHint,
+            lines: 3,
+          ),
+        ],
         const SizedBox(height: 12),
       ],
     );

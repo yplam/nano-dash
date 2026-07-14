@@ -76,33 +76,43 @@ class DashboardLcdView extends StatelessWidget {
     final modules = context.read<ModuleRepository>();
 
     return BlocBuilder<DashboardCubit, DashboardState>(
-      // Rebuild on a page switch, on enable/disable, and on a live settings
-      // edit to the visible page.
+      // Rebuild on a page switch, on enable/disable, on a transient
+      // (assistant-shown) page, and on a live settings edit to the visible page.
       buildWhen: (prev, curr) =>
           prev.currentPage != curr.currentPage ||
+          prev.tempModuleId != curr.tempModuleId ||
           prev.enabledItems != curr.enabledItems,
       builder: (context, state) {
         final pages = modules.pages(state.items);
-        if (pages.isEmpty) {
+        final showingTemp = state.showingTemp;
+        if (pages.isEmpty && !showingTemp) {
           return _withBackground(const _EmptyLcd());
         }
-        final count = pages.length;
-        final cur = state.currentPage.clamp(0, count - 1);
-        final item = pages[cur];
+
+        final Widget content;
+        final String key;
+        if (showingTemp) {
+          // A module outside the carousel rotation, shown on the assistant's
+          // request until a swipe (or timeout) returns to the previous page.
+          content = _buildTemp(context, modules, state);
+          key = 'temp#${state.tempModuleId}';
+        } else {
+          final cur = state.currentPage.clamp(0, pages.length - 1);
+          final item = pages[cur];
+          content = _buildModule(context, modules, item);
+          key = '${item.moduleId}#$cur';
+        }
 
         Widget view = AnimatedSwitcher(
           duration: _kSwitchDuration,
           transitionBuilder: (child, animation) =>
               _slide(child, animation, forward: state.forward),
-          child: KeyedSubtree(
-            key: ValueKey<String>('${item.moduleId}#$cur'),
-            child: _buildModule(context, modules, item),
-          ),
+          child: KeyedSubtree(key: ValueKey<String>(key), child: content),
         );
 
-        // With more than one module, a horizontal swipe steps pages. Restrict
-        // it to touch/stylus (the panel's input).
-        if (count > 1) {
+        // A horizontal swipe steps pages (or dismisses the transient page).
+        // Restrict it to touch/stylus (the panel's input).
+        if (showingTemp || pages.length > 1) {
           view = RawGestureDetector(
             behavior: HitTestBehavior.opaque,
             gestures: <Type, GestureRecognizerFactory>{
@@ -185,6 +195,19 @@ class DashboardLcdView extends StatelessWidget {
       return const ColoredBox(color: Colors.black);
     }
     return module.build(context, item.settings);
+  }
+
+  /// Render the transient module, using its persisted settings from the config.
+  Widget _buildTemp(
+    BuildContext context,
+    ModuleRepository modules,
+    DashboardState state,
+  ) {
+    final id = state.tempModuleId;
+    for (final item in state.items) {
+      if (item.moduleId == id) return _buildModule(context, modules, item);
+    }
+    return const ColoredBox(color: Colors.black);
   }
 }
 

@@ -13,8 +13,8 @@ import 'package:nano_dash/domain/models/agent.dart';
 import 'package:nano_dash/domain/models/voice.dart';
 import 'package:nano_dash/l10n/app_localizations.dart';
 import 'package:nano_dash/ui/agent/agent.dart';
-import 'package:nano_dash/ui/live2d/widgets/dialogue_box.dart';
-import 'package:nano_dash/ui/live2d/widgets/voice_dialogue.dart';
+import 'package:nano_dash/ui/widgets/dialogue_box.dart';
+import 'package:nano_dash/ui/widgets/voice_dialogue.dart';
 import 'package:nano_dash/ui/voice/voice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

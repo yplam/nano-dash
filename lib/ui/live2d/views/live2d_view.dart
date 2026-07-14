@@ -7,11 +7,9 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../../widgets/assistant_overlay.dart';
 import '../../widgets/panel_empty.dart';
-import '../../widgets/panel_theme.dart';
-import '../../widgets/voice_agent_button.dart';
 import '../cubit/live2d_cubit.dart';
-import '../widgets/voice_dialogue.dart';
 
 /// Shows the app-wide Live2D renderer ([Live2dCubit]) as an LCD page.
 ///
@@ -50,9 +48,6 @@ class _Live2dViewState extends State<Live2dView>
 
   /// Pointer-down position, to tell a tap (→ motion) from a drag (→ look-at).
   Offset? _downAt;
-
-  /// Mic button diameter, as a fraction of the panel's side.
-  static const double _kMicDiameter = 0.16;
 
   @override
   void initState() {
@@ -174,9 +169,6 @@ class _Live2dViewState extends State<Live2dView>
 
   Widget _buildModel(BuildContext context, Size size, double side) {
     final image = _image;
-    final micDiameter = side * _kMicDiameter;
-    final micTopLeft = _micTopLeft(side, micDiameter);
-    final micInset = micDiameter * (VoiceAgentButton.kBoxScale - 1) / 2;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -218,41 +210,21 @@ class _Live2dViewState extends State<Live2dView>
             ],
           ),
         ),
+        // The button (top-right corner) and dialogue (bottom) ride over the
+        // model, confined to the centred square so they clear the round rim.
         Center(
           child: SizedBox(
             width: side,
             height: side,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: VoiceDialogue(side: side),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: micTopLeft.dx - micInset,
-                  top: micTopLeft.dy - micInset,
-                  child: VoiceAgentButton(diameter: micDiameter),
-                ),
-              ],
+            child: const AssistantOverlay(
+              button: AssistantAnchor.topRight,
+              dialogue: true,
+              child: SizedBox.expand(),
             ),
           ),
         ),
       ],
     );
-  }
-
-  Offset _micTopLeft(double side, double diameter) {
-    final rim =
-        side *
-        (Theme.of(context).extension<PanelTheme>() ?? const PanelTheme())
-            .safeMargin;
-    final r = side / 2;
-    final k = (r - rim - diameter / 2) / math.sqrt2;
-    return Offset(r + k - diameter / 2, r - k - diameter / 2);
   }
 
   void _sendDrag(BuildContext context, Offset p, Size size) {

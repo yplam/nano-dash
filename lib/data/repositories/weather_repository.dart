@@ -14,12 +14,17 @@ class WeatherRepository {
 
   WeatherConfig _config;
   WeatherData? _current;
+  DateTime? _fetchedAt;
 
   /// The current persisted settings.
   WeatherConfig get config => _config;
 
   /// The last successfully fetched conditions, or `null` until the first fetch succeeds.
   WeatherData? get current => _current;
+
+  /// When [current] was fetched, or `null` if nothing has been fetched. Used to
+  /// stamp the freshness of the cached snapshot fed to the voice agent.
+  DateTime? get fetchedAt => _fetchedAt;
 
   Future<void> save(WeatherConfig config) {
     _config = config;
@@ -29,6 +34,7 @@ class WeatherRepository {
   Future<WeatherData> fetch(String city, {String language = 'en'}) async {
     final data = await _service.fetch(city, language: language);
     _current = data;
+    _fetchedAt = DateTime.now();
     return data;
   }
 }

@@ -59,6 +59,11 @@ class _PicoViewState extends State<PicoView> with WidgetsBindingObserver {
   bool _capturing = false;
   int _lastHash = 0;
 
+  /// Tracks the falling edge of [PicoViewController.suspendCapture] so the mirror
+  /// loop forces a fresh capture when an external producer (the video module)
+  /// releases the panel.
+  bool _wasSuspended = false;
+
   /// Frame-rate budget in milliseconds, derived from [PicoView.maxFps].
   int _minIntervalMs = 38;
 
@@ -184,6 +189,17 @@ class _PicoViewState extends State<PicoView> with WidgetsBindingObserver {
   }
 
   void _maybeCapture() {
+    // An external producer owns the panel: skip captures entirely while it does.
+    if (widget.controller.suspendCapture) {
+      _wasSuspended = true;
+      _trailingTimer?.cancel();
+      _trailingTimer = null;
+      return;
+    }
+    if (_wasSuspended) {
+      _wasSuspended = false;
+      _lastHash = 0;
+    }
     final nowMs = _clock.elapsedMilliseconds;
     final sinceLast = nowMs - _lastCaptureMs;
     if (sinceLast >= _minIntervalMs) {

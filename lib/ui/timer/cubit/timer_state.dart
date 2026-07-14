@@ -1,10 +1,8 @@
 part of 'timer_cubit.dart';
 
-/// Which leg of a Pomodoro cycle the selected timer is currently on.
-enum PomodoroPhase { focus, shortBreak, longBreak }
-
-/// View state for the multi-timer module. The countdown applies to the single
-/// [selectedId] timer — only one timer runs at a time.
+/// View state for the multi-timer module: the repository's presets, countdown
+/// snapshot and focus-session log, flattened for the views. The countdown
+/// applies to the single [selectedId] timer — only one timer runs at a time.
 class TimerState {
   const TimerState({
     this.timers = const [],
@@ -86,27 +84,5 @@ class TimerState {
     if (total <= 0) return 0;
     final done = total - remaining.inMilliseconds;
     return (done / total).clamp(0.0, 1.0);
-  }
-
-  TimerState copyWith({
-    List<TimerConfig>? timers,
-    Duration? remaining,
-    bool? running,
-    bool? finished,
-    PomodoroPhase? phase,
-    int? completedFocus,
-    List<PomodoroLog>? logs,
-  }) {
-    return TimerState(
-      timers: timers ?? this.timers,
-      selectedId: selectedId,
-      selectedName: selectedName,
-      remaining: remaining ?? this.remaining,
-      running: running ?? this.running,
-      finished: finished ?? this.finished,
-      phase: phase ?? this.phase,
-      completedFocus: completedFocus ?? this.completedFocus,
-      logs: logs ?? this.logs,
-    );
   }
 }

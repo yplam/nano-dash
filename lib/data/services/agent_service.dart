@@ -98,6 +98,8 @@ class AgentService with Loggable {
     required AgentSettings settings,
     required List<AgentTurn> history,
     required String userText,
+    String? context,
+    AgentTool? showTool,
   }) {
     logDebug(
       'askLight: model=${settings.lightModel.trim()} '
@@ -106,11 +108,16 @@ class AgentService with Loggable {
     return _start(settings, (session, deltas) async {
       final stream = session.ai.generateStream(
         model: openAI.model(settings.lightModel.trim(), namespace: _namespace),
-        system: _lightSystem(settings),
+        system: _lightSystem(settings, context),
         messages: _toMessages(history, userText),
-        tools: [_escalateTool()],
+        tools: [
+          _escalateTool(),
+          // Let the fast model also put a page on the screen while it answers a
+          // simple ask directly.
+          if (showTool != null) _toGenkitTool(showTool),
+        ],
         // Don't let genkit "execute" escalate and loop — the request itself is
-        // the routing decision.
+        // the routing decision. show_on_screen requests are run by hand below.
         returnToolRequests: true,
       );
       var deltaCount = 0;
@@ -126,6 +133,15 @@ class AgentService with Loggable {
         'finishReason=${res.finishReason?.value} '
         'toolRequests=${res.toolRequests.map((r) => r.name).toList()}',
       );
+      // returnToolRequests halts execution, so genkit didn't run show_on_screen
+      // for us.
+      if (showTool != null) {
+        for (final req in res.toolRequests) {
+          if (req.name == showTool.name) {
+            unawaited(showTool.run(_asArgs(req.input)));
+          }
+        }
+      }
       for (final req in res.toolRequests) {
         if (req.name == _escalateName) {
           final brief = req.input?['brief'] as String? ?? userText;
@@ -154,6 +170,7 @@ class AgentService with Loggable {
     required String brief,
     required List<AgentTool> tools,
     required Future<String?> Function(String question) onAskUser,
+    String? context,
   }) {
     logDebug(
       'askOrchestrator: model=${settings.proModel.trim()} '
@@ -180,7 +197,7 @@ class AgentService with Loggable {
         );
         final stream = session.ai.generateStream(
           model: openAI.model(settings.proModel.trim(), namespace: _namespace),
-          system: _orchestratorSystem(settings, brief),
+          system: _orchestratorSystem(settings, brief, context),
           messages: messages,
           tools: genkitTools,
           maxTurns: _maxTurns,
@@ -395,24 +412,47 @@ class AgentService with Loggable {
         '${persona.isEmpty ? '' : '\nYour character: $persona'}';
   }
 
-  static String _lightSystem(AgentSettings settings) {
+  static String _lightSystem(AgentSettings settings, String? context) {
     return '${_voiceStyle(settings)}\n'
-        'You are the fast first responder. If the question is small talk or '
-        'something you can answer confidently and completely from general '
-        'knowledge in a couple of sentences, just answer it. If it needs live '
-        'or personal data (weather, calendar, market prices), current events, '
-        'research, or multi-step reasoning, do not attempt an answer: call '
-        'the $_escalateName tool.';
+        'You are the fast first responder. Answer directly when you can do so '
+        'confidently and completely in a couple of sentences — small talk, '
+        'general knowledge, or a question the snapshot below already answers '
+        '(the weather, the day\'s calendar, a timer, a reminder). Only when the '
+        'request needs data the snapshot does not cover — a different place, '
+        'fresher figures than the snapshot\'s "as of" time, an action to '
+        'perform (create, start, cancel, schedule), market prices, current '
+        'events, research, or multi-step reasoning — do not attempt an answer: '
+        'call the $_escalateName tool.\n'
+        'When the user asks to see something you can answer directly (the '
+        'weather, the day\'s calendar, a timer), you may also call '
+        'show_on_screen to put that page on the display — but still speak your '
+        'short answer in words as well.'
+        '${_contextBlock(context)}';
   }
 
-  static String _orchestratorSystem(AgentSettings settings, String brief) {
+  static String _orchestratorSystem(
+    AgentSettings settings,
+    String brief,
+    String? context,
+  ) {
     return '${_voiceStyle(settings)}\n'
         'You are the capable assistant behind the fast responder, which has '
         'already acknowledged the user. Use your tools to gather what you '
         'need, then give one final spoken answer; only say things meant for '
         'the user\'s ears. If a crucial detail is missing, you may use '
         '$_askUserName once.\n'
-        'The fast responder\'s brief: $brief';
+        'The fast responder\'s brief: $brief'
+        '${_contextBlock(context)}';
+  }
+
+  /// The ambient snapshot, framed so both models treat it as possibly-stale
+  /// context to be superseded by live tools. Empty string when there is none.
+  static String _contextBlock(String? context) {
+    if (context == null || context.trim().isEmpty) return '';
+    return '\n\nLive snapshot of the user\'s device and data. It may be '
+        'slightly stale — the "as of" times say when each part was last '
+        'refreshed. Use it to answer directly, but rely on your tools for '
+        'anything newer, for a different place, or not shown here:\n$context';
   }
 }
 

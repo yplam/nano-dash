@@ -47,6 +47,7 @@ class VoiceSettings implements JsonModel {
     this.ttsLanguage = '',
     this.ttsInstructions = '',
     this.ttsProxy = '',
+    this.enableSpeakerId = false,
   });
 
   /// Root folder with the `asr/`, `tts/` and `kws/` model subfolders.
@@ -94,6 +95,14 @@ class VoiceSettings implements JsonModel {
   /// Optional HTTP proxy for the online TTS connection (e.g.
   /// `http://127.0.0.1:1080`); empty connects directly.
   final String ttsProxy;
+
+  /// Load the speaker-identification model (from `<modelsDir>/speaker/`) so the
+  /// user can enroll their voice. When `false` no speaker model is loaded at all.
+  ///
+  /// Enabling this also enforces the speaker gate: once a voice is enrolled,
+  /// transcripts from anyone else are dropped so the agent only answers the
+  /// enrolled person (harmless — accepts all voices — until someone is enrolled).
+  final bool enableSpeakerId;
 
   /// Whether the Volcengine online WebSocket TTS backend is selected.
   bool get isVolcengineTts => ttsBackend == 'volcengine';
@@ -148,6 +157,7 @@ class VoiceSettings implements JsonModel {
     String? ttsLanguage,
     String? ttsInstructions,
     String? ttsProxy,
+    bool? enableSpeakerId,
   }) {
     return VoiceSettings(
       modelsDir: modelsDir ?? this.modelsDir,
@@ -165,6 +175,7 @@ class VoiceSettings implements JsonModel {
       ttsLanguage: ttsLanguage ?? this.ttsLanguage,
       ttsInstructions: ttsInstructions ?? this.ttsInstructions,
       ttsProxy: ttsProxy ?? this.ttsProxy,
+      enableSpeakerId: enableSpeakerId ?? this.enableSpeakerId,
     );
   }
 
@@ -184,6 +195,7 @@ class VoiceSettings implements JsonModel {
     ttsLanguage: json['ttsLanguage'] as String? ?? '',
     ttsInstructions: json['ttsInstructions'] as String? ?? '',
     ttsProxy: json['ttsProxy'] as String? ?? '',
+    enableSpeakerId: json['enableSpeakerId'] == true,
   );
 
   @override
@@ -203,6 +215,7 @@ class VoiceSettings implements JsonModel {
     'ttsLanguage': ttsLanguage,
     'ttsInstructions': ttsInstructions,
     'ttsProxy': ttsProxy,
+    'enableSpeakerId': enableSpeakerId,
   };
 
   @override
@@ -222,7 +235,8 @@ class VoiceSettings implements JsonModel {
       other.ttsBaseUrl == ttsBaseUrl &&
       other.ttsLanguage == ttsLanguage &&
       other.ttsInstructions == ttsInstructions &&
-      other.ttsProxy == ttsProxy;
+      other.ttsProxy == ttsProxy &&
+      other.enableSpeakerId == enableSpeakerId;
 
   @override
   int get hashCode => Object.hash(
@@ -241,6 +255,7 @@ class VoiceSettings implements JsonModel {
     ttsLanguage,
     ttsInstructions,
     ttsProxy,
+    enableSpeakerId,
   );
 }
 

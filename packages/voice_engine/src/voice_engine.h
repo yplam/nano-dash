@@ -47,5 +47,21 @@ int32_t ve_set_active(int32_t active);
 // LipSync parameter.
 float ve_speaking_level(void);
 
+// Begin capturing the enrolled voice: mic audio is accumulated until
+// ve_enroll_end. A no-op unless the engine was opened with a speaker model.
+// Returns 0; -1 when nothing is open.
+int32_t ve_enroll_begin(void);
+
+// Finish enrollment: compute the voiceprint from the captured audio and store it
+// under `name` (UTF-8; empty/null means the default "owner"). The outcome arrives
+// asynchronously as an `enrolled` event. Returns 0 if queued; -1 when nothing is
+// open or `name` is not valid UTF-8.
+int32_t ve_enroll_end(const uint8_t *name_ptr, uintptr_t name_len);
+
+// Forget every voiceprint stored under `name` (UTF-8; empty/null means the
+// default "owner"), so enrollment can start over. Returns 0 if queued; -1 when
+// nothing is open or `name` is not valid UTF-8.
+int32_t ve_enroll_reset(const uint8_t *name_ptr, uintptr_t name_len);
+
 // Stop the worker threads and close the audio devices. Idempotent. Returns 0.
 int32_t ve_close(void);

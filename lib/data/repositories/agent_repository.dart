@@ -4,6 +4,8 @@ import '../../domain/models/agent.dart';
 import '../../domain/models/voice.dart';
 import '../../extensions/loggable.dart';
 import '../services/agent_service.dart';
+import '../services/notification_service.dart';
+import 'reminder_repository.dart';
 import 'settings_repository.dart';
 import 'voice_repository.dart';
 
@@ -28,14 +30,26 @@ class AgentRepository with Loggable {
     this._voice,
     this._service, {
     List<AgentTool> tools = const [],
+    this.displayTool,
+    this.contextBuilder,
     this.errorLine = 'Sorry, something went wrong.',
+    ReminderRepository? reminders,
+    this.notifications,
+    String Function(String text)? reminderLine,
+    String Function(String text)? missedReminderLine,
+    this.reminderTitle = 'Reminder',
+    this.missedReminderTitle = 'Missed reminder',
   }) : _tools = List.unmodifiable(tools),
+       _reminderLine = reminderLine ?? ((text) => text),
+       _missedReminderLine = missedReminderLine ?? ((text) => text),
        _config = _settings.load(agentSettingsKey) {
     _transcriptSub = _voice.transcripts.listen(_onTranscript);
     _statusSub = _voice.statusChanges.listen(_onStatus);
+    _wakeSub = _voice.wake.listen(_onWake);
     // TTS start/stop bears on idleness: a reply may still be draining after the
     // phase has already gone idle, and it mustn't be slept mid-sentence.
     _speakingSub = _voice.speaking.listen((_) => _reviseIdleTimer());
+    _reminderSub = reminders?.fired.listen(_onReminderFired);
   }
 
   final SettingsRepository _settings;
@@ -43,8 +57,32 @@ class AgentRepository with Loggable {
   final AgentService _service;
   final List<AgentTool> _tools;
 
+  /// The `show_on_screen` tool, offered to the light model too so a simple ask
+  /// it answers directly can still bring a page up without escalating.
+  final AgentTool? displayTool;
+
+  /// Builds the ambient snapshot (time-adjacent live state: weather, calendar,
+  /// timers, reminders) prepended to both models' prompts, or null to add none.
+  /// Called once per utterance so the light and orchestrator passes share one
+  /// consistent view. Cheap and synchronous — it reads only cached repository
+  /// state, never the network.
+  final String? Function()? contextBuilder;
+
+  /// Raises the host system notification when a reminder comes due — the visual/
+  /// audible complement to speaking it.
+  final NotificationService? notifications;
+
   /// Spoken and shown when a run fails.
   final String errorLine;
+
+  /// Notification titles for a due reminder (the reminder's own text is the
+  /// body). Passed in because this repository is l10n-free.
+  final String reminderTitle;
+  final String missedReminderTitle;
+
+  /// Wrap a fired reminder's text into the announced line ("Reminder: …"),
+  final String Function(String text) _reminderLine;
+  final String Function(String text) _missedReminderLine;
 
   static const int _kMaxHistoryTurns = 20;
   static const Duration _kAskUserTimeout = Duration(seconds: 30);
@@ -61,7 +99,9 @@ class AgentRepository with Loggable {
 
   late final StreamSubscription<VoiceTranscript> _transcriptSub;
   late final StreamSubscription<VoiceStatus> _statusSub;
+  late final StreamSubscription<String?> _wakeSub;
   late final StreamSubscription<bool> _speakingSub;
+  StreamSubscription<ReminderFired>? _reminderSub;
 
   /// Counts down while the engine is awake and nothing is happening; on fire a
   /// wake-gated engine is put back to sleep. See [_reviseIdleTimer].
@@ -85,6 +125,8 @@ class AgentRepository with Loggable {
   /// Set while the orchestrator waits for a spoken answer to `ask_user`; the
   /// next transcript completes it instead of starting a new question.
   Completer<String>? _pendingAnswer;
+
+  final List<String> _pendingAnnouncements = [];
 
   /// Monotonic run counter: emissions from a superseded run compare stale and
   /// are dropped, so a barge-in can never interleave two answers.
@@ -119,7 +161,9 @@ class AgentRepository with Loggable {
   /// the engine), this is a barge-in on the assistant, not on the session — the
   /// microphone keeps listening. A no-op when nothing is in flight.
   Future<void> stop() async {
-    if (_phase == AgentPhase.idle && _active == null && _pendingAnswer == null) {
+    if (_phase == AgentPhase.idle &&
+        _active == null &&
+        _pendingAnswer == null) {
       return;
     }
     logInfo('stop: barge-in, finalizing current answer');
@@ -141,6 +185,47 @@ class AgentRepository with Loggable {
       );
     }
     _setPhase(AgentPhase.idle);
+  }
+
+  /// Speak and show [line] without running the models — the outlet for
+  /// app-originated utterances like a fired reminder.
+  void announce(String line) {
+    if (_phase != AgentPhase.idle) {
+      logInfo('announce queued until idle: "$line"');
+      _pendingAnnouncements.add(line);
+      return;
+    }
+    logInfo('announce: "$line"');
+    _speakAnnouncement(line);
+  }
+
+  /// Show [line] as a finished reply and, with a synthesizer selected, speak it.
+  void _speakAnnouncement(String line) {
+    final now = DateTime.now();
+    _emitReply(AgentReply(text: line, done: true, started: now, updated: now));
+    if (_voice.config.ttsEnabled) {
+      unawaited(_voice.speakText(line));
+    }
+  }
+
+  void _onReminderFired(ReminderFired event) {
+    final text = event.reminder.text;
+    unawaited(
+      notifications?.notify(
+        title: event.missed ? missedReminderTitle : reminderTitle,
+        body: text,
+        id: NotificationService.reminderId,
+      ),
+    );
+    announce(event.missed ? _missedReminderLine(text) : _reminderLine(text));
+  }
+
+  void _drainAnnouncements() {
+    if (_pendingAnnouncements.isEmpty || _phase != AgentPhase.idle) return;
+    final lines = List<String>.of(_pendingAnnouncements);
+    _pendingAnnouncements.clear();
+    logInfo('draining ${lines.length} queued announcement(s)');
+    _speakAnnouncement(lines.join('\n'));
   }
 
   void _onTranscript(VoiceTranscript transcript) {
@@ -176,6 +261,15 @@ class AgentRepository with Loggable {
     unawaited(_ask(text));
   }
 
+  /// A wake-word wake plays a canned greeting straight from the engine.
+  void _onWake(String? ack) {
+    if (ack == null || ack.isEmpty) return;
+    if (_phase != AgentPhase.idle) return;
+    logInfo('wake greeting: "$ack"');
+    final now = DateTime.now();
+    _emitReply(AgentReply(text: ack, done: true, started: now, updated: now));
+  }
+
   /// Engine closed (or failed): the mic session is over, so drop the
   /// conversation and whatever was in flight.
   void _onStatus(VoiceStatus status) {
@@ -183,8 +277,10 @@ class AgentRepository with Loggable {
     // `error`/`idle` disarm it (the guard in _reviseIdleTimer sees to that).
     _reviseIdleTimer();
     if (status != VoiceStatus.off && status != VoiceStatus.error) return;
-    logInfo('voice engine $status: dropping conversation (${_history.length} '
-        'turns) and any in-flight run');
+    logInfo(
+      'voice engine $status: dropping conversation (${_history.length} '
+      'turns) and any in-flight run',
+    );
     _cancelActive();
     _history.clear();
     _setPhase(AgentPhase.idle);
@@ -229,12 +325,15 @@ class AgentRepository with Loggable {
     }
 
     final history = List<AgentTurn>.unmodifiable(_history);
+    final context = contextBuilder?.call();
     try {
       setPhase(AgentPhase.answering);
       final light = _service.askLight(
         settings: _config,
         history: history,
         userText: userText,
+        context: context,
+        showTool: displayTool,
       );
       _active = light;
       await for (final delta in light.deltas) {
@@ -247,8 +346,11 @@ class AgentRepository with Loggable {
       }
 
       switch (outcome) {
-        case LightAnswered():
+        case LightAnswered(:final text):
           logInfo('ask #$generation: light answered directly');
+          // The answer normally arrives as streamed deltas; fall back to the
+          // final text when the endpoint didn't stream any.
+          if (buffer.isEmpty) push(text);
           break;
         case LightEscalated(:final ack, :final brief):
           logInfo('ask #$generation: escalating to orchestrator');
@@ -265,6 +367,7 @@ class AgentRepository with Loggable {
             userText: userText,
             brief: brief,
             tools: _tools,
+            context: context,
             onAskUser: (question) {
               if (clarifications >= _kMaxClarifications) {
                 logInfo('ask_user past the per-question limit; declining');
@@ -276,10 +379,14 @@ class AgentRepository with Loggable {
             },
           );
           _active = orchestrator;
+          final lenBeforeOrchestrator = buffer.length;
           await for (final delta in orchestrator.deltas) {
             push(delta);
           }
-          await orchestrator.result;
+          final orchestratorText = await orchestrator.result;
+          // As with the light pass, fall back to the final text when the
+          // endpoint streamed no deltas of its own, so the answer isn't lost.
+          if (buffer.length == lenBeforeOrchestrator) push(orchestratorText);
       }
       if (generation != _generation) return;
 
@@ -291,8 +398,10 @@ class AgentRepository with Loggable {
         while (_history.length > _kMaxHistoryTurns) {
           _history.removeAt(0);
         }
-        logInfo('ask #$generation done: ${answer.length} chars, '
-            'history now ${_history.length} turns');
+        logInfo(
+          'ask #$generation done: ${answer.length} chars, '
+          'history now ${_history.length} turns',
+        );
       } else {
         logDebug('ask #$generation done: empty answer, not stored');
       }
@@ -348,8 +457,10 @@ class AgentRepository with Loggable {
   void _cancelActive() {
     _generation++;
     if (_active != null || _pendingAnswer != null) {
-      logDebug('cancelActive: gen->$_generation '
-          'active=${_active != null} pending=${_pendingAnswer != null}');
+      logDebug(
+        'cancelActive: gen->$_generation '
+        'active=${_active != null} pending=${_pendingAnswer != null}',
+      );
     }
     _active?.cancel();
     _active = null;
@@ -374,6 +485,7 @@ class AgentRepository with Loggable {
     // Entering answering/working/askingUser suppresses the countdown; returning
     // to idle rearms it (if the engine is awake and no longer speaking).
     _reviseIdleTimer();
+    if (phase == AgentPhase.idle) _drainAnnouncements();
   }
 
   /// Single arbiter of the inactivity auto-sleep. Cancels any pending timer and,
@@ -388,7 +500,8 @@ class AgentRepository with Loggable {
     _idleSleepTimer?.cancel();
     _idleSleepTimer = null;
 
-    final armed = _voice.config.enableWake &&
+    final armed =
+        _voice.config.enableWake &&
         _voice.status == VoiceStatus.listening &&
         _phase == AgentPhase.idle &&
         !_voice.isSpeaking &&
@@ -415,7 +528,9 @@ class AgentRepository with Loggable {
     _idleSleepTimer?.cancel();
     await _transcriptSub.cancel();
     await _statusSub.cancel();
+    await _wakeSub.cancel();
     await _speakingSub.cancel();
+    await _reminderSub?.cancel();
     await _replies.close();
     await _phases.close();
   }

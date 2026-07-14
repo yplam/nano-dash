@@ -1,9 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../cubit/timer_cubit.dart';
-import '../models/timer_config.dart';
 import 'pomodoro_stats_view.dart';
 import 'timer_detail_view.dart';
 import 'timer_list_view.dart';
@@ -11,10 +9,7 @@ import 'timer_list_view.dart';
 /// The timer module's LCD page. Lands on a list of the configured timers; tap
 /// one to open its draining-ring countdown detail.
 class TimerView extends StatefulWidget {
-  const TimerView({super.key, required this.timers});
-
-  /// The persisted timers, mirrored into the shared cubit.
-  final List<TimerConfig> timers;
+  const TimerView({super.key});
 
   @override
   State<TimerView> createState() => _TimerViewState();
@@ -26,20 +21,6 @@ class _TimerViewState extends State<TimerView> {
 
   /// Whether the statistics page is showing instead of the list/detail.
   bool _stats = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    context.read<TimerCubit>().syncTimers(widget.timers);
-  }
-
-  @override
-  void didUpdateWidget(TimerView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!listEquals(oldWidget.timers, widget.timers)) {
-      context.read<TimerCubit>().syncTimers(widget.timers);
-    }
-  }
 
   void _open(String id, String name) {
     context.read<TimerCubit>().select(id, name);

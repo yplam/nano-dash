@@ -162,6 +162,18 @@ class _ModuleTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<DashboardCubit>();
     final l10n = AppLocalizations.of(context);
+    final trailing = module.hasDisplay
+        ? _VisibilityControl(
+            value: item.visibility,
+            onChanged: (v) => cubit.setVisibility(item.moduleId, v),
+          )
+        : Switch(
+            value: item.enabled,
+            onChanged: (on) => cubit.setVisibility(
+              item.moduleId,
+              on ? ModuleVisibility.carousel : ModuleVisibility.off,
+            ),
+          );
     return ListTile(
       leading: Icon(module.icon),
       title: Text(module.title(l10n)),
@@ -172,14 +184,11 @@ class _ModuleTile extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.tune),
               tooltip: l10n.settingsTitle,
-              onPressed: item.enabled
+              onPressed: item.assistantVisible
                   ? () => _openModuleSettings(context, cubit, module, item)
                   : null,
             ),
-          Switch(
-            value: item.enabled,
-            onChanged: (_) => cubit.toggle(item.moduleId),
-          ),
+          trailing,
           // Config-only modules (no LCD page) take no place in the page order,
           // so they get no drag handle.
           if (module.hasDisplay)
@@ -193,6 +202,52 @@ class _ModuleTile extends StatelessWidget {
           else
             const SizedBox(width: 40),
         ],
+      ),
+    );
+  }
+}
+
+/// The three-way visibility picker for a displayable module.
+class _VisibilityControl extends StatelessWidget {
+  const _VisibilityControl({required this.value, required this.onChanged});
+
+  final ModuleVisibility value;
+  final ValueChanged<ModuleVisibility> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    String label(ModuleVisibility v) => switch (v) {
+      ModuleVisibility.off => l10n.moduleVisibilityOff,
+      ModuleVisibility.assistant => l10n.moduleVisibilityAssistant,
+      ModuleVisibility.carousel => l10n.moduleVisibilityCarousel,
+    };
+    IconData icon(ModuleVisibility v) => switch (v) {
+      ModuleVisibility.off => Icons.visibility_off_outlined,
+      ModuleVisibility.assistant => Icons.assistant_outlined,
+      ModuleVisibility.carousel => Icons.view_carousel_outlined,
+    };
+    return PopupMenuButton<ModuleVisibility>(
+      initialValue: value,
+      onSelected: onChanged,
+      tooltip: label(value),
+      itemBuilder: (context) => [
+        for (final v in ModuleVisibility.values)
+          PopupMenuItem<ModuleVisibility>(
+            value: v,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon(v)),
+                const SizedBox(width: 12),
+                Text(label(v)),
+              ],
+            ),
+          ),
+      ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        child: Icon(icon(value)),
       ),
     );
   }

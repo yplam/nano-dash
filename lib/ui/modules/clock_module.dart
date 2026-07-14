@@ -11,6 +11,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/module.dart';
 import '../dashboard/cubit/dashboard_cubit.dart';
 import '../weather/weather.dart';
+import '../widgets/assistant_overlay.dart';
 import 'weather_module.dart';
 
 /// A real-time digital clock. Shows the current time and date and ticks every second.
@@ -252,28 +253,32 @@ class _ClockViewState extends State<_ClockView> {
           );
         }
 
-        return Center(
-          child: Padding(
-            padding: EdgeInsets.all(side * 0.09),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: side * 0.84),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: colors.surface.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(side * 0.09),
-                  border: Border.all(
-                    color: colors.onSurface.withValues(alpha: 0.08),
+        return AssistantOverlay(
+          button: AssistantAnchor.bottomCenter,
+          dialogue: true,
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(side * 0.09),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: side * 0.84),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: colors.surface.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(side * 0.09),
+                    border: Border.all(
+                      color: colors.onSurface.withValues(alpha: 0.08),
+                    ),
                   ),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: side * 0.07,
-                    vertical: side * 0.06,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: card,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: side * 0.07,
+                      vertical: side * 0.06,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: card,
+                    ),
                   ),
                 ),
               ),

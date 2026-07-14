@@ -3,8 +3,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../widgets/panel_text.dart';
-import '../../widgets/panel_theme.dart';
+import 'panel_text.dart';
+import 'panel_theme.dart';
 
 /// An anime / visual-novel style talking text box: a translucent rounded panel
 /// pinned near the bottom of the panel, carrying an optional speaker name tag

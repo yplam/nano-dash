@@ -12,33 +12,28 @@ part 'calendar_state.dart';
 /// Owns the calendar module's settings state and drives polling. Mirrors
 /// `WeatherCubit`: restore config, fetch immediately, then re-poll on a timer,
 /// guarding against a slow in-flight fetch overwriting a newer one.
+///
+/// Polling runs at two cadences: a slow [_kBackgroundInterval] while the page is
+/// off-screen, and a faster [_kForegroundInterval] while the user is viewing the
+/// calendar. The view drives the switch via [onViewActive]/[onViewInactive].
 class CalendarCubit extends Cubit<CalendarState> with Loggable {
   CalendarCubit(this._repository) : super(_restore(_repository)) {
     _fetch();
-    _timer = Timer.periodic(_kRefreshInterval, (_) => _fetch());
+    _startTimer(_kBackgroundInterval);
   }
 
   final CalendarRepository _repository;
 
-  /// How often to re-poll the feeds.
-  static const Duration _kRefreshInterval = Duration(minutes: 5);
+  /// How often to re-poll the feeds while the page is off-screen.
+  static const Duration _kBackgroundInterval = Duration(minutes: 10);
 
-  /// How old the last fetch must be before switching onto the page re-fetches.
-  /// Kept shorter than [_kRefreshInterval] and independent of it: the periodic
-  /// poll resets [_lastFetchAt] every [_kRefreshInterval], so if this window
-  /// matched the poll cadence the data would never look stale and
-  /// [refreshIfStale] would never fetch. This still coalesces rapid swipes.
-  static const Duration _kStaleAfter = Duration(minutes: 1);
+  /// How often to re-poll while the user is viewing the calendar page.
+  static const Duration _kForegroundInterval = Duration(minutes: 1);
 
   Timer? _timer;
 
   /// Guards against a slow in-flight fetch overwriting a newer one's result.
   int _requestId = 0;
-
-  /// When the last network fetch was started. Used by [refreshIfStale] so that
-  /// switching onto the page repeatedly (or right after a periodic poll) doesn't
-  /// hammer the feeds.
-  DateTime? _lastFetchAt;
 
   @override
   String get logIdentifier => '[CalendarCubit]';
@@ -67,15 +62,20 @@ class CalendarCubit extends Cubit<CalendarState> with Loggable {
   /// Re-poll now (e.g. pull-to-refresh or after an error).
   void refresh() => _fetch();
 
-  /// Re-poll only if the last fetch is older than the poll interval. Called when
-  /// the calendar page is switched into view so it shows fresh events without
-  /// refetching on every swipe.
-  void refreshIfStale() {
-    final last = _lastFetchAt;
-    if (last != null && DateTime.now().difference(last) < _kStaleAfter) {
-      return;
-    }
+  /// Called when the calendar page is switched into view: fetch immediately and
+  /// poll at the faster foreground cadence.
+  void onViewActive() {
     _fetch();
+    _startTimer(_kForegroundInterval);
+  }
+
+  /// Called when the calendar page is switched out of view: drop back to the
+  /// slower background cadence.
+  void onViewInactive() => _startTimer(_kBackgroundInterval);
+
+  void _startTimer(Duration interval) {
+    _timer?.cancel();
+    _timer = Timer.periodic(interval, (_) => _fetch());
   }
 
   Future<void> _fetch() async {
@@ -92,7 +92,6 @@ class CalendarCubit extends Cubit<CalendarState> with Loggable {
     }
 
     final id = ++_requestId;
-    _lastFetchAt = DateTime.now();
     emit(state.copyWith(loading: true, clearError: true));
     logInfo(
       'fetch: polling ${state.sources.where((s) => s.enabled).length} '

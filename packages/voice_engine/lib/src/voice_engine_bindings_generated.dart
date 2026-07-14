@@ -50,6 +50,25 @@ external int ve_set_active(int active);
 @ffi.Native<ffi.Float Function()>()
 external double ve_speaking_level();
 
+/// Begin capturing the enrolled voice: mic audio is accumulated until
+/// ve_enroll_end. A no-op unless the engine was opened with a speaker model.
+/// Returns 0; -1 when nothing is open.
+@ffi.Native<ffi.Int32 Function()>()
+external int ve_enroll_begin();
+
+/// Finish enrollment: compute the voiceprint from the captured audio and store it
+/// under `name` (UTF-8; empty/null means the default "owner"). The outcome arrives
+/// asynchronously as an `enrolled` event. Returns 0 if queued; -1 when nothing is
+/// open or `name` is not valid UTF-8.
+@ffi.Native<ffi.Int32 Function(ffi.Pointer<ffi.Uint8>, ffi.UintPtr)>()
+external int ve_enroll_end(ffi.Pointer<ffi.Uint8> name_ptr, int name_len);
+
+/// Forget every voiceprint stored under `name` (UTF-8; empty/null means the
+/// default "owner"), so enrollment can start over. Returns 0 if queued; -1 when
+/// nothing is open or `name` is not valid UTF-8.
+@ffi.Native<ffi.Int32 Function(ffi.Pointer<ffi.Uint8>, ffi.UintPtr)>()
+external int ve_enroll_reset(ffi.Pointer<ffi.Uint8> name_ptr, int name_len);
+
 /// Stop the worker threads and close the audio devices. Idempotent. Returns 0.
 @ffi.Native<ffi.Int32 Function()>()
 external int ve_close();

@@ -14,6 +14,7 @@ class CalendarRepository {
 
   CalendarConfig _config;
   List<CalendarEvent> _events = const [];
+  DateTime? _fetchedAt;
 
   /// How far ahead the agenda reaches; also bounds recurrence expansion.
   static const Duration _horizon = Duration(days: 60);
@@ -23,6 +24,10 @@ class CalendarRepository {
 
   /// The last successfully merged events, or empty until the first fetch.
   List<CalendarEvent> get events => _events;
+
+  /// When [events] was last merged, or `null` if never. Used to stamp the
+  /// freshness of the cached snapshot fed to the voice agent.
+  DateTime? get fetchedAt => _fetchedAt;
 
   Future<void> save(CalendarConfig config) {
     _config = config;
@@ -59,6 +64,7 @@ class CalendarRepository {
 
     merged.sort((a, b) => a.start.compareTo(b.start));
     _events = merged;
+    _fetchedAt = DateTime.now();
     return CalendarFetchResult(events: merged, errors: errors);
   }
 }

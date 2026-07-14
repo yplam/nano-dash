@@ -18,7 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class _FakeVoiceService extends VoiceService {
   final transcriptsCtrl = StreamController<VoiceTranscript>.broadcast();
   final speakingCtrl = StreamController<bool>.broadcast();
-  final wakeCtrl = StreamController<void>.broadcast();
+  final wakeCtrl = StreamController<String?>.broadcast();
   final sleepCtrl = StreamController<void>.broadcast();
   final errorsCtrl = StreamController<String>.broadcast();
 
@@ -38,7 +38,7 @@ class _FakeVoiceService extends VoiceService {
   Stream<bool> get speaking => speakingCtrl.stream;
 
   @override
-  Stream<void> get wake => wakeCtrl.stream;
+  Stream<String?> get wake => wakeCtrl.stream;
 
   @override
   Stream<void> get sleep => sleepCtrl.stream;
@@ -123,21 +123,29 @@ class _FakeAgentService extends AgentService {
   final lightRuns = <_ScriptedRun<LightOutcome>>[];
   final lightHistories = <List<AgentTurn>>[];
   final lightTexts = <String>[];
+  final lightContexts = <String?>[];
 
   final orchestratorRuns = <_ScriptedRun<String>>[];
   final orchestratorBriefs = <String>[];
+  final orchestratorContexts = <String?>[];
   Future<String?> Function(String question)? lastAskUser;
+
+  final lightShowTools = <AgentTool?>[];
 
   @override
   AgentRun<LightOutcome> askLight({
     required AgentSettings settings,
     required List<AgentTurn> history,
     required String userText,
+    String? context,
+    AgentTool? showTool,
   }) {
     final scripted = _ScriptedRun<LightOutcome>();
     lightRuns.add(scripted);
     lightHistories.add(history);
     lightTexts.add(userText);
+    lightContexts.add(context);
+    lightShowTools.add(showTool);
     return scripted.run;
   }
 
@@ -149,10 +157,12 @@ class _FakeAgentService extends AgentService {
     required String brief,
     required List<AgentTool> tools,
     required Future<String?> Function(String question) onAskUser,
+    String? context,
   }) {
     final scripted = _ScriptedRun<String>();
     orchestratorRuns.add(scripted);
     orchestratorBriefs.add(brief);
+    orchestratorContexts.add(context);
     lastAskUser = onAskUser;
     return scripted.run;
   }
@@ -169,6 +179,7 @@ void main() {
     }
   });
 
+  late SettingsRepository settings;
   late _FakeVoiceService voice;
   late VoiceRepository voiceRepository;
   late _FakeAgentService service;
@@ -177,7 +188,7 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
-    final settings = SettingsRepository(prefs);
+    settings = SettingsRepository(prefs);
     voice = _FakeVoiceService();
     voiceRepository = VoiceRepository(settings, voice);
     service = _FakeAgentService();
@@ -362,6 +373,43 @@ void main() {
     expect(repository.lastReply!.text, 'oops');
     expect(repository.phase, AgentPhase.idle);
   });
+
+  test(
+    'the ambient snapshot is built once per utterance and reaches both passes',
+    () async {
+      // Swap in a repository whose context builder yields a fresh, countable
+      // string each call, so we can see it is invoked once per question and the
+      // same snapshot flows to both the light and orchestrator passes.
+      await repository.dispose();
+      var builds = 0;
+      repository = AgentRepository(
+        settings,
+        voiceRepository,
+        service,
+        errorLine: 'oops',
+        contextBuilder: () => 'SNAP ${builds++}',
+      );
+      await repository.save(const AgentSettings(enabled: true, apiKey: 'key'));
+
+      hear('what is the weather?');
+      await pumpEventQueue();
+      expect(service.lightContexts, ['SNAP 0']);
+
+      await service.lightRuns.single.finish(
+        const LightEscalated(ack: 'Let me check.', brief: 'weather'),
+      );
+      await pumpEventQueue();
+      // The orchestrator sees the identical snapshot — built once, not rebuilt.
+      expect(service.orchestratorContexts, ['SNAP 0']);
+      await service.orchestratorRuns.single.finish('Sunny.');
+      await pumpEventQueue();
+
+      // A second utterance rebuilds the snapshot.
+      hear('and tomorrow?');
+      await pumpEventQueue();
+      expect(service.lightContexts, ['SNAP 0', 'SNAP 1']);
+    },
+  );
 
   test('closing the voice engine clears the conversation history', () async {
     hear('hi');

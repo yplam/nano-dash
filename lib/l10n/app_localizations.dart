@@ -116,6 +116,30 @@ abstract class AppLocalizations {
   /// **'Enable a widget below to show it here.'**
   String get dashboardEmptyHint;
 
+  /// No description provided for @moduleVisibilityOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get moduleVisibilityOff;
+
+  /// No description provided for @moduleVisibilityAssistant.
+  ///
+  /// In en, this message translates to:
+  /// **'Assistant only'**
+  String get moduleVisibilityAssistant;
+
+  /// No description provided for @moduleVisibilityCarousel.
+  ///
+  /// In en, this message translates to:
+  /// **'In carousel'**
+  String get moduleVisibilityCarousel;
+
+  /// No description provided for @moduleVisibilityTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: hidden. Assistant only: hidden from swiping, but the assistant can show it. In carousel: a normal swipe page.'**
+  String get moduleVisibilityTooltip;
+
   /// No description provided for @settingsTitle.
   ///
   /// In en, this message translates to:
@@ -176,6 +200,12 @@ abstract class AppLocalizations {
   /// **'Markets'**
   String get moduleMarketsTitle;
 
+  /// No description provided for @moduleUsageMonitorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Usage Monitor'**
+  String get moduleUsageMonitorTitle;
+
   /// No description provided for @moduleNowPlayingTitle.
   ///
   /// In en, this message translates to:
@@ -188,6 +218,12 @@ abstract class AppLocalizations {
   /// **'Voice'**
   String get moduleVoiceTitle;
 
+  /// No description provided for @moduleVideoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get moduleVideoTitle;
+
   /// No description provided for @moduleSettingsTitle.
   ///
   /// In en, this message translates to:
@@ -199,6 +235,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nothing playing'**
   String get nowPlayingIdle;
+
+  /// No description provided for @videoIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'No video'**
+  String get videoIdle;
+
+  /// No description provided for @videoPickHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to choose a file'**
+  String get videoPickHint;
+
+  /// No description provided for @videoError.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback error'**
+  String get videoError;
+
+  /// No description provided for @videoPlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing on panel'**
+  String get videoPlaying;
+
+  /// No description provided for @videoStopHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to stop'**
+  String get videoStopHint;
+
+  /// No description provided for @videoPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get videoPause;
+
+  /// No description provided for @videoResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get videoResume;
+
+  /// No description provided for @videoStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get videoStop;
+
+  /// No description provided for @videoRewind.
+  ///
+  /// In en, this message translates to:
+  /// **'Back 10s'**
+  String get videoRewind;
+
+  /// No description provided for @videoForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward 10s'**
+  String get videoForward;
+
+  /// No description provided for @videoErrorFfmpeg.
+  ///
+  /// In en, this message translates to:
+  /// **'FFmpeg not found — set its path in Settings'**
+  String get videoErrorFfmpeg;
+
+  /// No description provided for @videoErrorPanel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown panel size'**
+  String get videoErrorPanel;
+
+  /// No description provided for @videoErrorDecode.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback stopped'**
+  String get videoErrorDecode;
 
   /// No description provided for @clear.
   ///
@@ -278,29 +392,53 @@ abstract class AppLocalizations {
   /// **'Alert effect'**
   String get settingsAlertEffect;
 
+  /// No description provided for @settingsFfmpeg.
+  ///
+  /// In en, this message translates to:
+  /// **'FFmpeg'**
+  String get settingsFfmpeg;
+
+  /// No description provided for @settingsFfmpegAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-detect'**
+  String get settingsFfmpegAuto;
+
+  /// No description provided for @settingsFfmpegHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Used by the Video module to decode files'**
+  String get settingsFfmpegHint;
+
+  /// No description provided for @settingsFfmpegNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Not found on PATH — tap to choose'**
+  String get settingsFfmpegNotFound;
+
   /// No description provided for @alertEffectNone.
   ///
   /// In en, this message translates to:
   /// **'Off'**
   String get alertEffectNone;
 
-  /// No description provided for @alertEffectClick.
+  /// No description provided for @alertEffectBump.
   ///
   /// In en, this message translates to:
-  /// **'Click'**
-  String get alertEffectClick;
+  /// **'Bump'**
+  String get alertEffectBump;
 
-  /// No description provided for @alertEffectTick.
+  /// No description provided for @alertEffectPulse.
   ///
   /// In en, this message translates to:
-  /// **'Tick'**
-  String get alertEffectTick;
+  /// **'Pulse'**
+  String get alertEffectPulse;
 
-  /// No description provided for @alertEffectDoubleClick.
+  /// No description provided for @alertEffectMediumBuzz.
   ///
   /// In en, this message translates to:
-  /// **'Double click'**
-  String get alertEffectDoubleClick;
+  /// **'Medium buzz'**
+  String get alertEffectMediumBuzz;
 
   /// No description provided for @alertEffectBuzz.
   ///
@@ -331,6 +469,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pulsing'**
   String get alertEffectPulsing;
+
+  /// No description provided for @settingsReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to default'**
+  String get settingsReset;
+
+  /// No description provided for @settingsResetConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset all settings?'**
+  String get settingsResetConfirmTitle;
+
+  /// No description provided for @settingsResetConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This restores every setting to its default and removes the chosen background.'**
+  String get settingsResetConfirmBody;
 
   /// No description provided for @settingsAdvanced.
   ///
@@ -632,6 +788,72 @@ abstract class AppLocalizations {
   /// **'You'**
   String get voiceSpeakerYou;
 
+  /// No description provided for @voiceSpeakerIdent.
+  ///
+  /// In en, this message translates to:
+  /// **'Speaker identification'**
+  String get voiceSpeakerIdent;
+
+  /// No description provided for @voiceSpeakerIdentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Load the speaker model and answer only your enrolled voice.'**
+  String get voiceSpeakerIdentHint;
+
+  /// No description provided for @voiceVoiceprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Voiceprint'**
+  String get voiceVoiceprint;
+
+  /// No description provided for @voiceEnrollRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get voiceEnrollRecord;
+
+  /// No description provided for @voiceEnrollStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get voiceEnrollStop;
+
+  /// No description provided for @voiceEnrollForget.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget'**
+  String get voiceEnrollForget;
+
+  /// No description provided for @voiceEnrollStarting.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting…'**
+  String get voiceEnrollStarting;
+
+  /// No description provided for @voiceEnrollRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording… speak now, then tap Stop.'**
+  String get voiceEnrollRecording;
+
+  /// No description provided for @voiceEnrollPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Record your voiceprint so the assistant knows your voice.'**
+  String get voiceEnrollPrompt;
+
+  /// No description provided for @voiceEnrollCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No voiceprint recorded yet} =1{1 sample enrolled} other{{count} samples enrolled}}'**
+  String voiceEnrollCount(int count);
+
+  /// No description provided for @voiceEnrollFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Enrollment failed: {reason}'**
+  String voiceEnrollFailed(String reason);
+
   /// No description provided for @moduleAgentTitle.
   ///
   /// In en, this message translates to:
@@ -715,6 +937,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sorry, something went wrong.'**
   String get agentErrorLine;
+
+  /// No description provided for @agentReminderLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder: {text}'**
+  String agentReminderLine(String text);
+
+  /// No description provided for @agentReminderMissedLine.
+  ///
+  /// In en, this message translates to:
+  /// **'While I was off you missed a reminder: {text}'**
+  String agentReminderMissedLine(String text);
+
+  /// No description provided for @reminderNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get reminderNotificationTitle;
+
+  /// No description provided for @reminderNotificationMissedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed reminder'**
+  String get reminderNotificationMissedTitle;
 
   /// No description provided for @agentSpeakerName.
   ///
@@ -865,6 +1111,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} sessions'**
   String timerStatsSessions(int count);
+
+  /// No description provided for @timerNotificationFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Timer finished'**
+  String get timerNotificationFinished;
+
+  /// No description provided for @timerNotificationFocusDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus complete — time for a break'**
+  String get timerNotificationFocusDone;
+
+  /// No description provided for @timerNotificationBreakDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Break over — back to focus'**
+  String get timerNotificationBreakDone;
 
   /// No description provided for @moduleControlsTitle.
   ///
@@ -1135,6 +1399,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'host:port or socks5://host:port'**
   String get marketsProxyHint;
+
+  /// No description provided for @usageMonitorEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No providers enabled'**
+  String get usageMonitorEmpty;
+
+  /// No description provided for @usageMonitorNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No usage data'**
+  String get usageMonitorNoData;
+
+  /// No description provided for @usageMonitorNotSignedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Not signed in'**
+  String get usageMonitorNotSignedIn;
+
+  /// No description provided for @usageMonitorAuthExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Login expired'**
+  String get usageMonitorAuthExpired;
+
+  /// No description provided for @usageMonitorRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate limited'**
+  String get usageMonitorRateLimited;
+
+  /// No description provided for @usageMonitorNetworkError.
+  ///
+  /// In en, this message translates to:
+  /// **'Network error'**
+  String get usageMonitorNetworkError;
+
+  /// No description provided for @usageMonitorUpstreamError.
+  ///
+  /// In en, this message translates to:
+  /// **'Service unavailable'**
+  String get usageMonitorUpstreamError;
+
+  /// No description provided for @usageMonitorUnknownError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get usageMonitorUnknownError;
+
+  /// No description provided for @usageMonitorResetsSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'resetting…'**
+  String get usageMonitorResetsSoon;
+
+  /// No description provided for @usageMonitorResetsIn.
+  ///
+  /// In en, this message translates to:
+  /// **'resets in {time}'**
+  String usageMonitorResetsIn(String time);
+
+  /// No description provided for @usageMonitorProxy.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy (optional)'**
+  String get usageMonitorProxy;
+
+  /// No description provided for @usageMonitorProxyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'host:port or socks5://host:port'**
+  String get usageMonitorProxyHint;
 
   /// No description provided for @calendarEmpty.
   ///

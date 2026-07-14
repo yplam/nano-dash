@@ -9,9 +9,9 @@
 /// fixed even if this list is reordered.
 enum AlertEffect {
   none(0),
-  click(1), // Strong Click
-  tick(4), // Sharp Click
-  doubleClick(10), // Double Click
+  bump(7), // Soft Bump 100%
+  pulse(54), // Pulsing Medium 1 100%
+  mediumBuzz(49), // Buzz 3 (60%)
   buzz(47), // Buzz 1
   strongBuzz(14), // Strong Buzz
   alert750(15), // 750 ms Alert
@@ -23,8 +23,9 @@ enum AlertEffect {
   /// DRV2605L ROM waveform id (see datasheet Table 12); 0 = disabled.
   final int effect;
 
-  /// The out-of-box default: a short, distinct click.
-  static const AlertEffect fallback = click;
+  /// The out-of-box default: a gentle bump. Short "click" effects barely move a
+  /// slow-to-spin ERM, so the mid tier is bumps/pulses/buzzes, not clicks.
+  static const AlertEffect fallback = bump;
 
   /// Resolve a persisted [effect] id back to a preset, falling back to
   /// [fallback] for an id no longer in the list.

@@ -18,6 +18,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardEmptyHint => 'Enable a widget below to show it here.';
 
   @override
+  String get moduleVisibilityOff => 'Off';
+
+  @override
+  String get moduleVisibilityAssistant => 'Assistant only';
+
+  @override
+  String get moduleVisibilityCarousel => 'In carousel';
+
+  @override
+  String get moduleVisibilityTooltip =>
+      'Off: hidden. Assistant only: hidden from swiping, but the assistant can show it. In carousel: a normal swipe page.';
+
+  @override
   String get settingsTitle => 'Settings';
 
   @override
@@ -48,16 +61,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleMarketsTitle => 'Markets';
 
   @override
+  String get moduleUsageMonitorTitle => 'Usage Monitor';
+
+  @override
   String get moduleNowPlayingTitle => 'Now Playing';
 
   @override
   String get moduleVoiceTitle => 'Voice';
 
   @override
+  String get moduleVideoTitle => 'Video';
+
+  @override
   String get moduleSettingsTitle => 'Settings';
 
   @override
   String get nowPlayingIdle => 'Nothing playing';
+
+  @override
+  String get videoIdle => 'No video';
+
+  @override
+  String get videoPickHint => 'Tap to choose a file';
+
+  @override
+  String get videoError => 'Playback error';
+
+  @override
+  String get videoPlaying => 'Playing on panel';
+
+  @override
+  String get videoStopHint => 'Tap to stop';
+
+  @override
+  String get videoPause => 'Pause';
+
+  @override
+  String get videoResume => 'Resume';
+
+  @override
+  String get videoStop => 'Stop';
+
+  @override
+  String get videoRewind => 'Back 10s';
+
+  @override
+  String get videoForward => 'Forward 10s';
+
+  @override
+  String get videoErrorFfmpeg => 'FFmpeg not found — set its path in Settings';
+
+  @override
+  String get videoErrorPanel => 'Unknown panel size';
+
+  @override
+  String get videoErrorDecode => 'Playback stopped';
 
   @override
   String get clear => 'Clear';
@@ -99,16 +157,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAlertEffect => 'Alert effect';
 
   @override
+  String get settingsFfmpeg => 'FFmpeg';
+
+  @override
+  String get settingsFfmpegAuto => 'Auto-detect';
+
+  @override
+  String get settingsFfmpegHint => 'Used by the Video module to decode files';
+
+  @override
+  String get settingsFfmpegNotFound => 'Not found on PATH — tap to choose';
+
+  @override
   String get alertEffectNone => 'Off';
 
   @override
-  String get alertEffectClick => 'Click';
+  String get alertEffectBump => 'Bump';
 
   @override
-  String get alertEffectTick => 'Tick';
+  String get alertEffectPulse => 'Pulse';
 
   @override
-  String get alertEffectDoubleClick => 'Double click';
+  String get alertEffectMediumBuzz => 'Medium buzz';
 
   @override
   String get alertEffectBuzz => 'Buzz';
@@ -124,6 +194,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alertEffectPulsing => 'Pulsing';
+
+  @override
+  String get settingsReset => 'Reset to default';
+
+  @override
+  String get settingsResetConfirmTitle => 'Reset all settings?';
+
+  @override
+  String get settingsResetConfirmBody =>
+      'This restores every setting to its default and removes the chosen background.';
 
   @override
   String get settingsAdvanced => 'Advanced';
@@ -286,6 +366,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voiceSpeakerYou => 'You';
 
   @override
+  String get voiceSpeakerIdent => 'Speaker identification';
+
+  @override
+  String get voiceSpeakerIdentHint =>
+      'Load the speaker model and answer only your enrolled voice.';
+
+  @override
+  String get voiceVoiceprint => 'Voiceprint';
+
+  @override
+  String get voiceEnrollRecord => 'Record';
+
+  @override
+  String get voiceEnrollStop => 'Stop';
+
+  @override
+  String get voiceEnrollForget => 'Forget';
+
+  @override
+  String get voiceEnrollStarting => 'Starting…';
+
+  @override
+  String get voiceEnrollRecording => 'Recording… speak now, then tap Stop.';
+
+  @override
+  String get voiceEnrollPrompt =>
+      'Record your voiceprint so the assistant knows your voice.';
+
+  @override
+  String voiceEnrollCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count samples enrolled',
+      one: '1 sample enrolled',
+      zero: 'No voiceprint recorded yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String voiceEnrollFailed(String reason) {
+    return 'Enrollment failed: $reason';
+  }
+
+  @override
   String get moduleAgentTitle => 'Assistant';
 
   @override
@@ -330,6 +456,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get agentErrorLine => 'Sorry, something went wrong.';
+
+  @override
+  String agentReminderLine(String text) {
+    return 'Reminder: $text';
+  }
+
+  @override
+  String agentReminderMissedLine(String text) {
+    return 'While I was off you missed a reminder: $text';
+  }
+
+  @override
+  String get reminderNotificationTitle => 'Reminder';
+
+  @override
+  String get reminderNotificationMissedTitle => 'Missed reminder';
 
   @override
   String get agentSpeakerName => 'Assistant';
@@ -407,6 +549,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String timerStatsSessions(int count) {
     return '$count sessions';
   }
+
+  @override
+  String get timerNotificationFinished => 'Timer finished';
+
+  @override
+  String get timerNotificationFocusDone => 'Focus complete — time for a break';
+
+  @override
+  String get timerNotificationBreakDone => 'Break over — back to focus';
 
   @override
   String get moduleControlsTitle => 'Controls';
@@ -547,6 +698,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get marketsProxyHint => 'host:port or socks5://host:port';
+
+  @override
+  String get usageMonitorEmpty => 'No providers enabled';
+
+  @override
+  String get usageMonitorNoData => 'No usage data';
+
+  @override
+  String get usageMonitorNotSignedIn => 'Not signed in';
+
+  @override
+  String get usageMonitorAuthExpired => 'Login expired';
+
+  @override
+  String get usageMonitorRateLimited => 'Rate limited';
+
+  @override
+  String get usageMonitorNetworkError => 'Network error';
+
+  @override
+  String get usageMonitorUpstreamError => 'Service unavailable';
+
+  @override
+  String get usageMonitorUnknownError => 'Unavailable';
+
+  @override
+  String get usageMonitorResetsSoon => 'resetting…';
+
+  @override
+  String usageMonitorResetsIn(String time) {
+    return 'resets in $time';
+  }
+
+  @override
+  String get usageMonitorProxy => 'Proxy (optional)';
+
+  @override
+  String get usageMonitorProxyHint => 'host:port or socks5://host:port';
 
   @override
   String get calendarEmpty => 'No upcoming events';

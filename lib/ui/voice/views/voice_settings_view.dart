@@ -6,14 +6,24 @@ import 'package:flutter/material.dart';
 import '../../../domain/models/voice.dart';
 import '../../../l10n/app_localizations.dart';
 
-/// Settings for the voice module: where the models live, how the mic is
-/// processed, and which synthesizer speaks.
+/// Settings for the voice module, grouped into sections: where the models live
+/// and how the mic listens (folder, wake word, language, speaker id), which
+/// synthesizer speaks, and finally the audio processing (echo cancellation).
 class VoiceSettingsView extends StatefulWidget {
   const VoiceSettingsView({
     super.key,
     required this.initialSettings,
     required this.onSettingsChanged,
     this.statusHint,
+    this.status = VoiceStatus.off,
+    this.enrolling = false,
+    this.enrollCount,
+    this.enrollMessage,
+    this.enrollOk = true,
+    this.onEnrollStart,
+    this.onEnrollStop,
+    this.onEnrollForget,
+    this.onEnrollSessionEnd,
   });
 
   final VoiceSettings initialSettings;
@@ -24,6 +34,33 @@ class VoiceSettingsView extends StatefulWidget {
   /// Shown under the title — e.g. "restart the mic to apply", or the reason the
   /// last start failed.
   final String? statusHint;
+
+  /// The live engine status. Enrolling a voiceprint only works while the engine
+  /// is open, so the record controls are gated on this.
+  final VoiceStatus status;
+
+  /// Whether a voiceprint capture is currently in progress.
+  final bool enrolling;
+
+  /// Recordings enrolled after the last capture this session, or `null` before
+  /// any enrollment has completed.
+  final int? enrollCount;
+
+  /// The failure reason from the last enrollment, or `null` on success.
+  final String? enrollMessage;
+
+  /// Whether the last enrollment succeeded.
+  final bool enrollOk;
+
+  /// Begin / end a voiceprint capture, and forget the enrolled voiceprint.
+  /// Starting a capture powers the mic on when it is off.
+  final VoidCallback? onEnrollStart;
+  final VoidCallback? onEnrollStop;
+  final VoidCallback? onEnrollForget;
+
+  /// Called when this view is disposed (the settings sheet closed), so the mic
+  /// can be released if [onEnrollStart] was the one that powered it on.
+  final VoidCallback? onEnrollSessionEnd;
 
   @override
   State<VoiceSettingsView> createState() => _VoiceSettingsViewState();
@@ -60,6 +97,7 @@ class _VoiceSettingsViewState extends State<VoiceSettingsView> {
     for (final c in _fields.values) {
       c.dispose();
     }
+    widget.onEnrollSessionEnd?.call();
     super.dispose();
   }
 
@@ -108,6 +146,8 @@ class _VoiceSettingsViewState extends State<VoiceSettingsView> {
               ),
             ),
           ),
+
+        // --- Models & listening ---------------------------------------------
         ListTile(
           leading: const Icon(Icons.folder_open),
           title: Text(l10n.voiceModelsDir),
@@ -137,15 +177,8 @@ class _VoiceSettingsViewState extends State<VoiceSettingsView> {
           value: _settings.enableWake,
           onChanged: (v) => _commit(_settings.copyWith(enableWake: v)),
         ),
-        SwitchListTile(
-          secondary: const Icon(Icons.noise_control_off),
-          title: Text(l10n.voiceAec),
-          subtitle: Text(l10n.voiceAecHint),
-          value: _settings.enableAec,
-          onChanged: (v) => _commit(_settings.copyWith(enableAec: v)),
-        ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           child: DropdownButtonFormField<String>(
             initialValue: _settings.language,
             decoration: InputDecoration(
@@ -167,8 +200,12 @@ class _VoiceSettingsViewState extends State<VoiceSettingsView> {
                 v == null ? null : _commit(_settings.copyWith(language: v)),
           ),
         ),
+        ..._speakerIdSection(context, l10n),
+
+        // --- Speech ----------------------------------------------------------
+        const Divider(height: 24),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: DropdownButtonFormField<String>(
             initialValue: _settings.ttsBackend,
             decoration: InputDecoration(
@@ -223,7 +260,111 @@ class _VoiceSettingsViewState extends State<VoiceSettingsView> {
             ),
             trailing: Text(_settings.speed.toStringAsFixed(1)),
           ),
+
+        // --- Audio -----------------------------------------------------------
+        const Divider(height: 24),
+        SwitchListTile(
+          secondary: const Icon(Icons.noise_control_off),
+          title: Text(l10n.voiceAec),
+          subtitle: Text(l10n.voiceAecHint),
+          value: _settings.enableAec,
+          onChanged: (v) => _commit(_settings.copyWith(enableAec: v)),
+        ),
       ],
+    );
+  }
+
+  /// The speaker-identification controls: enable the model (which also gates the
+  /// ASR to the enrolled voice) and record/forget the voiceprint. Grouped with
+  /// the listening controls since it filters the mic input.
+  List<Widget> _speakerIdSection(BuildContext context, AppLocalizations l10n) {
+    return [
+      SwitchListTile(
+        secondary: const Icon(Icons.fingerprint),
+        title: Text(l10n.voiceSpeakerIdent),
+        subtitle: Text(l10n.voiceSpeakerIdentHint),
+        value: _settings.enableSpeakerId,
+        onChanged: (v) => _commit(_settings.copyWith(enableSpeakerId: v)),
+      ),
+      if (_settings.enableSpeakerId) _voiceprintRow(context, l10n),
+    ];
+  }
+
+  /// The voiceprint status line plus the record/forget buttons. Recording powers
+  /// the mic on itself, so Record works even when the engine is off; while it is
+  /// opening the button shows a spinner. Forget still needs the running engine.
+  Widget _voiceprintRow(BuildContext context, AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    final starting = widget.status == VoiceStatus.starting;
+    final isOpen = widget.status.isOpen;
+
+    final String statusText;
+    if (starting) {
+      statusText = l10n.voiceEnrollStarting;
+    } else if (widget.enrolling) {
+      statusText = l10n.voiceEnrollRecording;
+    } else if (!widget.enrollOk && widget.enrollMessage != null) {
+      statusText = l10n.voiceEnrollFailed(widget.enrollMessage!);
+    } else if (widget.enrollCount != null) {
+      statusText = l10n.voiceEnrollCount(widget.enrollCount!);
+    } else {
+      statusText = l10n.voiceEnrollPrompt;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.voiceVoiceprint, style: theme.textTheme.titleSmall),
+          const SizedBox(height: 4),
+          Text(
+            statusText,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: (!widget.enrollOk && widget.enrollMessage != null)
+                  ? theme.colorScheme.error
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              FilledButton.tonalIcon(
+                onPressed: starting
+                    ? null
+                    : (widget.enrolling
+                          ? widget.onEnrollStop
+                          : widget.onEnrollStart),
+                icon: starting
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(
+                        widget.enrolling
+                            ? Icons.stop
+                            : Icons.fiber_manual_record,
+                      ),
+                label: Text(
+                  starting
+                      ? l10n.voiceEnrollStarting
+                      : (widget.enrolling
+                            ? l10n.voiceEnrollStop
+                            : l10n.voiceEnrollRecord),
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                onPressed: (isOpen && !widget.enrolling)
+                    ? widget.onEnrollForget
+                    : null,
+                icon: const Icon(Icons.delete_outline),
+                label: Text(l10n.voiceEnrollForget),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

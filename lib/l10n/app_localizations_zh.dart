@@ -18,6 +18,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dashboardEmptyHint => '在下方启用一个组件即可显示。';
 
   @override
+  String get moduleVisibilityOff => '关闭';
+
+  @override
+  String get moduleVisibilityAssistant => '仅助手';
+
+  @override
+  String get moduleVisibilityCarousel => '轮播显示';
+
+  @override
+  String get moduleVisibilityTooltip =>
+      '关闭：隐藏。仅助手：不参与左右滑动，但助手可主动显示。轮播显示：可滑动切换的常规页面。';
+
+  @override
   String get settingsTitle => '设置';
 
   @override
@@ -48,16 +61,61 @@ class AppLocalizationsZh extends AppLocalizations {
   String get moduleMarketsTitle => '行情';
 
   @override
+  String get moduleUsageMonitorTitle => '用量监控';
+
+  @override
   String get moduleNowPlayingTitle => '正在播放';
 
   @override
   String get moduleVoiceTitle => '语音';
 
   @override
+  String get moduleVideoTitle => '视频';
+
+  @override
   String get moduleSettingsTitle => '设置';
 
   @override
   String get nowPlayingIdle => '暂无播放';
+
+  @override
+  String get videoIdle => '暂无视频';
+
+  @override
+  String get videoPickHint => '点按选择文件';
+
+  @override
+  String get videoError => '播放错误';
+
+  @override
+  String get videoPlaying => '正在面板播放';
+
+  @override
+  String get videoStopHint => '点按停止';
+
+  @override
+  String get videoPause => '暂停';
+
+  @override
+  String get videoResume => '继续';
+
+  @override
+  String get videoStop => '停止';
+
+  @override
+  String get videoRewind => '后退 10 秒';
+
+  @override
+  String get videoForward => '前进 10 秒';
+
+  @override
+  String get videoErrorFfmpeg => '未找到 FFmpeg — 请在设置中指定路径';
+
+  @override
+  String get videoErrorPanel => '未知面板尺寸';
+
+  @override
+  String get videoErrorDecode => '播放已停止';
 
   @override
   String get clear => '清除';
@@ -99,16 +157,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAlertEffect => '提醒效果';
 
   @override
+  String get settingsFfmpeg => 'FFmpeg';
+
+  @override
+  String get settingsFfmpegAuto => '自动检测';
+
+  @override
+  String get settingsFfmpegHint => '视频模块用它解码文件';
+
+  @override
+  String get settingsFfmpegNotFound => 'PATH 中未找到 — 点按选择';
+
+  @override
   String get alertEffectNone => '关闭';
 
   @override
-  String get alertEffectClick => '单击';
+  String get alertEffectBump => '轻撞';
 
   @override
-  String get alertEffectTick => '轻触';
+  String get alertEffectPulse => '脉动';
 
   @override
-  String get alertEffectDoubleClick => '双击';
+  String get alertEffectMediumBuzz => '中等振动';
 
   @override
   String get alertEffectBuzz => '振动';
@@ -124,6 +194,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get alertEffectPulsing => '脉冲';
+
+  @override
+  String get settingsReset => '恢复默认设置';
+
+  @override
+  String get settingsResetConfirmTitle => '恢复所有默认设置？';
+
+  @override
+  String get settingsResetConfirmBody => '这会将每一项设置恢复为默认值，并移除已选择的背景图片。';
 
   @override
   String get settingsAdvanced => '高级';
@@ -280,6 +359,49 @@ class AppLocalizationsZh extends AppLocalizations {
   String get voiceSpeakerYou => '我';
 
   @override
+  String get voiceSpeakerIdent => '声纹识别';
+
+  @override
+  String get voiceSpeakerIdentHint => '加载声纹模型，仅回应你录入的声音。';
+
+  @override
+  String get voiceVoiceprint => '声纹';
+
+  @override
+  String get voiceEnrollRecord => '录制';
+
+  @override
+  String get voiceEnrollStop => '停止';
+
+  @override
+  String get voiceEnrollForget => '清除';
+
+  @override
+  String get voiceEnrollStarting => '启动中……';
+
+  @override
+  String get voiceEnrollRecording => '录制中……请说话，然后点击停止。';
+
+  @override
+  String get voiceEnrollPrompt => '录制你的声纹，让助手认识你的声音。';
+
+  @override
+  String voiceEnrollCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已录入 $count 段声纹',
+      zero: '尚未录制声纹',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String voiceEnrollFailed(String reason) {
+    return '录入失败：$reason';
+  }
+
+  @override
   String get moduleAgentTitle => '智能助手';
 
   @override
@@ -320,6 +442,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get agentErrorLine => '抱歉，我这边出了点问题。';
+
+  @override
+  String agentReminderLine(String text) {
+    return '提醒：$text';
+  }
+
+  @override
+  String agentReminderMissedLine(String text) {
+    return '你之前设的提醒已经过时了：$text';
+  }
+
+  @override
+  String get reminderNotificationTitle => '提醒';
+
+  @override
+  String get reminderNotificationMissedTitle => '错过的提醒';
 
   @override
   String get agentSpeakerName => '助手';
@@ -397,6 +535,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String timerStatsSessions(int count) {
     return '$count 次';
   }
+
+  @override
+  String get timerNotificationFinished => '计时结束';
+
+  @override
+  String get timerNotificationFocusDone => '专注完成 — 该休息一下了';
+
+  @override
+  String get timerNotificationBreakDone => '休息结束 — 回到专注';
 
   @override
   String get moduleControlsTitle => '控制';
@@ -537,6 +684,44 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get marketsProxyHint => 'host:port 或 socks5://host:port';
+
+  @override
+  String get usageMonitorEmpty => '未启用任何服务';
+
+  @override
+  String get usageMonitorNoData => '暂无用量数据';
+
+  @override
+  String get usageMonitorNotSignedIn => '未登录';
+
+  @override
+  String get usageMonitorAuthExpired => '登录已过期';
+
+  @override
+  String get usageMonitorRateLimited => '请求频率受限';
+
+  @override
+  String get usageMonitorNetworkError => '网络错误';
+
+  @override
+  String get usageMonitorUpstreamError => '服务不可用';
+
+  @override
+  String get usageMonitorUnknownError => '不可用';
+
+  @override
+  String get usageMonitorResetsSoon => '即将重置';
+
+  @override
+  String usageMonitorResetsIn(String time) {
+    return '$time后重置';
+  }
+
+  @override
+  String get usageMonitorProxy => '代理（可选）';
+
+  @override
+  String get usageMonitorProxyHint => 'host:port 或 socks5://host:port';
 
   @override
   String get calendarEmpty => '暂无日程';

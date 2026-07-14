@@ -5,7 +5,8 @@ import '../../extensions/loggable.dart';
 import '../services/voice_service.dart';
 import 'settings_repository.dart';
 
-export '../services/voice_service.dart' show VoiceException, VoiceTranscript;
+export '../services/voice_service.dart'
+    show VoiceException, VoiceTranscript, EnrollmentResult;
 
 /// The app-wide voice contract: it owns the engine's lifecycle and persisted
 /// settings, and hands out the streams every other feature listens to.
@@ -32,7 +33,7 @@ class VoiceRepository with Loggable {
   final StreamController<VoiceStatus> _status =
       StreamController<VoiceStatus>.broadcast();
 
-  late final StreamSubscription<void> _wakeSub;
+  late final StreamSubscription<String?> _wakeSub;
   late final StreamSubscription<void> _sleepSub;
   late final StreamSubscription<String> _errorSub;
 
@@ -70,13 +71,19 @@ class VoiceRepository with Loggable {
   double get speakingLevel => _service.speakingLevel;
 
   /// Fires when the engine leaves the asleep state (wake word, or [wakeNow]).
-  Stream<void> get wake => _service.wake;
+  /// Carries the canned greeting the engine began playing on a wake-word wake
+  /// (see [kWakeAckPhrases]), or `null` on a programmatic [wakeNow].
+  Stream<String?> get wake => _service.wake;
 
   /// Fires when the engine returns to the asleep state.
   Stream<void> get sleep => _service.sleep;
 
   /// Non-fatal engine errors (an AEC frame failure, a synthesis error).
   Stream<String> get errors => _service.errors;
+
+  /// The outcome of each [enrollEnd]. Only meaningful when the engine was
+  /// enabled with speaker identification on.
+  Stream<EnrollmentResult> get enrolled => _service.enrolled;
 
   /// Whether the engine was opened with echo cancellation. Without it, played
   /// TTS bleeds into the mic and is transcribed, so a consumer must gate
@@ -156,6 +163,26 @@ class VoiceRepository with Loggable {
   Future<void> stopSpeaking() async {
     if (!_service.isRunning) return;
     await _service.stopSpeaking();
+  }
+
+  /// Begin capturing the enrolled voice: the engine accumulates mic audio until
+  /// [enrollEnd]. No-op unless the engine is open with speaker identification on.
+  void enrollBegin() {
+    if (!_service.isRunning) return;
+    _service.enrollBegin();
+  }
+
+  /// Finish enrollment: store the voiceprint under [name] (empty uses the
+  /// default `'owner'`). The outcome arrives on [enrolled].
+  void enrollEnd([String name = '']) {
+    if (!_service.isRunning) return;
+    _service.enrollEnd(name);
+  }
+
+  /// Forget every voiceprint under [name] (empty uses `'owner'`) to re-enroll.
+  void enrollReset([String name = '']) {
+    if (!_service.isRunning) return;
+    _service.enrollReset(name);
   }
 
   void _setStatus(VoiceStatus status) {

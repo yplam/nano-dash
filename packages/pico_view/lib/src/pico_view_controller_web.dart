@@ -33,6 +33,8 @@ class PicoViewController {
 
   PicoViewConfig get config => _config;
 
+  bool suspendCapture = false;
+
   bool get isOpen => false;
 
   void init() {}

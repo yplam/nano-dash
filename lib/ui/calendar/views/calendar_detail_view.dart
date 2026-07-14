@@ -27,12 +27,20 @@ class CalendarDetailView extends StatefulWidget {
 }
 
 class _CalendarDetailViewState extends State<CalendarDetailView> {
+  // Captured from the tree while this widget is active.
+  late final CalendarCubit _cubit;
+
   @override
   void initState() {
     super.initState();
-    // The page is keyed in the LCD carousel, so this fires each time the user
-    // switches onto the calendar. Refresh if the data has gone stale.
-    context.read<CalendarCubit>().refreshIfStale();
+    _cubit = context.read<CalendarCubit>();
+    _cubit.onViewActive();
+  }
+
+  @override
+  void dispose() {
+    _cubit.onViewInactive();
+    super.dispose();
   }
 
   @override
