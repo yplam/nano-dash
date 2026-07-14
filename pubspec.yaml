@@ -48,6 +48,9 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   msix: ^3.16.12
   flutter_launcher_icons: ^0.14.4
+  # Used by tool/build_docs.dart to render docs/**.md into build/web/docs/.
+  markdown: ^7.3.0
+  yaml: ^3.1.2
 
 flutter:
   uses-material-design: true

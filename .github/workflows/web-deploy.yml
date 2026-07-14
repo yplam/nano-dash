@@ -24,6 +24,10 @@ jobs:
       - name: Build web (WASM)
         run: flutter build web --release --wasm --base-href /
 
+      # Render docs/**.md into build/web/docs/ (static, self-contained pages).
+      - name: Build docs
+        run: dart run tool/build_docs.dart
+
       # Cross-origin isolation so skwasm can use its multi-threaded path.
       - name: Add Cloudflare _headers
         run: cp web/_headers build/web/_headers

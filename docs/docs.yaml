@@ -1,0 +1,33 @@
+# Site + navigation config for tool/build_docs.dart.
+#
+# Sources live in docs/<lang>/<slug>.md. Add a doc by dropping a markdown
+# file in each language dir and listing its slug under `nav` below. If a slug is
+# missing for a given language it is simply omitted from that language's sidebar
+# (so you can ship an English-only doc without breaking the Chinese build).
+
+site:
+  title: NanoDash Docs
+  # Link back to the main app from the docs chrome.
+  appUrl: /
+
+# Order here == order in the sidebar. `default: true` marks the landing doc that
+# /docs/ and /docs/<lang>/ redirect to.
+nav:
+  - slug: getting-started
+    default: true
+    en: Getting Started
+    zh: 快速开始
+  - slug: weather
+    en: Weather
+    zh: 天气
+  - slug: privacy
+    en: Privacy Policy
+    zh: 隐私政策
+
+# Language switcher. Order controls the toggle order; the first is the default
+# language used by the /docs/ redirect.
+languages:
+  - code: en
+    label: English
+  - code: zh
+    label: 中文
