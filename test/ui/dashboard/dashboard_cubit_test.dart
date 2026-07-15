@@ -93,12 +93,22 @@ void main() {
     expect(cubit.state.currentPage, 1);
   });
 
-  test('showModule for a carousel module jumps to its page and stays', () {
-    final cubit = configured();
-    addTearDown(cubit.close);
-    cubit.showModule('b');
-    expect(cubit.state.showingTemp, isFalse);
-    expect(cubit.state.currentPage, 1); // b is the second carousel page
+  test('showModule shows a carousel module transiently and returns', () {
+    fakeAsync((async) {
+      final cubit = configured();
+      addTearDown(cubit.close);
+      // 'b' is a real carousel page, but an agent-shown page must never strand
+      // the user on it: it comes up transiently over the current page and
+      // returns there after the idle timeout.
+      cubit.showModule('b');
+      expect(cubit.state.showingTemp, isTrue);
+      expect(cubit.state.tempModuleId, 'b');
+      expect(cubit.state.tempReturnPage, 0);
+
+      async.elapse(const Duration(seconds: 21));
+      expect(cubit.state.showingTemp, isFalse);
+      expect(cubit.state.currentPage, 0);
+    });
   });
 
   test('showModule ignores off/unknown modules', () {
@@ -121,6 +131,101 @@ void main() {
       expect(cubit.state.showingTemp, isTrue);
 
       // Auto-returns after the idle timeout.
+      async.elapse(const Duration(seconds: 21));
+      expect(cubit.state.showingTemp, isFalse);
+      expect(cubit.state.currentPage, 0);
+    });
+  });
+
+  test('a sticky request lands on the carousel page and stays', () {
+    fakeAsync((async) {
+      final cubit = configured();
+      addTearDown(cubit.close);
+      // 'b' is carousel page index 1; a sticky show jumps there and stays,
+      // rather than peeking over page 0 and sliding back.
+      display.goTo('b');
+      async.flushMicrotasks();
+      expect(cubit.state.showingTemp, isFalse);
+      expect(cubit.state.currentPage, 1);
+
+      // No auto-return: still on 'b' well past the transient timeout.
+      async.elapse(const Duration(seconds: 21));
+      expect(cubit.state.showingTemp, isFalse);
+      expect(cubit.state.currentPage, 1);
+    });
+  });
+
+  test('a sticky request for the current page does not churn the display', () {
+    fakeAsync((async) {
+      final cubit = configured();
+      addTearDown(cubit.close);
+      cubit.nextPage(); // on page 'b' (index 1)
+      expect(cubit.state.currentPage, 1);
+
+      final states = <DashboardState>[];
+      final sub = cubit.stream.listen(states.add);
+      addTearDown(sub.cancel);
+
+      // Already on the timer-like page: a sticky request must not slide to a
+      // transient page and back — it should emit nothing at all.
+      display.goTo('b');
+      async.flushMicrotasks();
+      async.elapse(const Duration(seconds: 21));
+
+      expect(states, isEmpty);
+      expect(cubit.state.currentPage, 1);
+      expect(cubit.state.showingTemp, isFalse);
+    });
+  });
+
+  test('showModule is a no-op for the current carousel page', () {
+    final cubit = configured();
+    addTearDown(cubit.close);
+    cubit.nextPage(); // on page 'b' (index 1)
+    expect(cubit.state.currentPage, 1);
+
+    final states = <DashboardState>[];
+    final sub = cubit.stream.listen(states.add);
+    addTearDown(sub.cancel);
+
+    // The agent asks to show 'b' while 'b' is already the visible page (e.g. it
+    // started a timer and then also called show_on_screen for it): no transient
+    // slide over the identical page.
+    cubit.showModule('b');
+    expect(states, isEmpty);
+    expect(cubit.state.showingTemp, isFalse);
+    expect(cubit.state.currentPage, 1);
+  });
+
+  test('showModule is a no-op when the module is already the transient page', () {
+    fakeAsync((async) {
+      final cubit = configured();
+      addTearDown(cubit.close);
+      cubit.showModule('c'); // transient page 'c' up
+      expect(cubit.state.tempModuleId, 'c');
+
+      final states = <DashboardState>[];
+      final sub = cubit.stream.listen(states.add);
+      addTearDown(sub.cancel);
+
+      cubit.showModule('c'); // asked again while already showing 'c'
+      async.flushMicrotasks();
+      expect(states, isEmpty);
+      expect(cubit.state.tempModuleId, 'c');
+    });
+  });
+
+  test('a sticky request for an assistant-only module falls back to transient', () {
+    fakeAsync((async) {
+      final cubit = configured();
+      addTearDown(cubit.close);
+      // 'c' has no carousel page to stay on, so a sticky request degrades to a
+      // transient page that auto-returns.
+      display.goTo('c');
+      async.flushMicrotasks();
+      expect(cubit.state.showingTemp, isTrue);
+      expect(cubit.state.tempModuleId, 'c');
+
       async.elapse(const Duration(seconds: 21));
       expect(cubit.state.showingTemp, isFalse);
       expect(cubit.state.currentPage, 0);

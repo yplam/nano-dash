@@ -150,9 +150,9 @@ class SettingsView extends StatelessWidget {
 
   Widget _themeControl() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
       child: Wrap(
-        spacing: 12,
+        spacing: 6,
         runSpacing: 12,
         children: [
           for (final color in _seeds)
@@ -404,8 +404,8 @@ class _Swatch extends StatelessWidget {
       onTap: onTap,
       customBorder: const CircleBorder(),
       child: Container(
-        width: 40,
-        height: 40,
+        width: 32,
+        height: 32,
         decoration: BoxDecoration(
           color: color,
           shape: BoxShape.circle,

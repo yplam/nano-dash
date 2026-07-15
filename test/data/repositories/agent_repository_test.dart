@@ -130,22 +130,18 @@ class _FakeAgentService extends AgentService {
   final orchestratorContexts = <String?>[];
   Future<String?> Function(String question)? lastAskUser;
 
-  final lightShowTools = <AgentTool?>[];
-
   @override
   AgentRun<LightOutcome> askLight({
     required AgentSettings settings,
     required List<AgentTurn> history,
     required String userText,
     String? context,
-    AgentTool? showTool,
   }) {
     final scripted = _ScriptedRun<LightOutcome>();
     lightRuns.add(scripted);
     lightHistories.add(history);
     lightTexts.add(userText);
     lightContexts.add(context);
-    lightShowTools.add(showTool);
     return scripted.run;
   }
 
@@ -263,28 +259,71 @@ void main() {
     expect(repository.lastReply!.text, 'Let me check. Sunny all weekend.');
   });
 
-  test('a new question barges in: cancels the run and the speech', () async {
-    hear('first');
+  test('a paused utterance split by VAD is merged into one request', () async {
+    hear('create a timer named work');
     await pumpEventQueue();
     final first = service.lightRuns.single;
 
-    hear('second');
+    // The tail of the same sentence arrives before the first has answered.
+    hear('for twenty-five minutes');
     await pumpEventQueue();
     expect(first.aborted, isTrue);
     expect(voice.stopSpeakingCalls, greaterThanOrEqualTo(1));
     expect(service.lightRuns, hasLength(2));
+    // The second pass sees the whole request, not just the tail.
+    expect(
+      service.lightTexts.last,
+      'create a timer named work for twenty-five minutes',
+    );
 
-    // The dead run's late output must go nowhere.
+    // The dead run's late output must still go nowhere.
     await first.emit('stale');
     await first.fail(StateError('aborted by client close'));
     final second = service.lightRuns[1];
-    await second.emit('Fresh.');
-    await second.finish(const LightAnswered('Fresh.'));
+    await second.emit('Done.');
+    await second.finish(const LightAnswered('Done.'));
     await pumpEventQueue();
 
-    expect(repository.lastReply!.text, 'Fresh.');
+    expect(repository.lastReply!.text, 'Done.');
     expect(voice.spoken, isNot(contains(contains('stale'))));
-    expect(voice.spoken, contains('Fresh.'));
+    expect(voice.spoken, contains('Done.'));
+  });
+
+  test('a barge-in after the answer has started is not merged', () async {
+    hear('what is the weather this weekend?');
+    await pumpEventQueue();
+    await service.lightRuns.single.finish(
+      const LightEscalated(ack: 'Let me check.', brief: 'weekend weather'),
+    );
+    await pumpEventQueue();
+
+    // The orchestrator streams a real answer delta: from here a new utterance
+    // is a genuine interruption, not the tail of the question.
+    final orchestrator = service.orchestratorRuns.single;
+    await orchestrator.emit('It will be sunny');
+    await pumpEventQueue();
+
+    hear('actually set a timer');
+    await pumpEventQueue();
+    expect(orchestrator.aborted, isTrue);
+    expect(service.lightRuns, hasLength(2));
+    // No merge: the interrupting question stands alone.
+    expect(service.lightTexts.last, 'actually set a timer');
+  });
+
+  test('a merged request is not re-merged into the next question', () async {
+    hear('set an alarm');
+    await pumpEventQueue();
+    final run = service.lightRuns.single;
+    await run.emit('Done.');
+    await run.finish(const LightAnswered('Done.'));
+    await pumpEventQueue();
+
+    // Once a run has answered and committed, the next utterance is fresh —
+    // history carries the context, so nothing is prepended.
+    hear('what time is it?');
+    await pumpEventQueue();
+    expect(service.lightTexts.last, 'what time is it?');
   });
 
   test(

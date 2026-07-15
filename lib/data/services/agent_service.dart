@@ -43,6 +43,12 @@ class LightAnswered extends LightOutcome {
 /// It handed off to the orchestrator. [ack] is the one-sentence acknowledgement
 /// to speak if the model streamed no text of its own; [brief] restates the task
 /// for the pro model.
+///
+/// This is the light model's single routing decision. Today there is one
+/// destination (the orchestrator); a future specialist worker would be selected
+/// by adding a `target` here and dispatching on it in the caller — the light
+/// model already decides *that* it hands off, so it is the place to decide
+/// *where*.
 class LightEscalated extends LightOutcome {
   const LightEscalated({required this.ack, required this.brief});
 
@@ -94,12 +100,16 @@ class AgentService with Loggable {
   /// First pass: the light model either answers (streaming on `deltas`) or
   /// calls the `escalate` tool, which is intercepted (never executed) and
   /// surfaced as [LightEscalated].
+  ///
+  /// The light model has no tools of its own beyond `escalate`: anything that
+  /// touches a tool — showing a page, fetching data, performing an action —
+  /// escalates, so the orchestrator (which owns every tool) does it. That keeps
+  /// this pass to a single clean turn: spoken text, or a hand-off.
   AgentRun<LightOutcome> askLight({
     required AgentSettings settings,
     required List<AgentTurn> history,
     required String userText,
     String? context,
-    AgentTool? showTool,
   }) {
     logDebug(
       'askLight: model=${settings.lightModel.trim()} '
@@ -110,16 +120,17 @@ class AgentService with Loggable {
         model: openAI.model(settings.lightModel.trim(), namespace: _namespace),
         system: _lightSystem(settings, context),
         messages: _toMessages(history, userText),
-        tools: [
-          _escalateTool(),
-          // Let the fast model also put a page on the screen while it answers a
-          // simple ask directly.
-          if (showTool != null) _toGenkitTool(showTool),
-        ],
-        // Don't let genkit "execute" escalate and loop — the request itself is
-        // the routing decision. show_on_screen requests are run by hand below.
+        tools: [_escalateTool()],
+        // Don't let genkit "execute" escalate and loop — it is a routing
+        // decision we surface, acted on by the caller.
         returnToolRequests: true,
       );
+      final onResult = stream.onResult;
+      // A barge-in force-closes the HTTP client mid-stream; the delta loop then
+      // throws before we await onResult, which would otherwise leave onResult's
+      // error unobserved and surface as an unhandled exception. Observe it now
+      // so the same error is handled no matter which await sees it first.
+      unawaited(onResult.then((_) {}, onError: (_) {}));
       var deltaCount = 0;
       await for (final chunk in stream.timeout(_kModelStallTimeout)) {
         if (chunk.text.isNotEmpty) {
@@ -127,21 +138,14 @@ class AgentService with Loggable {
           deltas.add(chunk.text);
         }
       }
-      final res = await stream.onResult.timeout(_kModelStallTimeout);
+      final res = await onResult.timeout(_kModelStallTimeout);
       logDebug(
         'askLight done: $deltaCount deltas, '
         'finishReason=${res.finishReason?.value} '
         'toolRequests=${res.toolRequests.map((r) => r.name).toList()}',
       );
-      // returnToolRequests halts execution, so genkit didn't run show_on_screen
-      // for us.
-      if (showTool != null) {
-        for (final req in res.toolRequests) {
-          if (req.name == showTool.name) {
-            unawaited(showTool.run(_asArgs(req.input)));
-          }
-        }
-      }
+      // Escalation is the light model's only non-answer move: hand the task to
+      // the orchestrator, which owns the live-data tools and the screen.
       for (final req in res.toolRequests) {
         if (req.name == _escalateName) {
           final brief = req.input?['brief'] as String? ?? userText;
@@ -203,6 +207,10 @@ class AgentService with Loggable {
           maxTurns: _maxTurns,
           interruptRespond: respond,
         );
+        final onResult = stream.onResult;
+        // See askLight: keep onResult's error observed so a barge-in abort
+        // can't escape as an unhandled exception.
+        unawaited(onResult.then((_) {}, onError: (_) {}));
         var deltaCount = 0;
         await for (final chunk in stream.timeout(_kModelStallTimeout)) {
           if (chunk.text.isNotEmpty) {
@@ -210,7 +218,7 @@ class AgentService with Loggable {
             deltas.add(chunk.text);
           }
         }
-        final res = await stream.onResult.timeout(_kModelStallTimeout);
+        final res = await onResult.timeout(_kModelStallTimeout);
         logDebug(
           'askOrchestrator turn done: $deltaCount deltas, '
           'finishReason=${res.finishReason?.value} '
@@ -414,19 +422,19 @@ class AgentService with Loggable {
 
   static String _lightSystem(AgentSettings settings, String? context) {
     return '${_voiceStyle(settings)}\n'
-        'You are the fast first responder. Answer directly when you can do so '
-        'confidently and completely in a couple of sentences — small talk, '
-        'general knowledge, or a question the snapshot below already answers '
-        '(the weather, the day\'s calendar, a timer, a reminder). Only when the '
-        'request needs data the snapshot does not cover — a different place, '
-        'fresher figures than the snapshot\'s "as of" time, an action to '
-        'perform (create, start, cancel, schedule), market prices, current '
-        'events, research, or multi-step reasoning — do not attempt an answer: '
-        'call the $_escalateName tool.\n'
-        'When the user asks to see something you can answer directly (the '
-        'weather, the day\'s calendar, a timer), you may also call '
-        'show_on_screen to put that page on the display — but still speak your '
-        'short answer in words as well.'
+        'You are the fast first responder. Answer directly, in a couple of '
+        'spoken sentences, when you can do so confidently and completely: small '
+        'talk, general knowledge, or a question the snapshot below already '
+        'answers (the weather, the day\'s calendar, a timer, a reminder).\n'
+        'Otherwise do not attempt an answer — call the $_escalateName tool. '
+        'Escalate whenever the request needs something you cannot do in words '
+        'alone: data the snapshot does not cover (a different place, fresher '
+        'figures than its "as of" time, market prices, current events, '
+        'research), an action to perform (create, start, cancel, schedule), a '
+        'page to be shown on the screen, or any multi-step reasoning. The '
+        'powerful assistant behind you holds all the tools and the screen; you '
+        'hold none, so never promise to show or do something yourself — '
+        'escalate and let it act.'
         '${_contextBlock(context)}';
   }
 

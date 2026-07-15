@@ -155,8 +155,10 @@ List<AgentTool> buildAgentTools({
         description:
             'Create a new named countdown (or Pomodoro) timer and, by '
             'default, start it immediately. For "a timer until 15:00", '
-            'compute the minutes from the current time. The timer is saved '
-            'to the user\'s timer list.',
+            'compute the minutes from the current time. A Pomodoro defaults '
+            'to the classic 25 min focus, 5 min short break and 15 min long '
+            'break — only pass those lengths to override them. The timer is '
+            'saved to the user\'s timer list.',
         parameters: const {
           'type': 'object',
           'properties': {
@@ -168,7 +170,8 @@ List<AgentTool> buildAgentTools({
               'type': 'number',
               'description':
                   'Countdown length in minutes (the focus length for a '
-                  'Pomodoro). Fractions allowed.',
+                  'Pomodoro). Fractions allowed. Optional for a Pomodoro, '
+                  'where it defaults to 25; required otherwise.',
             },
             'pomodoro': {
               'type': 'boolean',
@@ -176,32 +179,61 @@ List<AgentTool> buildAgentTools({
                   'Run as a Pomodoro cycle with breaks instead of a plain '
                   'countdown. Default false.',
             },
+            'shortBreakMinutes': {
+              'type': 'number',
+              'description':
+                  'Pomodoro short break length in minutes. Only for a '
+                  'Pomodoro; defaults to 5 when omitted.',
+            },
+            'longBreakMinutes': {
+              'type': 'number',
+              'description':
+                  'Pomodoro long break length in minutes (taken after every '
+                  'few focus sessions). Only for a Pomodoro; defaults to 15 '
+                  'when omitted.',
+            },
             'start': {
               'type': 'boolean',
               'description': 'Start it right away. Default true.',
             },
           },
-          'required': ['name', 'minutes'],
+          'required': ['name'],
         },
         run: (args) async {
           final name = (args['name'] as String?)?.trim() ?? '';
-          final minutes = (args['minutes'] as num?)?.toDouble() ?? 0;
+          final pomodoro = args['pomodoro'] as bool? ?? false;
+          // A Pomodoro without an explicit focus length uses the classic 25
+          // minutes; a plain countdown still needs a length.
+          final minutes =
+              (args['minutes'] as num?)?.toDouble() ?? (pomodoro ? 25.0 : 0);
           if (name.isEmpty || minutes <= 0) {
             return 'Error: a name and a positive number of minutes are '
                 'required.';
           }
+          final shortBreak = (args['shortBreakMinutes'] as num?)?.toDouble();
+          final longBreak = (args['longBreakMinutes'] as num?)?.toDouble();
           final config = TimerConfig(
             id: TimerConfig.newId(),
             name: name,
             duration: Duration(seconds: (minutes * 60).round()),
-            pomodoro: args['pomodoro'] as bool? ?? false,
+            pomodoro: pomodoro,
+            // TimerConfig already defaults these to 5/15; pass them only when
+            // the user asked for something different.
+            shortBreak: shortBreak != null && shortBreak > 0
+                ? Duration(seconds: (shortBreak * 60).round())
+                : const Duration(minutes: 5),
+            longBreak: longBreak != null && longBreak > 0
+                ? Duration(seconds: (longBreak * 60).round())
+                : const Duration(minutes: 15),
           );
           await timers.saveTimers([...timers.timers, config]);
           if (args['start'] as bool? ?? true) {
             timers.select(config.id, name);
             timers.start();
           }
-          display?.show(_timerModuleId);
+          // An explicit action: land on the timer page and stay, rather than
+          // peek and slide back.
+          display?.goTo(_timerModuleId);
           return jsonEncode({
             'created': name,
             'active': _timerStatus(timers, nameOf),
@@ -233,8 +265,43 @@ List<AgentTool> buildAgentTools({
           }
           timers.select(match.id, nameOf(match));
           timers.start();
-          display?.show(_timerModuleId);
+          display?.goTo(_timerModuleId);
           return jsonEncode({'active': _timerStatus(timers, nameOf)});
+        },
+      ),
+      AgentTool(
+        name: 'remove_timer',
+        description:
+            'Delete a configured timer by name, removing it from the user\'s '
+            'timer list. If it is the armed timer, its countdown is cleared. '
+            'Use list_timers to see the names.',
+        parameters: const {
+          'type': 'object',
+          'properties': {
+            'name': {
+              'type': 'string',
+              'description': 'The timer\'s name, as shown by list_timers.',
+            },
+          },
+          'required': ['name'],
+        },
+        run: (args) async {
+          final query = (args['name'] as String?)?.trim() ?? '';
+          final match = _findTimer(timers.timers, nameOf, query);
+          if (match == null) {
+            final names = timers.timers.map(nameOf).join(', ');
+            return 'No timer named "$query". Available: $names.';
+          }
+          final removed = nameOf(match);
+          await timers.saveTimers([
+            for (final t in timers.timers)
+              if (t.id != match.id) t,
+          ]);
+          display?.goTo(_timerModuleId);
+          return jsonEncode({
+            'removed': removed,
+            'active': _timerStatus(timers, nameOf),
+          });
         },
       ),
       AgentTool(
@@ -244,7 +311,7 @@ List<AgentTool> buildAgentTools({
         run: (_) async {
           if (!timers.run.running) return 'No timer is running.';
           timers.pause();
-          display?.show(_timerModuleId);
+          display?.goTo(_timerModuleId);
           return jsonEncode({'active': _timerStatus(timers, nameOf)});
         },
       ),
@@ -256,7 +323,7 @@ List<AgentTool> buildAgentTools({
         run: (_) async {
           if (timers.run.selectedId == null) return 'No timer is armed.';
           timers.reset();
-          display?.show(_timerModuleId);
+          display?.goTo(_timerModuleId);
           return jsonEncode({'active': _timerStatus(timers, nameOf)});
         },
       ),

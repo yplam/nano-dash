@@ -265,7 +265,6 @@ class NanoDashApp extends StatelessWidget {
                   ),
                   displayTool,
                 ],
-                displayTool: displayTool,
                 contextBuilder: () => buildAgentContext(
                   weather: context.read<WeatherRepository>(),
                   calendar: context.read<CalendarRepository>(),

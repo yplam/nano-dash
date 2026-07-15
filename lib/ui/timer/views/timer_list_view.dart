@@ -42,7 +42,11 @@ class TimerListView extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final side = math.min(constraints.maxWidth, constraints.maxHeight);
-        final m = PanelTheme.metricsOf(context, side, shape: PanelShape.square);
+        final m = PanelTheme.metricsOf(
+          context,
+          side,
+          shape: PanelShape.landscape,
+        );
         return Padding(
           padding: m.pageInset.copyWith(bottom: m.pageInset.bottom - 42),
           child: Column(

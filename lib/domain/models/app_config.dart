@@ -16,7 +16,8 @@ class AppConfig implements JsonModel {
   /// [localeTag] value meaning "follow the operating system".
   static const String systemLocaleTag = 'system';
 
-  static const int defaultThemeSeed = 0xFF3F51B5;
+  // Colors.green.
+  static const int defaultThemeSeed = 0xFF4CAF50;
 
   /// [themeModeTag] default: follow the OS light/dark setting.
   static const String defaultThemeModeTag = 'system';

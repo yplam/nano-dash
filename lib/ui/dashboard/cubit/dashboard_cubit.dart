@@ -18,7 +18,7 @@ part 'dashboard_state.dart';
 class DashboardCubit extends Cubit<DashboardState> with Loggable {
   DashboardCubit(this._repository, this._modules, [this._display])
     : super(const DashboardState()) {
-    _displaySub = _display?.requests.listen(showModule);
+    _displaySub = _display?.requests.listen(_onDisplayRequest);
   }
 
   final SettingsRepository _repository;
@@ -28,14 +28,14 @@ class DashboardCubit extends Cubit<DashboardState> with Loggable {
   /// without an agent (e.g. tests that don't exercise it).
   final PanelDisplayController? _display;
 
-  StreamSubscription<String>? _displaySub;
+  StreamSubscription<PanelShowRequest>? _displaySub;
 
   /// Auto-return countdown for a transient (assistant-shown) page.
   Timer? _tempTimer;
 
   /// How long an assistant-shown transient page lingers before returning to the
   /// page that was showing before it.
-  static const Duration _kTempTimeout = Duration(seconds: 20);
+  static const Duration _kTempTimeout = Duration(seconds: 10);
 
   @override
   String get logIdentifier => '[DashboardCubit]';
@@ -124,9 +124,22 @@ class DashboardCubit extends Cubit<DashboardState> with Loggable {
     _commit(items);
   }
 
+  /// Route a controller request: a `sticky` one (an explicit action like
+  /// starting a timer) lands on the module's carousel page and stays; a plain
+  /// one is shown transiently. Sticky falls back to a transient page when the
+  /// module has no carousel slot to stay on (assistant-only), and [goToModule]
+  /// no-ops when the page is already current — so asking about the timer while
+  /// already on the timer page doesn't churn the display.
+  void _onDisplayRequest(PanelShowRequest request) {
+    if (request.sticky && goToModule(request.moduleId)) return;
+    showModule(request.moduleId);
+  }
+
   /// The assistant asks for [moduleId] to be shown. Off/unknown/page-less
-  /// modules are ignored; a carousel module jumps to its page; an
-  /// assistant-only module is brought up as a transient page.
+  /// modules are ignored; anything else is brought up as a transient page over
+  /// the carousel that returns to where the user was after a swipe or a short
+  /// idle. Carousel modules are shown transiently too (rather than jumped to and
+  /// left) so an agent-shown page never strands the user on it.
   void showModule(String moduleId) {
     final module = _modules.byId(moduleId);
     if (module == null || !module.hasDisplay) return;
@@ -135,19 +148,29 @@ class DashboardCubit extends Cubit<DashboardState> with Loggable {
       logDebug('showModule ignored: "$moduleId" is not displayable');
       return;
     }
-    if (item.enabled) {
-      // A real carousel page: jump to it and stay.
-      _cancelTempTimer();
-      goToModule(moduleId);
+    // Already on screen (as the current carousel page, or the current transient
+    // page): showing it again would just slide the same content out and back —
+    // e.g. an agent that both starts a timer and calls show_on_screen for it.
+    if (_isDisplaying(moduleId)) {
+      logDebug('showModule: "$moduleId" already on screen; no-op');
       return;
     }
-    // Assistant-only: show it over the carousel, remembering where to go back.
     logInfo('showModule: "$moduleId" as transient page');
     final returnPage = state.showingTemp
         ? (state.tempReturnPage ?? 0)
         : state.currentPage;
     _startTempTimer();
     emit(state.withTemp(moduleId, returnPage));
+  }
+
+  /// Whether [moduleId] is the page currently on the LCD: the transient page if
+  /// one is up, otherwise the active carousel page.
+  bool _isDisplaying(String moduleId) {
+    if (state.showingTemp) return state.tempModuleId == moduleId;
+    final pages = _modules.pages(state.items);
+    if (pages.isEmpty) return false;
+    final cur = state.currentPage.clamp(0, pages.length - 1);
+    return pages[cur].moduleId == moduleId;
   }
 
   /// Dismiss the transient page, returning to the carousel page that was
@@ -162,16 +185,23 @@ class DashboardCubit extends Cubit<DashboardState> with Loggable {
     emit(state.copyWith(currentPage: target, forward: forward));
   }
 
-  /// Jump the carousel straight to [moduleId]'s page, if it's an enabled,
-  /// displayable page.
-  void goToModule(String moduleId) {
+  /// Jump the carousel straight to [moduleId]'s page and stay there, if it's an
+  /// enabled, displayable page. Returns whether [moduleId] is such a page: true
+  /// even when already there (a no-op — the caller's intent is satisfied),
+  /// false when the module has no carousel page (off or assistant-only), so a
+  /// sticky request can fall back to a transient show.
+  bool goToModule(String moduleId) {
     final pages = _modules.pages(state.items);
     final index = pages.indexWhere((p) => p.moduleId == moduleId);
-    if (index < 0) return;
-    if (index == state.currentPage && !state.showingTemp) return;
+    if (index < 0) return false;
+    if (index == state.currentPage && !state.showingTemp) return true;
+    // A pending transient auto-return would otherwise fire over the page we're
+    // landing on; drop it so this page stays put.
+    _cancelTempTimer();
     emit(
       state.copyWith(currentPage: index, forward: index >= state.currentPage),
     );
+    return true;
   }
 
   /// Advance to the next enabled page (wrapping). The LCD slides content left.

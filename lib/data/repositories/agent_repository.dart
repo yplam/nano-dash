@@ -30,7 +30,6 @@ class AgentRepository with Loggable {
     this._voice,
     this._service, {
     List<AgentTool> tools = const [],
-    this.displayTool,
     this.contextBuilder,
     this.errorLine = 'Sorry, something went wrong.',
     ReminderRepository? reminders,
@@ -56,10 +55,6 @@ class AgentRepository with Loggable {
   final VoiceRepository _voice;
   final AgentService _service;
   final List<AgentTool> _tools;
-
-  /// The `show_on_screen` tool, offered to the light model too so a simple ask
-  /// it answers directly can still bring a page up without escalating.
-  final AgentTool? displayTool;
 
   /// Builds the ambient snapshot (time-adjacent live state: weather, calendar,
   /// timers, reminders) prepended to both models' prompts, or null to add none.
@@ -97,6 +92,12 @@ class AgentRepository with Loggable {
   /// back to its best judgment instead of interrogating the user in a loop.
   static const int _kMaxClarifications = 1;
 
+  /// A paused utterance can reach us as two transcripts, split by VAD on the
+  /// gap. When a new transcript supersedes a run that has not begun its real
+  /// answer, within this window the earlier fragment is prepended so the split
+  /// request stays whole rather than its first half being lost. See [_ask].
+  static const Duration _kSplitUtteranceWindow = Duration(seconds: 3);
+
   late final StreamSubscription<VoiceTranscript> _transcriptSub;
   late final StreamSubscription<VoiceStatus> _statusSub;
   late final StreamSubscription<String?> _wakeSub;
@@ -131,6 +132,19 @@ class AgentRepository with Loggable {
   /// Monotonic run counter: emissions from a superseded run compare stale and
   /// are dropped, so a barge-in can never interleave two answers.
   int _generation = 0;
+
+  /// The user text of the run in flight, retained until it commits its turn to
+  /// [_history]. A follow-on transcript that supersedes the run before it has
+  /// begun answering is treated as the tail of the same (VAD-split) utterance
+  /// and prepended with this. Null when nothing is uncommitted.
+  String? _uncommittedUserText;
+  DateTime? _uncommittedAt;
+
+  /// Whether the in-flight run has begun delivering its real answer (a direct
+  /// light answer or streamed orchestrator text) rather than just the escalate
+  /// acknowledgement. A superseding transcript merges only while this is false;
+  /// once an answer is under way, a new utterance is a genuine barge-in.
+  bool _answerStarted = false;
 
   @override
   String get logIdentifier => '[AgentRepository]';
@@ -288,11 +302,27 @@ class AgentRepository with Loggable {
 
   /// Run one question end to end. Any earlier run is barged in on: cancelled
   /// and its speech stopped, then this one owns the voice.
-  Future<void> _ask(String userText) async {
+  Future<void> _ask(String rawText) async {
+    // A paused utterance can arrive as two transcripts (VAD splits on the gap).
+    // If this one supersedes a run that hadn't begun its real answer yet, and
+    // follows it closely, stitch the earlier fragment back on instead of losing
+    // it; once an answer is under way, treat it as a genuine barge-in.
+    final prior = _uncommittedUserText;
+    final mergeable =
+        prior != null &&
+        !_answerStarted &&
+        _uncommittedAt != null &&
+        DateTime.now().difference(_uncommittedAt!) <= _kSplitUtteranceWindow;
+    final userText = mergeable ? '$prior $rawText' : rawText;
+    if (mergeable) logInfo('merging split utterance: "$prior" + "$rawText"');
+
     _cancelActive();
     await _voice.stopSpeaking();
 
     final generation = ++_generation;
+    _uncommittedUserText = userText;
+    _uncommittedAt = DateTime.now();
+    _answerStarted = false;
     logInfo('ask #$generation: "$userText" (history=${_history.length})');
     final startedAt = DateTime.now();
     final buffer = StringBuffer();
@@ -324,6 +354,12 @@ class AgentRepository with Loggable {
       if (generation == _generation) _setPhase(phase);
     }
 
+    // The point where a real answer starts flowing (not just the escalate
+    // acknowledgement): from here a new utterance is a barge-in, not a merge.
+    void markAnswering() {
+      if (generation == _generation) _answerStarted = true;
+    }
+
     final history = List<AgentTurn>.unmodifiable(_history);
     final context = contextBuilder?.call();
     try {
@@ -333,7 +369,6 @@ class AgentRepository with Loggable {
         history: history,
         userText: userText,
         context: context,
-        showTool: displayTool,
       );
       _active = light;
       await for (final delta in light.deltas) {
@@ -348,6 +383,7 @@ class AgentRepository with Loggable {
       switch (outcome) {
         case LightAnswered(:final text):
           logInfo('ask #$generation: light answered directly');
+          markAnswering();
           // The answer normally arrives as streamed deltas; fall back to the
           // final text when the endpoint didn't stream any.
           if (buffer.isEmpty) push(text);
@@ -381,6 +417,7 @@ class AgentRepository with Loggable {
           _active = orchestrator;
           final lenBeforeOrchestrator = buffer.length;
           await for (final delta in orchestrator.deltas) {
+            markAnswering();
             push(delta);
           }
           final orchestratorText = await orchestrator.result;
@@ -415,6 +452,10 @@ class AgentRepository with Loggable {
       unawaited(tts?.close());
       if (generation == _generation) {
         _active = null;
+        // This run finished as the current one (not superseded): its text is
+        // committed or spent, so there is no split-utterance tail to merge.
+        _uncommittedUserText = null;
+        _uncommittedAt = null;
         _emitReply(
           AgentReply(
             text: buffer.toString(),
@@ -464,6 +505,11 @@ class AgentRepository with Loggable {
     }
     _active?.cancel();
     _active = null;
+    // A superseded or stopped run leaves no split-utterance tail to merge onto
+    // the next transcript (a deliberate stop, or a genuine new question).
+    _uncommittedUserText = null;
+    _uncommittedAt = null;
+    _answerStarted = false;
     // Fail an in-flight ask_user wait so its run unwinds now instead of
     // holding on until the timeout.
     final pending = _pendingAnswer;
