@@ -46,8 +46,9 @@ jobs:
 
       # Both native packages (pico_view's Rust engine, nano_live2d's Live2D engine)
       # ship PREBUILT libraries and register them through Flutter's native-assets
-      # build hook; no Rust/C++ toolchain or Cubism SDK required. pico_view's CH347
-      # DLL is bundled automatically too.
+      # build hook; no Rust/C++ toolchain or Cubism SDK required. The pico_view
+      # engine drives the panel over driverless USB, so no runtime driver DLL is
+      # bundled.
       - name: Enable native assets
         run: flutter config --enable-native-assets
 
@@ -57,7 +58,7 @@ jobs:
       - name: Build Flutter Windows app
         run: flutter build windows --release
 
-      # Portable ZIP straight from the release bundle (includes CH347DLLA64.DLL).
+      # Portable ZIP straight from the release bundle.
       - name: Package portable ZIP
         shell: pwsh
         run: |

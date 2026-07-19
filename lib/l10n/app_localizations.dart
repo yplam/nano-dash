@@ -188,6 +188,12 @@ abstract class AppLocalizations {
   /// **'Weather'**
   String get moduleWeatherTitle;
 
+  /// No description provided for @moduleRadarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Radar'**
+  String get moduleRadarTitle;
+
   /// No description provided for @moduleCalendarTitle.
   ///
   /// In en, this message translates to:
@@ -223,6 +229,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Video'**
   String get moduleVideoTitle;
+
+  /// No description provided for @moduleExampleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Example'**
+  String get moduleExampleTitle;
 
   /// No description provided for @moduleSettingsTitle.
   ///
@@ -1591,6 +1603,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All'**
   String get calendarRangeAll;
+
+  /// No description provided for @calendarCreatePomodoro.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Pomodoro timer'**
+  String get calendarCreatePomodoro;
+
+  /// No description provided for @calendarPomodoroCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Pomodoro timer added'**
+  String get calendarPomodoroCreated;
+
+  /// No description provided for @radarSetLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a location in radar settings'**
+  String get radarSetLocation;
+
+  /// No description provided for @radarNoLayers.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable live flights or rain in radar settings'**
+  String get radarNoLayers;
+
+  /// No description provided for @radarAircraftCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{no aircraft} =1{1 aircraft} other{{count} aircraft}}'**
+  String radarAircraftCount(int count);
+
+  /// No description provided for @radarRainShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Rain'**
+  String get radarRainShort;
+
+  /// No description provided for @radarLatitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Latitude'**
+  String get radarLatitude;
+
+  /// No description provided for @radarLongitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Longitude'**
+  String get radarLongitude;
+
+  /// No description provided for @radarRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Range'**
+  String get radarRange;
+
+  /// No description provided for @radarUseMyLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Use my location'**
+  String get radarUseMyLocation;
+
+  /// No description provided for @radarLocationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t detect your location.'**
+  String get radarLocationFailed;
+
+  /// No description provided for @radarFlightLayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Live flights'**
+  String get radarFlightLayer;
+
+  /// No description provided for @radarRainLayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Rain radar'**
+  String get radarRainLayer;
+
+  /// No description provided for @radarRainSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'RainViewer precipitation overlay'**
+  String get radarRainSubtitle;
+
+  /// No description provided for @radarBasemap.
+  ///
+  /// In en, this message translates to:
+  /// **'Basemap'**
+  String get radarBasemap;
+
+  /// No description provided for @radarBasemapKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Tianditu API key'**
+  String get radarBasemapKey;
+
+  /// No description provided for @radarBasemapKeyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Required for Tianditu. Get a free key at lbs.tianditu.gov.cn'**
+  String get radarBasemapKeyHint;
 
   /// No description provided for @picoViewOpenFailed.
   ///

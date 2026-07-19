@@ -27,6 +27,15 @@ class _TimerViewState extends State<TimerView> {
     setState(() => _viewing = id);
   }
 
+  void _delete(String id) {
+    final cubit = context.read<TimerCubit>();
+    final next = [
+      for (final t in cubit.state.timers)
+        if (t.id != id) t,
+    ];
+    cubit.saveTimers(next);
+  }
+
   void _back() => setState(() => _viewing = null);
 
   void _openStats() => setState(() => _stats = true);
@@ -67,6 +76,7 @@ class _TimerViewState extends State<TimerView> {
             state: state,
             onOpen: _open,
             onStats: _openStats,
+            onDelete: _delete,
           );
         }
         return TimerDetailView(state: state, onBack: _back);

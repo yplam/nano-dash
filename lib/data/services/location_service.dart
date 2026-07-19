@@ -48,4 +48,26 @@ class LocationService {
     }
     return city;
   }
+
+  /// The approximate latitude/longitude for this host's public IP.
+  Future<({double lat, double lon})> currentLatLon() async {
+    final Response<Object?> res;
+    try {
+      res = await _dio.getUri<Object?>(Uri.https(_host, '/'));
+    } on DioException catch (e) {
+      throw LocationException('Location lookup failed: ${e.message}');
+    }
+
+    final data = res.data;
+    final map = data is Map ? Map<String, Object?>.from(data) : null;
+    if (map == null || map['success'] == false) {
+      throw LocationException('Location lookup returned no result');
+    }
+    final lat = (map['latitude'] as num?)?.toDouble();
+    final lon = (map['longitude'] as num?)?.toDouble();
+    if (lat == null || lon == null) {
+      throw LocationException('Location lookup returned no coordinates');
+    }
+    return (lat: lat, lon: lon);
+  }
 }

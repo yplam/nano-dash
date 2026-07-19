@@ -19,14 +19,17 @@ String _format(Duration d) {
 
 /// The timer module's landing list: one tappable row per configured timer, with
 /// a live readout on whichever timer is currently armed. Tapping a row opens its
-/// countdown detail; the foot pill opens the statistics page.
-class TimerListView extends StatelessWidget {
+/// countdown detail; long-pressing a row reveals a trailing delete button on
+/// just that row (tapping elsewhere dismisses it). The foot pill opens the
+/// statistics page.
+class TimerListView extends StatefulWidget {
   const TimerListView({
     super.key,
     required this.timers,
     required this.state,
     required this.onOpen,
     required this.onStats,
+    required this.onDelete,
   });
 
   final List<TimerConfig> timers;
@@ -34,10 +37,34 @@ class TimerListView extends StatelessWidget {
   final void Function(String id, String name) onOpen;
   final VoidCallback onStats;
 
+  /// Remove the timer with the given id (from the long-press delete reveal).
+  final ValueChanged<String> onDelete;
+
+  @override
+  State<TimerListView> createState() => _TimerListViewState();
+}
+
+class _TimerListViewState extends State<TimerListView> {
+  /// The timer whose delete button is currently revealed, or null when none is.
+  String? _revealedId;
+
+  void _reveal(String id) => setState(() => _revealedId = id);
+
+  void _dismissReveal() {
+    if (_revealedId != null) setState(() => _revealedId = null);
+  }
+
+  void _delete(String id) {
+    _dismissReveal();
+    widget.onDelete(id);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
+    final timers = widget.timers;
+    final state = widget.state;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -66,6 +93,7 @@ class TimerListView extends StatelessWidget {
                                 (state.running ||
                                     state.finished ||
                                     state.remaining != t.duration);
+                            final revealed = _revealedId == t.id;
                             return _TimerListRow(
                               name: t.displayName(l10n),
                               colors: colors,
@@ -75,23 +103,39 @@ class TimerListView extends StatelessWidget {
                               finished: armed && state.finished,
                               readout: armed ? state.remaining : t.duration,
                               emphasised: armed,
-                              onTap: () => onOpen(t.id, t.displayName(l10n)),
+                              showDelete: revealed,
+                              // With a delete button revealed, a plain tap on the
+                              // row just dismisses it rather than opening.
+                              onTap: revealed
+                                  ? _dismissReveal
+                                  : () => widget.onOpen(
+                                      t.id,
+                                      t.displayName(l10n),
+                                    ),
+                              onLongPress: () => _reveal(t.id),
+                              onDelete: () => _delete(t.id),
                             );
                           }
 
-                          return SingleChildScrollView(
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minHeight: c.maxHeight,
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  for (var i = 0; i < timers.length; i++) ...[
-                                    if (i > 0) SizedBox(height: m.gap),
-                                    rowFor(timers[i]),
+                          // A tap on the empty space around the rows also
+                          // dismisses a revealed delete button.
+                          return GestureDetector(
+                            behavior: HitTestBehavior.translucent,
+                            onTap: _dismissReveal,
+                            child: SingleChildScrollView(
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minHeight: c.maxHeight,
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    for (var i = 0; i < timers.length; i++) ...[
+                                      if (i > 0) SizedBox(height: m.gap),
+                                      rowFor(timers[i]),
+                                    ],
                                   ],
-                                ],
+                                ),
                               ),
                             ),
                           );
@@ -100,7 +144,7 @@ class TimerListView extends StatelessWidget {
               ),
               if (state.hasStats) ...[
                 SizedBox(height: 8),
-                _StatsButton(colors: colors, metrics: m, onTap: onStats),
+                _StatsButton(colors: colors, metrics: m, onTap: widget.onStats),
               ],
             ],
           ),
@@ -160,7 +204,10 @@ class _TimerListRow extends StatelessWidget {
     required this.finished,
     required this.readout,
     required this.emphasised,
+    required this.showDelete,
     required this.onTap,
+    required this.onLongPress,
+    required this.onDelete,
   });
 
   /// The resolved, localized label for the timer (its name or default label).
@@ -174,7 +221,12 @@ class _TimerListRow extends StatelessWidget {
   final bool finished;
   final Duration readout;
   final bool emphasised;
+
+  /// Whether the trailing delete button is revealed on this row.
+  final bool showDelete;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -194,6 +246,7 @@ class _TimerListRow extends StatelessWidget {
       child: InkWell(
         borderRadius: radius,
         onTap: onTap,
+        onLongPress: onLongPress,
         child: Padding(
           padding: m.cardPaddingLg,
           child: Row(
@@ -215,17 +268,67 @@ class _TimerListRow extends StatelessWidget {
               Expanded(
                 child: Text(
                   name,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: panelFont(m.fontLg, m.weightMedium, foreground),
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 8),
               Text(
                 _format(readout),
                 style: panelFont(m.fontMd, m.weightMedium, foreground),
               ),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 160),
+                curve: Curves.easeOut,
+                child: showDelete
+                    ? Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: _DeleteButton(
+                          colors: colors,
+                          size: m.fontLg,
+                          onTap: onDelete,
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The circular delete affordance revealed at the trailing edge of a row on
+/// long-press.
+class _DeleteButton extends StatelessWidget {
+  const _DeleteButton({
+    required this.colors,
+    required this.size,
+    required this.onTap,
+  });
+
+  final ColorScheme colors;
+  final double size;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final diameter = size * 1.7;
+    return Material(
+      shape: const CircleBorder(),
+      color: colors.errorContainer,
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox(
+          width: diameter,
+          height: diameter,
+          child: Icon(
+            Icons.delete_outline,
+            size: size,
+            color: colors.onErrorContainer,
           ),
         ),
       ),

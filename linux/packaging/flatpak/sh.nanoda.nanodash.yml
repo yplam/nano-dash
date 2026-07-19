@@ -10,7 +10,7 @@ finish-args:
   # GUI sockets.
   - --socket=wayland
   - --socket=fallback-x11
-  # Raw USB access for the CH347 SPI/USB bridge.
+  # Raw USB access for the ESP32-P4 USB display bridge.
   - --device=all
   # Persist shared_preferences / on-disk model + config files.
   - --filesystem=home

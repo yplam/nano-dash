@@ -12,6 +12,7 @@ import 'data/repositories/agent_repository.dart';
 import 'data/repositories/calendar_repository.dart';
 import 'data/repositories/markets_repository.dart';
 import 'data/repositories/module_repository.dart';
+import 'data/repositories/radar_repository.dart';
 import 'data/repositories/reminder_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'data/repositories/timer_repository.dart';
@@ -27,6 +28,9 @@ import 'data/services/markets/markets_service.dart';
 import 'data/services/notification_service.dart';
 import 'data/services/panel_display_controller.dart';
 import 'data/services/pico_view_service.dart';
+import 'data/services/radar/base_map_service.dart';
+import 'data/services/radar/radar_flight_service.dart';
+import 'data/services/radar/rain_radar_service.dart';
 import 'data/services/tray_service.dart';
 import 'data/services/usage_monitor/usage_monitor_service.dart';
 import 'data/services/voice_service.dart';
@@ -42,9 +46,12 @@ import 'ui/markets/markets.dart';
 import 'ui/modules/agent_module.dart';
 import 'ui/modules/calendar_module.dart';
 import 'ui/modules/clock_module.dart';
+// ignore: unused_import
+import 'ui/modules/example_module.dart';
 import 'ui/modules/live2d_module.dart';
 import 'ui/modules/markets_module.dart';
 import 'ui/modules/now_playing_module.dart';
+import 'ui/modules/radar_module.dart';
 import 'ui/modules/settings_module.dart';
 import 'ui/modules/stopwatch_module.dart';
 import 'ui/modules/system_monitor_module.dart';
@@ -54,6 +61,7 @@ import 'ui/modules/video_module.dart';
 import 'ui/modules/voice_module.dart';
 import 'ui/modules/weather_module.dart';
 import 'ui/now_playing/cubit/now_playing_cubit.dart';
+import 'ui/radar/radar.dart';
 import 'ui/settings/cubit/app_config_cubit.dart';
 import 'ui/stopwatch/cubit/stopwatch_cubit.dart';
 import 'ui/system_monitor/cubit/system_monitor_cubit.dart';
@@ -145,6 +153,7 @@ class NanoDashApp extends StatelessWidget {
             const SettingsModule(),
             const ClockModule(),
             const WeatherModule(),
+            if (!kIsWeb) const RadarModule(),
             const TimerModule(),
             const StopwatchModule(),
             if (!kIsWeb) const CalendarModule(),
@@ -156,6 +165,8 @@ class NanoDashApp extends StatelessWidget {
             if (!kIsWeb) const VoiceModule(),
             if (!kIsWeb) const AgentModule(),
             if (!kIsWeb) const VideoModule(),
+            // A minimal pico_view example.
+            if (!kIsWeb) const ExampleModule(),
           ]),
         ),
         RepositoryProvider<SettingsRepository>(
@@ -202,6 +213,15 @@ class NanoDashApp extends StatelessWidget {
             WeatherService(dio),
           ),
         ),
+        if (!kIsWeb)
+          RepositoryProvider<RadarRepository>(
+            create: (context) => RadarRepository(
+              context.read<SettingsRepository>(),
+              RadarFlightService(dio),
+              RainRadarService(dio),
+              BaseMapService(dio),
+            ),
+          ),
         if (!kIsWeb)
           RepositoryProvider<CalendarRepository>(
             create: (context) => CalendarRepository(
@@ -302,6 +322,14 @@ class NanoDashApp extends StatelessWidget {
                 WeatherCubit(context.read<WeatherRepository>()),
             lazy: false,
           ),
+          if (!kIsWeb)
+            BlocProvider<RadarCubit>(
+              create: (context) => RadarCubit(
+                context.read<RadarRepository>(),
+                context.read<LocationService>(),
+              ),
+              lazy: false,
+            ),
           if (!kIsWeb)
             BlocProvider<CalendarCubit>(
               create: (context) =>

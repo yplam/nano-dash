@@ -387,9 +387,6 @@ class PicoViewController {
       _ => null,
     };
     if (phase == null) return;
-    if (kDebugMode) {
-      debugPrint('PicoView touch: $phase (${touch.x}, ${touch.y})');
-    }
     _touch.add(PicoTouchEvent(phase, touch.x, touch.y));
   }
 

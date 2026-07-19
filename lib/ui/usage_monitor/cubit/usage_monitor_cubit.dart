@@ -11,28 +11,31 @@ part 'usage_monitor_state.dart';
 /// Owns the usage monitor settings and drives polling of every enabled
 /// provider's rolling rate-limit usage.
 ///
-/// Polling runs at two cadences: a slow [_kBackgroundInterval] while the page is
-/// off-screen, and a faster [_kForegroundInterval] while the user is viewing the
-/// module.
+/// Providers (Claude in particular) enforce their own rate limits, so polling
+/// runs at a single steady [_kPollInterval] whether or not the module is
+/// on-screen — we never poll faster in the foreground. Bringing the module into
+/// view only triggers an extra fetch when the last poll has already gone stale.
 class UsageMonitorCubit extends Cubit<UsageMonitorState> with Loggable {
   UsageMonitorCubit(this._repository) : super(_restore(_repository)) {
     _fetch();
-    _startTimer(_kBackgroundInterval);
+    _timer = Timer.periodic(_kPollInterval, (_) => _fetch());
   }
 
   final UsageMonitorRepository _repository;
 
-  /// How often to re-poll while the page is off-screen. Rate-limit windows move
-  /// slowly, so a slow cadence keeps the reset countdowns honest without churn.
-  static const Duration _kBackgroundInterval = Duration(minutes: 10);
-
-  /// How often to re-poll while the user is viewing the module.
-  static const Duration _kForegroundInterval = Duration(minutes: 1);
+  /// How often to re-poll usage. Rate-limit windows move slowly and the
+  /// upstream APIs are themselves rate limited, so a single slow cadence keeps
+  /// the reset countdowns honest without risking throttling.
+  static const Duration _kPollInterval = Duration(minutes: 10);
 
   Timer? _timer;
 
   /// Guards against a slow in-flight fetch overwriting a newer one's result.
   int _requestId = 0;
+
+  /// When the most recent fetch was *started*. Used to throttle the extra fetch
+  /// on view activation so rapid view switches can't hammer a rate-limited API.
+  DateTime? _lastFetchStarted;
 
   @override
   String get logIdentifier => '[UsageMonitorCubit]';
@@ -51,24 +54,24 @@ class UsageMonitorCubit extends Cubit<UsageMonitorState> with Loggable {
   /// Force an immediate refresh (e.g. a manual pull).
   void refresh() => _fetch();
 
-  /// Called when the module is switched into view: fetch immediately and poll at
-  /// the faster foreground cadence.
+  /// Called when the module is switched into view. The steady background poll
+  /// keeps data reasonably fresh, so only fetch here when the last poll is
+  /// already older than [_kPollInterval] — this avoids extra rate-limit
+  /// pressure from repeatedly switching the module in and out of view.
   void onViewActive() {
-    _fetch();
-    _startTimer(_kForegroundInterval);
+    final last = _lastFetchStarted;
+    if (last == null || DateTime.now().difference(last) >= _kPollInterval) {
+      _fetch();
+    }
   }
 
-  /// Called when the module is switched out of view: drop back to the slower
-  /// background cadence.
-  void onViewInactive() => _startTimer(_kBackgroundInterval);
-
-  void _startTimer(Duration interval) {
-    _timer?.cancel();
-    _timer = Timer.periodic(interval, (_) => _fetch());
-  }
+  /// The poll runs at a single cadence regardless of visibility, so there is
+  /// nothing to do when the module leaves the view.
+  void onViewInactive() {}
 
   Future<void> _fetch() async {
     final id = ++_requestId;
+    _lastFetchStarted = DateTime.now();
     emit(state.copyWith(loading: true));
     try {
       final usage = await _repository.fetch();

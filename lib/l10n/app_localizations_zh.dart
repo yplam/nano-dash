@@ -55,6 +55,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get moduleWeatherTitle => '天气';
 
   @override
+  String get moduleRadarTitle => '雷达';
+
+  @override
   String get moduleCalendarTitle => '日历';
 
   @override
@@ -71,6 +74,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get moduleVideoTitle => '视频';
+
+  @override
+  String get moduleExampleTitle => '示例';
 
   @override
   String get moduleSettingsTitle => '设置';
@@ -782,6 +788,66 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get calendarRangeAll => '全部';
+
+  @override
+  String get calendarCreatePomodoro => '创建番茄钟';
+
+  @override
+  String get calendarPomodoroCreated => '已添加番茄钟';
+
+  @override
+  String get radarSetLocation => '请在雷达设置中设置位置';
+
+  @override
+  String get radarNoLayers => '请在雷达设置中开启航班或降雨图层';
+
+  @override
+  String radarAircraftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 架航班',
+      one: '1 架航班',
+      zero: '无航班',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get radarRainShort => '降雨';
+
+  @override
+  String get radarLatitude => '纬度';
+
+  @override
+  String get radarLongitude => '经度';
+
+  @override
+  String get radarRange => '范围';
+
+  @override
+  String get radarUseMyLocation => '使用我的位置';
+
+  @override
+  String get radarLocationFailed => '无法检测到你的位置。';
+
+  @override
+  String get radarFlightLayer => '实时航班';
+
+  @override
+  String get radarRainLayer => '降雨雷达';
+
+  @override
+  String get radarRainSubtitle => 'RainViewer 降水叠加层';
+
+  @override
+  String get radarBasemap => '底图';
+
+  @override
+  String get radarBasemapKey => '天地图 API 密钥';
+
+  @override
+  String get radarBasemapKeyHint => '使用天地图时必填。可在 lbs.tianditu.gov.cn 免费申请';
 
   @override
   String get picoViewOpenFailed => '无法打开 LCD 显示屏。';

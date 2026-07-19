@@ -49,12 +49,6 @@ class CalendarService with Loggable {
     final headers = _authHeader(source);
     final client = _clientFor(source);
     final proxied = !identical(client, _dio);
-    logDebug(
-      'fetch start: label="${source.label}" kind=${source.kind.name} '
-      'url=${source.url} auth=${headers != null} '
-      'proxy=${proxied ? (source.proxy ?? '') : 'none'} '
-      'window=[$windowStart, $windowEnd)',
-    );
     try {
       final ics = source.kind == CalendarKind.caldav
           ? await _fetchCalDav(client, source, headers, windowStart, windowEnd)
@@ -65,10 +59,6 @@ class CalendarService with Loggable {
         source: source,
         windowStart: windowStart,
         windowEnd: windowEnd,
-      );
-      logDebug(
-        'fetch ok: label="${source.label}" parsed ${events.length} event(s) '
-        'in window from ${ics.length} chars of ICS',
       );
       return events;
     } catch (e, s) {
@@ -109,7 +99,6 @@ class CalendarService with Loggable {
     Map<String, String>? headers,
   ) async {
     final uri = _normalize(source.url);
-    logDebug('ICS GET $uri');
     final Response<Object?> res;
     try {
       res = await client.getUri<Object?>(
@@ -123,7 +112,6 @@ class CalendarService with Loggable {
       );
       throw CalendarException('Fetch failed for ${source.url}: ${e.message}');
     }
-    logDebug('ICS GET $uri -> ${_responseSummary(res)}');
     final body = res.data;
     if (body is! String || !body.contains('BEGIN:VCALENDAR')) {
       logWarning(
@@ -170,7 +158,6 @@ class CalendarService with Loggable {
     DateTime windowEnd,
   ) async {
     final uri = _normalize(source.url);
-    logDebug('CalDAV REPORT $uri');
     final Response<Object?> res;
     try {
       res = await client.requestUri<Object?>(
@@ -195,7 +182,6 @@ class CalendarService with Loggable {
         'CalDAV REPORT failed for ${source.url}: ${e.message}',
       );
     }
-    logDebug('CalDAV REPORT $uri -> ${_responseSummary(res)}');
     final xml = res.data;
     if (xml is! String) {
       logWarning(
@@ -207,7 +193,6 @@ class CalendarService with Loggable {
     // Some servers answer a collection GET/REPORT with plain ICS; accept that.
     if (blocks.isEmpty) {
       if (xml.contains('BEGIN:VCALENDAR')) {
-        logDebug('CalDAV $uri: no calendar-data blocks, using plain ICS body');
         return xml;
       }
       logWarning(
@@ -215,7 +200,6 @@ class CalendarService with Loggable {
       );
       throw CalendarException('No calendar data from ${source.url}');
     }
-    logDebug('CalDAV $uri: extracted ${blocks.length} calendar-data block(s)');
     return blocks.join('\n');
   }
 

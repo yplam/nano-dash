@@ -55,6 +55,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moduleWeatherTitle => 'Weather';
 
   @override
+  String get moduleRadarTitle => 'Radar';
+
+  @override
   String get moduleCalendarTitle => 'Calendar';
 
   @override
@@ -71,6 +74,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moduleVideoTitle => 'Video';
+
+  @override
+  String get moduleExampleTitle => 'Example';
 
   @override
   String get moduleSettingsTitle => 'Settings';
@@ -796,6 +802,67 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calendarRangeAll => 'All';
+
+  @override
+  String get calendarCreatePomodoro => 'Create Pomodoro timer';
+
+  @override
+  String get calendarPomodoroCreated => 'Pomodoro timer added';
+
+  @override
+  String get radarSetLocation => 'Set a location in radar settings';
+
+  @override
+  String get radarNoLayers => 'Enable live flights or rain in radar settings';
+
+  @override
+  String radarAircraftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count aircraft',
+      one: '1 aircraft',
+      zero: 'no aircraft',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get radarRainShort => 'Rain';
+
+  @override
+  String get radarLatitude => 'Latitude';
+
+  @override
+  String get radarLongitude => 'Longitude';
+
+  @override
+  String get radarRange => 'Range';
+
+  @override
+  String get radarUseMyLocation => 'Use my location';
+
+  @override
+  String get radarLocationFailed => 'Couldn\'t detect your location.';
+
+  @override
+  String get radarFlightLayer => 'Live flights';
+
+  @override
+  String get radarRainLayer => 'Rain radar';
+
+  @override
+  String get radarRainSubtitle => 'RainViewer precipitation overlay';
+
+  @override
+  String get radarBasemap => 'Basemap';
+
+  @override
+  String get radarBasemapKey => 'Tianditu API key';
+
+  @override
+  String get radarBasemapKeyHint =>
+      'Required for Tianditu. Get a free key at lbs.tianditu.gov.cn';
 
   @override
   String get picoViewOpenFailed => 'Couldn\'t open the LCD display.';

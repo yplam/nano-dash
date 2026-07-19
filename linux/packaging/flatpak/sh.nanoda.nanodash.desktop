@@ -2,11 +2,11 @@
 Type=Application
 Name=Nano Dash
 GenericName=SPI LCD Dashboard
-Comment=Mirror a Flutter dashboard to an external SPI LCD over CH347 USB
+Comment=Mirror a Flutter dashboard to an external SPI LCD over USB
 Exec=nano_dash
 Icon=sh.nanoda.nanodash
 Terminal=false
 Categories=Utility;
-Keywords=Dashboard;LCD;SPI;CH347;
+Keywords=Dashboard;LCD;SPI;ESP32;
 StartupNotify=false
 StartupWMClass=sh.nanoda.nanodash
